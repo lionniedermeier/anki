@@ -23,11 +23,11 @@ pub fn write_rust_interface(pool: &DescriptorPool) -> Result<()> {
     let (col_services, backend_services) = get_services(pool);
     let col_services = col_services
         .into_iter()
-        .filter(|s| s.name != "FrontendService")
+        .filter(|s| !["FrontendService", "AddonsService"].contains(&s.name.as_str()))
         .collect_vec();
     let backend_services = backend_services
         .into_iter()
-        .filter(|s| s.name != "BackendFrontendService")
+        .filter(|s| !["BackendFrontendService", "BackendAddonsService"].contains(&s.name.as_str()))
         .collect_vec();
 
     render_collection_services(&col_services, &mut buf)?;

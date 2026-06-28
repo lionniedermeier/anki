@@ -413,6 +413,7 @@ def handle_request(pathin: str) -> Response:
 def is_sveltekit_page(path: str) -> bool:
     page_name = path.split("/")[0]
     return page_name in [
+        "addon-manager",
         "graphs",
         "congrats",
         "card-info",
@@ -698,6 +699,246 @@ def save_custom_colours() -> bytes:
     return b""
 
 
+# Add-on manager handlers
+# All mutations run on the Qt main thread via run_on_main so they can interact
+# with the existing AddonManager, progress dialogs, and Qt file pickers.
+
+
+def get_addons() -> bytes:
+    from anki.addons_pb2 import Addon, AddonList
+    from anki.utils import int_version_to_str
+    from aqt.addons import _current_version
+
+    mgr = aqt.mw.addonManager
+    addons = []
+    for meta in mgr.all_addon_meta():
+        compat_summary = ""
+        if not meta.compatible():
+            min_v = meta.min_version
+            if min_v and min_v > _current_version:
+                compat_summary = f"Anki >= {int_version_to_str(min_v)}"
+            else:
+                max_v = abs(meta.max_version)
+                compat_summary = f"Anki <= {int_version_to_str(max_v)}"
+        addons.append(
+            Addon(
+                dir_name=meta.dir_name,
+                human_name=meta.human_name(),
+                enabled=meta.enabled,
+                compatible=meta.compatible(),
+                compat_summary=compat_summary,
+                has_config=mgr.addonConfigDefaults(meta.dir_name) is not None,
+                page_url=meta.page() or "",
+                human_version=meta.human_version or "",
+            )
+        )
+    return AddonList(addons=addons).SerializeToString()
+
+
+def set_addon_enabled() -> bytes:
+    from anki.addons_pb2 import SetAddonEnabledRequest
+
+    inp = SetAddonEnabledRequest()
+    inp.ParseFromString(request.data)
+
+    def handle_on_main() -> None:
+        from aqt.addons_dialog import AddonsWebDialog
+
+        aqt.mw.addonManager.toggleEnabled(inp.dir_name, enable=inp.enabled)
+        window = aqt.mw.app.activeModalWidget()
+        if isinstance(window, AddonsWebDialog):
+            window._require_restart = True
+            window.refresh_list()
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def delete_addon() -> bytes:
+    from anki.addons_pb2 import AddonId
+    from aqt import gui_hooks
+
+    inp = AddonId()
+    inp.ParseFromString(request.data)
+
+    def handle_on_main() -> None:
+        from typing import cast
+
+        from aqt.addons import AddonsDialog
+        from aqt.addons_dialog import AddonsWebDialog
+
+        mgr = aqt.mw.addonManager
+        window = aqt.mw.app.activeModalWidget()
+        if not isinstance(window, AddonsWebDialog):
+            return
+        # Cast so existing hook signatures remain satisfied; AddonsWebDialog has .mgr
+        gui_hooks.addons_dialog_will_delete_addons(
+            cast(AddonsDialog, window), [inp.dir_name]
+        )
+        mgr.deleteAddon(inp.dir_name)
+        window._require_restart = True
+        window.refresh_list()
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def open_addon_folder() -> bytes:
+    from anki.addons_pb2 import AddonId
+
+    inp = AddonId()
+    inp.ParseFromString(request.data)
+
+    def handle_on_main() -> None:
+        from aqt.utils import openFolder
+
+        mgr = aqt.mw.addonManager
+        path = mgr.addonsFolder(inp.dir_name) if inp.dir_name else mgr.addonsFolder()
+        openFolder(path)
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def open_addon_page() -> bytes:
+    from anki.addons_pb2 import AddonId
+
+    inp = AddonId()
+    inp.ParseFromString(request.data)
+
+    def handle_on_main() -> None:
+        from aqt.utils import openLink
+
+        meta = aqt.mw.addonManager.addon_meta(inp.dir_name)
+        url = meta.page()
+        if url:
+            openLink(url)
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def open_addon_config() -> bytes:
+    from anki.addons_pb2 import AddonId
+
+    inp = AddonId()
+    inp.ParseFromString(request.data)
+
+    def handle_on_main() -> None:
+        from typing import cast
+
+        from aqt.addons import AddonsDialog, ConfigEditor
+        from aqt.addons_dialog import AddonsWebDialog
+        from aqt.utils import tooltip
+
+        mgr = aqt.mw.addonManager
+        window = aqt.mw.app.activeModalWidget()
+        if not isinstance(window, AddonsWebDialog):
+            return
+        act = mgr.configAction(inp.dir_name)
+        if act is not None:
+            ret = act()
+            if ret is not False:
+                return
+        conf = mgr.getConfig(inp.dir_name)
+        if conf is None:
+            tooltip(tr.addons_addon_has_no_configuration())
+            return
+        # Cast so ConfigEditor's AddonsDialog annotation is satisfied; AddonsWebDialog has .mgr
+        ConfigEditor(cast(AddonsDialog, window), inp.dir_name, conf)
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def install_addons_from_files() -> bytes:
+    def handle_on_main() -> None:
+        from aqt.addons import installAddonPackages
+        from aqt.addons_dialog import AddonsWebDialog
+        from aqt.utils import getFile
+
+        window = aqt.mw.app.activeModalWidget()
+        if not isinstance(window, AddonsWebDialog):
+            return
+        paths = getFile(
+            window,
+            tr.addons_install_anki_addon(),
+            cb=None,
+            filter=tr.addons_packaged_anki_addon() + " (*.ankiaddon *.zip)",
+            key="addons",
+            multi=True,
+        )
+        if paths:
+            installAddonPackages(
+                aqt.mw.addonManager, list(paths), parent=window, force_enable=True
+            )
+            window.refresh_list()
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def get_addons_from_anki_web() -> bytes:
+    def handle_on_main() -> None:
+        from typing import cast
+
+        from aqt.addons import (
+            AddonsDialog,
+            GetAddons,
+            download_addons,
+            show_log_to_user,
+        )
+        from aqt.addons_dialog import AddonsWebDialog
+
+        window = aqt.mw.app.activeModalWidget()
+        if not isinstance(window, AddonsWebDialog):
+            return
+        # Cast so GetAddons's AddonsDialog annotation is satisfied; AddonsWebDialog has .mgr
+        obj = GetAddons(cast(AddonsDialog, window))
+        if not obj.ids:
+            return
+
+        def after_downloading(log: list) -> None:
+            window.refresh_list()
+            show_log_to_user(window, log)
+
+        download_addons(window, aqt.mw.addonManager, obj.ids, after_downloading)
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def check_for_addon_updates() -> bytes:
+    def handle_on_main() -> None:
+        from aqt.addons import check_and_prompt_for_updates, show_log_to_user
+        from aqt.addons_dialog import AddonsWebDialog
+
+        window = aqt.mw.app.activeModalWidget()
+        if not isinstance(window, AddonsWebDialog):
+            return
+
+        def after_downloading(log: list) -> None:
+            window.refresh_list()
+            show_log_to_user(window, log)
+
+        check_and_prompt_for_updates(window, aqt.mw.addonManager, after_downloading)
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def addons_ready() -> bytes:
+    def handle_on_main() -> None:
+        from aqt.addons_dialog import AddonsWebDialog
+
+        window = aqt.mw.app.activeModalWidget()
+        if isinstance(window, AddonsWebDialog):
+            window.set_ready()
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
 post_handler_list = [
     congrats_info,
     get_deck_configs_for_update,
@@ -714,6 +955,17 @@ post_handler_list = [
     deck_options_require_close,
     deck_options_ready,
     save_custom_colours,
+    # AddonsService
+    get_addons,
+    set_addon_enabled,
+    delete_addon,
+    open_addon_folder,
+    open_addon_page,
+    open_addon_config,
+    install_addons_from_files,
+    get_addons_from_anki_web,
+    check_for_addon_updates,
+    addons_ready,
 ]
 
 
