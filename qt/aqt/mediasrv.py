@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from errno import EPROTOTYPE
 from http import HTTPStatus
 from pathlib import Path
+from typing import Any
 
 import flask
 import stringcase
@@ -413,6 +414,7 @@ def handle_request(pathin: str) -> Response:
 def is_sveltekit_page(path: str) -> bool:
     page_name = path.split("/")[0]
     return page_name in [
+        "addon-config",
         "addon-manager",
         "graphs",
         "congrats",
@@ -818,6 +820,29 @@ def open_addon_page() -> bytes:
     return b""
 
 
+def _addon_form_properties(schema: Any) -> tuple[dict, bool] | None:
+    """Extract the auto-form field map from a parsed config.schema.json.
+
+    Returns ``(properties, validatable)`` or ``None`` if the schema can't drive a
+    form. ``validatable`` is True only for a standard JSON Schema (with a
+    ``properties`` map), where the file is also a usable jsonschema validator.
+
+    Two layouts are supported:
+    - Standard JSON Schema: ``{"properties": {key: {...}}, ...}``.
+    - Flat descriptor map: top-level keys (minus ``$``-prefixed meta keys) each
+      map to a VSCode-style field descriptor ``{"type": ..., ...}``.
+    """
+    if not isinstance(schema, dict):
+        return None
+    props = schema.get("properties")
+    if isinstance(props, dict) and props:
+        return props, True
+    fields = {k: v for k, v in schema.items() if not k.startswith("$")}
+    if fields and all(isinstance(v, dict) and "type" in v for v in fields.values()):
+        return fields, False
+    return None
+
+
 def open_addon_config() -> bytes:
     from anki.addons_pb2 import AddonId
 
@@ -825,10 +850,12 @@ def open_addon_config() -> bytes:
     inp.ParseFromString(request.data)
 
     def handle_on_main() -> None:
+        import json
+        import os
         from typing import cast
 
         from aqt.addons import AddonsDialog, ConfigEditor
-        from aqt.addons_dialog import AddonsWebDialog
+        from aqt.addons_dialog import AddonConfigDialog, AddonsWebDialog
         from aqt.utils import tooltip
 
         mgr = aqt.mw.addonManager
@@ -844,8 +871,156 @@ def open_addon_config() -> bytes:
         if conf is None:
             tooltip(tr.addons_addon_has_no_configuration())
             return
-        # Cast so ConfigEditor's AddonsDialog annotation is satisfied; AddonsWebDialog has .mgr
-        ConfigEditor(cast(AddonsDialog, window), inp.dir_name, conf)
+        # Use the auto-generated Svelte form when config.schema.json describes the
+        # fields (either a standard JSON Schema with "properties", or a flat
+        # descriptor map). Otherwise fall back to the raw-JSON ConfigEditor.
+        use_schema_form = False
+        schema_path = mgr._addon_schema_path(inp.dir_name)
+        if os.path.exists(schema_path):
+            try:
+                with open(schema_path, encoding="utf-8") as f:
+                    schema = json.load(f)
+                if _addon_form_properties(schema) is not None:
+                    use_schema_form = True
+            except Exception:
+                pass
+        if use_schema_form:
+            AddonConfigDialog(mgr, inp.dir_name)
+        else:
+            # Cast so ConfigEditor's AddonsDialog annotation is satisfied;
+            # AddonsWebDialog has .mgr
+            ConfigEditor(cast(AddonsDialog, window), inp.dir_name, conf)
+
+    aqt.mw.taskman.run_on_main(handle_on_main)
+    return b""
+
+
+def get_addon_config() -> bytes:
+    from anki.addons_pb2 import AddonConfigInfo
+
+    mgr = aqt.mw.addonManager
+
+    def resolve() -> AddonConfigInfo:
+        import json
+
+        from aqt.addons_dialog import AddonConfigDialog
+
+        window = aqt.mw.app.activeModalWidget()
+        if not isinstance(window, AddonConfigDialog):
+            raise Exception("addon config dialog not open")
+        dir_name = window.dir_name
+        help_html = mgr.addonConfigHelp(dir_name) or ""
+
+        with open(mgr._addon_schema_path(dir_name), encoding="utf-8") as f:
+            schema = json.load(f)
+        form = _addon_form_properties(schema)
+        if form is None:
+            raise Exception("addon schema does not describe a config form")
+        properties, _validatable = form
+
+        # config.json supplies the field defaults; getConfig() merges meta.json
+        # user overrides on top. A descriptor's own "default" is the fallback for
+        # any field missing from config.json.
+        defaults_raw = mgr.addonConfigDefaults(dir_name) or {}
+        config_raw = mgr.getConfig(dir_name) or {}
+        defaults: dict = {}
+        values: dict = {}
+        for key, desc in properties.items():
+            if key in defaults_raw:
+                defaults[key] = defaults_raw[key]
+            elif isinstance(desc, dict) and "default" in desc:
+                defaults[key] = desc["default"]
+            else:
+                defaults[key] = None
+            values[key] = config_raw.get(key, defaults[key])
+
+        title = (schema.get("title") if isinstance(schema, dict) else None) or (
+            mgr.addonName(dir_name)
+        )
+        return AddonConfigInfo(
+            title=title,
+            schema_json=json.dumps(properties),
+            config_json=json.dumps(values),
+            defaults_json=json.dumps(defaults),
+            help_html=help_html,
+        )
+
+    import concurrent.futures
+
+    future: concurrent.futures.Future[AddonConfigInfo] = concurrent.futures.Future()
+
+    def on_main() -> None:
+        try:
+            future.set_result(resolve())
+        except Exception as exc:
+            future.set_exception(exc)
+
+    aqt.mw.taskman.run_on_main(on_main)
+    result = future.result(timeout=10)
+    return result.SerializeToString()
+
+
+def set_addon_config() -> bytes:
+    from anki.addons_pb2 import SetAddonConfigRequest
+
+    inp = SetAddonConfigRequest()
+    inp.ParseFromString(request.data)
+
+    def handle_on_main() -> None:
+        import json
+
+        from aqt import gui_hooks
+        from aqt.addons_dialog import AddonConfigDialog
+
+        window = aqt.mw.app.activeModalWidget()
+        if not isinstance(window, AddonConfigDialog):
+            return
+        dir_name = window.dir_name
+        mgr = aqt.mw.addonManager
+        # Mirror ConfigEditor.accept(): run the will_update_json hook,
+        # validate, and persist — so all add-on save hooks keep firing.
+        txt = gui_hooks.addon_config_editor_will_update_json(inp.config_json, dir_name)
+        new_conf = json.loads(txt)
+        if not isinstance(new_conf, dict):
+            raise Exception("Config must be a JSON object")
+        # Only validate when config.schema.json is a standard JSON Schema. A flat
+        # descriptor map isn't a validator for the saved flat values.
+        schema = mgr._addon_schema(dir_name)
+        form = _addon_form_properties(schema)
+        if form is not None and form[1]:
+            import jsonschema
+
+            jsonschema.validate(new_conf, schema)
+        old_conf = mgr.getConfig(dir_name) or {}
+        if new_conf != old_conf:
+            mgr.writeConfig(dir_name, new_conf)
+            updated = mgr.configUpdatedAction(dir_name)
+            if updated is not None:
+                updated(new_conf)
+
+    import concurrent.futures
+
+    future: concurrent.futures.Future[None] = concurrent.futures.Future()
+
+    def on_main() -> None:
+        try:
+            handle_on_main()
+            future.set_result(None)
+        except Exception as exc:
+            future.set_exception(exc)
+
+    aqt.mw.taskman.run_on_main(on_main)
+    future.result(timeout=10)
+    return b""
+
+
+def close_addon_config() -> bytes:
+    def handle_on_main() -> None:
+        from aqt.addons_dialog import AddonConfigDialog
+
+        window = aqt.mw.app.activeModalWidget()
+        if isinstance(window, AddonConfigDialog):
+            window.reject()
 
     aqt.mw.taskman.run_on_main(handle_on_main)
     return b""
@@ -966,6 +1141,10 @@ post_handler_list = [
     get_addons_from_anki_web,
     check_for_addon_updates,
     addons_ready,
+    # AddonConfigService (schema-driven config editor)
+    get_addon_config,
+    set_addon_config,
+    close_addon_config,
 ]
 
 

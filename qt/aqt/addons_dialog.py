@@ -10,6 +10,38 @@ from aqt.utils import disable_help_button, restoreGeom, saveGeom, tooltip, tr
 from aqt.webview import AnkiWebView, AnkiWebViewKind
 
 
+class AddonConfigDialog(QDialog):
+    """Thin Qt shell hosting the schema-driven Svelte add-on config editor."""
+
+    silentlyClose = True
+
+    def __init__(self, addonsManager: AddonManager, dir_name: str) -> None:
+        self.mgr = addonsManager
+        self.mw = addonsManager.mw
+        self.dir_name = dir_name
+        QDialog.__init__(self, self.mw, Qt.WindowType.Window)
+        self._setup_ui()
+
+    def _setup_ui(self) -> None:
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.mw.garbage_collect_on_dialog_finish(self)
+        disable_help_button(self)
+        restoreGeom(self, "addon-config", default_size=(600, 500))
+        self.web = AnkiWebView(kind=AnkiWebViewKind.ADDON_CONFIG)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.web)
+        self.setLayout(layout)
+        self.web.load_sveltekit_page("addon-config")
+        self.show()
+
+    def reject(self) -> None:
+        self.web.cleanup()
+        self.web = None  # type: ignore
+        saveGeom(self, "addon-config")
+        QDialog.reject(self)
+
+
 class AddonsWebDialog(QDialog):
     """Thin Qt shell that hosts the Svelte add-on manager page."""
 

@@ -31,6 +31,12 @@ service AddonsService {
   rpc CheckForAddonUpdates(generic.Empty) returns (generic.Empty);
   // Called by the Svelte page after it has finished loading.
   rpc AddonsReady(generic.Empty) returns (generic.Empty);
+  // Return schema + merged config for the schema-driven config editor.
+  rpc GetAddonConfig(generic.Empty) returns (AddonConfigInfo);
+  // Validate and persist new config values (JSON-encoded object).
+  rpc SetAddonConfig(SetAddonConfigRequest) returns (generic.Empty);
+  // Dismiss the config editor dialog.
+  rpc CloseAddonConfig(generic.Empty) returns (generic.Empty);
 }
 
 // Empty — no Rust implementation needed; all methods are handled in Python.
@@ -63,4 +69,23 @@ message Addon {
 
 message AddonList {
   repeated Addon addons = 1;
+}
+
+// Payload for the schema-driven config editor.
+message AddonConfigInfo {
+  // Schema "title" if present, else the add-on's human name.
+  string title = 1;
+  // Raw content of config.schema.json (a JSON Schema object).
+  string schema_json = 2;
+  // JSON-encoded merged config (getConfig: defaults + user overrides).
+  string config_json = 3;
+  // JSON-encoded factory defaults from config.json.
+  string defaults_json = 4;
+  // HTML rendered from config.md (empty string when absent).
+  string help_html = 5;
+}
+
+message SetAddonConfigRequest {
+  // JSON-encoded config object to validate and persist.
+  string config_json = 1;
 }

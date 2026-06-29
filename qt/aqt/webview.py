@@ -60,6 +60,7 @@ class AnkiWebViewKind(Enum):
     IMPORT_LOG = "import log"
     IMPORT_ANKI_PACKAGE = "anki package import"
     ADDONS = "addon manager"
+    ADDON_CONFIG = "addon config"
 
 
 class AuthInterceptor(QWebEngineUrlRequestInterceptor):
@@ -136,6 +137,7 @@ class AnkiWebPage(QWebEnginePage):
     def _profileForPage(self, kind: AnkiWebViewKind) -> QWebEngineProfile:
         have_api_access = kind in (
             AnkiWebViewKind.ADDONS,
+            AnkiWebViewKind.ADDON_CONFIG,
             AnkiWebViewKind.DECK_OPTIONS,
             AnkiWebViewKind.EDITOR,
             AnkiWebViewKind.DECK_STATS,
