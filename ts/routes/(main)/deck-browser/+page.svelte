@@ -79,6 +79,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         bridgeCommand("changed");
         await refresh();
     }
+
+    function createDeck(): void {
+        bridgeCommand("create");
+    }
+
+    function importFile(): void {
+        bridgeCommand("import");
+    }
+
+    function getShared(): void {
+        bridgeCommand("shared");
+    }
 </script>
 
 <div class="deck-browser">
@@ -126,10 +138,22 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     </TreeView>
 
     <div class="stats">{studiedToday}</div>
+
+    <div class="bottom-bar">
+        <LabelButton tabbable on:click={createDeck}>
+            {tr.decksCreateDeck()}
+        </LabelButton>
+        <LabelButton tabbable on:click={importFile}>
+            {tr.decksImportFile()}
+        </LabelButton>
+        <LabelButton tabbable on:click={getShared}>
+            {tr.decksGetShared()}
+        </LabelButton>
+    </div>
 </div>
 
 <style lang="scss">
-    @use "../../lib/sass/card-counts";
+    @use "../../../lib/sass/card-counts";
 
     .deck-browser {
         display: flex;
@@ -185,5 +209,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     .stats {
         margin-top: 1rem;
         text-align: center;
+    }
+
+    .bottom-bar {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border-subtle);
     }
 </style>

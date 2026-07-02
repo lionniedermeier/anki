@@ -15,6 +15,10 @@ import AlignVerticalCenter_ from "@mdi/svg/svg/align-vertical-center.svg?compone
 import alignVerticalCenter_ from "@mdi/svg/svg/align-vertical-center.svg?url";
 import AlignVerticalTop_ from "@mdi/svg/svg/align-vertical-top.svg?component";
 import alignVerticalTop_ from "@mdi/svg/svg/align-vertical-top.svg?url";
+import CardsOutline_ from "@mdi/svg/svg/cards-outline.svg?component";
+import cardsOutline_ from "@mdi/svg/svg/cards-outline.svg?url";
+import ChartBar_ from "@mdi/svg/svg/chart-bar.svg?component";
+import chartBar_ from "@mdi/svg/svg/chart-bar.svg?url";
 import CheckCircle_ from "@mdi/svg/svg/check-circle.svg?component";
 import checkCircle_ from "@mdi/svg/svg/check-circle.svg?url";
 import ChevronDown_ from "@mdi/svg/svg/chevron-down.svg?component";
@@ -191,6 +195,8 @@ import stickyHollow_ from "../../icons/sticky-pin-hollow.svg?url";
 import StickySolid_ from "../../icons/sticky-pin-solid.svg?component";
 import stickySolid_ from "../../icons/sticky-pin-solid.svg?url";
 
+export const cardsOutlineIcon = { url: cardsOutline_, component: CardsOutline_ };
+export const chartBarIcon = { url: chartBar_, component: ChartBar_ };
 export const checkCircle = { url: checkCircle_, component: CheckCircle_ };
 export const chevronDown = { url: chevronDown_, component: ChevronDown_ };
 export const chevronUp = { url: chevronUp_, component: ChevronUp_ };

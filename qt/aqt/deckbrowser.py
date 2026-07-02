@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 from typing import Any
 
 import aqt
@@ -21,29 +20,25 @@ from aqt.operations.deck import (
 )
 from aqt.qt import *
 from aqt.sound import av_player
-from aqt.toolbar import BottomBar
-from aqt.utils import getOnlyText, openLink, shortcut, tr
-
-
-class DeckBrowserBottomBar:
-    def __init__(self, deck_browser: DeckBrowser) -> None:
-        self.deck_browser = deck_browser
+from aqt.utils import getOnlyText, openLink, tr
 
 
 class DeckBrowser:
     """The main deck list shown when Anki starts.
 
     Renders a Svelte page (a tree of decks with due/new/learn counts) inside
-    the shared main webview (``mw.web``). Bridge commands cover the bits that
-    stay native: starting a review, the gear/options menu, and creating a
-    deck. Collapsing a deck and drag-and-drop reparenting are handled
-    entirely on the Svelte side, calling the backend directly.
+    the shared main webview (``mw.web``). The page includes its own
+    ActivityBar (Decks/Add/Browse/Stats/Sync) and bottom bar (Create
+    Deck/Import File/Get Shared), all dispatched through bridge commands.
+    Bridge commands also cover the bits that stay native: starting a
+    review, the gear/options menu, and creating a deck. Collapsing a deck
+    and drag-and-drop reparenting are handled entirely on the Svelte side,
+    calling the backend directly.
     """
 
     def __init__(self, mw: AnkiQt) -> None:
         self.mw = mw
         self.web = mw.web
-        self.bottom = BottomBar(mw, mw.bottomWeb)
         self._refresh_needed = False
 
     def show(self) -> None:
@@ -52,7 +47,8 @@ class DeckBrowser:
         # redraw top bar for theme change
         self.mw.toolbar.redraw()
         self.web.load_sveltekit_page("deck-browser")
-        self._drawButtons()
+        # the deck browser page renders its own bottom bar
+        self.mw.bottomWeb.hide()
         self._refresh_needed = False
 
     def refresh(self) -> None:
@@ -95,6 +91,20 @@ class DeckBrowser:
             self._showOptions(arg)
         elif kind == "changed":
             self._on_changed()
+        elif kind == "add":
+            self.mw.onAddCard()
+        elif kind == "browse":
+            self.mw.onBrowse()
+        elif kind == "stats":
+            self.mw.onStats()
+        elif kind == "sync":
+            self.mw.on_sync_button_clicked()
+        elif kind == "create":
+            self._on_create()
+        elif kind == "import":
+            self.mw.onImport()
+        elif kind == "shared":
+            self._onShared()
         return False
 
     def _on_changed(self) -> None:
@@ -163,35 +173,6 @@ class DeckBrowser:
 
     # Bottom bar
     ######################################################################
-
-    drawLinks = [
-        ["", "shared", tr.decks_get_shared()],
-        ["", "create", tr.decks_create_deck()],
-        ["Ctrl+Shift+I", "import", tr.decks_import_file()],
-    ]
-
-    def _drawButtons(self) -> None:
-        buf = ""
-        drawLinks = deepcopy(self.drawLinks)
-        for b in drawLinks:
-            if b[0]:
-                b[0] = tr.actions_shortcut_key(val=shortcut(b[0]))
-            buf += """
-<button title='%s' onclick='pycmd(\"%s\");'>%s</button>""" % tuple(b)
-        self.bottom.draw(
-            buf=buf,
-            link_handler=self._bottom_bar_link_handler,
-            web_context=DeckBrowserBottomBar(self),
-        )
-
-    def _bottom_bar_link_handler(self, cmd: str) -> Any:
-        if cmd == "shared":
-            self._onShared()
-        elif cmd == "import":
-            self.mw.onImport()
-        elif cmd == "create":
-            self._on_create()
-        return False
 
     def _onShared(self) -> None:
         openLink(f"{aqt.appShared}decks/")

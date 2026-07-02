@@ -772,6 +772,11 @@ class AnkiQt(QMainWindow):
     def _deckBrowserState(self, oldState: MainWindowState) -> None:
         self.deckBrowser.show()
 
+    def _deckBrowserCleanup(self, newState: MainWindowState) -> None:
+        # deck browser hides the native bottom bar in favour of the buttons
+        # rendered by its own page; restore it for other states
+        self.bottomWeb.show()
+
     def _selectedDeck(self) -> DeckDict | None:
         did = self.col.decks.selected()
         if not self.col.decks.name_if_exists(did):
