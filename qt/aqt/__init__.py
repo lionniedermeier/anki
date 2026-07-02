@@ -112,12 +112,13 @@ import aqt.forms
 
 from aqt import addcards, addons, browser, editcurrent, filtered_deck  # isort:skip
 from aqt import stats, about, preferences, mediasync  # isort:skip
+from aqt import addons_dialog  # isort:skip
 
 
 class DialogManager:
     _dialogs: dict[str, list] = {
         "AddCards": [addcards.AddCards, None],
-        "AddonsDialog": [addons.AddonsDialog, None],
+        "AddonsDialog": [addons_dialog.AddonsWebDialog, None],
         "Browser": [browser.Browser, None],
         "EditCurrent": [editcurrent.EditCurrent, None],
         "FilteredDeckConfigDialog": [filtered_deck.FilteredDeckConfigDialog, None],

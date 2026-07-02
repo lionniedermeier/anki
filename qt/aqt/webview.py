@@ -59,6 +59,8 @@ class AnkiWebViewKind(Enum):
     FIELDS = "fields"
     IMPORT_LOG = "import log"
     IMPORT_ANKI_PACKAGE = "anki package import"
+    ADDONS = "addon manager"
+    ADDON_CONFIG = "addon config"
     DECK_DESCRIPTION = "deck description"
     DECK_CHOOSER = "deck chooser"
 
@@ -136,6 +138,8 @@ class AnkiWebPage(QWebEnginePage):
 
     def _profileForPage(self, kind: AnkiWebViewKind) -> QWebEngineProfile:
         have_api_access = kind in (
+            AnkiWebViewKind.ADDONS,
+            AnkiWebViewKind.ADDON_CONFIG,
             AnkiWebViewKind.DECK_OPTIONS,
             AnkiWebViewKind.EDITOR,
             AnkiWebViewKind.DECK_STATS,

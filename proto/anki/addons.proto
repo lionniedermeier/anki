@@ -1,0 +1,91 @@
+// Copyright: Ankitects Pty Ltd and contributors
+// License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+package anki.addons;
+
+import "anki/generic.proto";
+
+// Methods handled by Python in mediasrv.py, not by Rust.
+service AddonsService {
+  // Return all installed add-ons with metadata needed for the UI.
+  rpc GetAddons(generic.Empty) returns (AddonList);
+  // Enable or disable an add-on (also handles conflict resolution).
+  rpc SetAddonEnabled(SetAddonEnabledRequest) returns (generic.Empty);
+  // Delete an add-on (fires addons_dialog_will_delete_addons hook).
+  rpc DeleteAddon(AddonId) returns (generic.Empty);
+  // Open the add-on folder in the OS file manager.
+  rpc OpenAddonFolder(AddonId) returns (generic.Empty);
+  // Open the add-on's AnkiWeb page or homepage in the browser.
+  rpc OpenAddonPage(AddonId) returns (generic.Empty);
+  // Open the config editor (reuses existing PyQt ConfigEditor / configAction).
+  rpc OpenAddonConfig(AddonId) returns (generic.Empty);
+  // Show native file picker then install selected .ankiaddon/.zip files.
+  rpc InstallAddonsFromFiles(generic.Empty) returns (generic.Empty);
+  // Open the Get Add-ons dialog (AnkiWeb download by code).
+  rpc GetAddonsFromAnkiWeb(generic.Empty) returns (generic.Empty);
+  // Run update check and show the existing ChooseAddonsToUpdateDialog.
+  rpc CheckForAddonUpdates(generic.Empty) returns (generic.Empty);
+  // Called by the Svelte page after it has finished loading.
+  rpc AddonsReady(generic.Empty) returns (generic.Empty);
+  // Return schema + merged config for the schema-driven config editor.
+  rpc GetAddonConfig(generic.Empty) returns (AddonConfigInfo);
+  // Validate and persist new config values (JSON-encoded object).
+  rpc SetAddonConfig(SetAddonConfigRequest) returns (generic.Empty);
+  // Dismiss the config editor dialog.
+  rpc CloseAddonConfig(generic.Empty) returns (generic.Empty);
+}
+
+// Empty — no Rust implementation needed; all methods are handled in Python.
+service BackendAddonsService {}
+
+message AddonId {
+  string dir_name = 1;
+}
+
+message SetAddonEnabledRequest {
+  string dir_name = 1;
+  bool enabled = 2;
+}
+
+message Addon {
+  string dir_name = 1;
+  string human_name = 2;
+  bool enabled = 3;
+  // False when the add-on requires a different Anki version.
+  bool compatible = 4;
+  // Human-readable version constraint, e.g. "Anki >= 25.x". Empty when compatible.
+  string compat_summary = 5;
+  // True when a config.json exists for this add-on.
+  bool has_config = 6;
+  // AnkiWeb page URL or homepage URL; empty when neither is available.
+  string page_url = 7;
+  // Human-readable version string from the manifest, if available.
+  string human_version = 8;
+}
+
+message AddonList {
+  repeated Addon addons = 1;
+}
+
+// Payload for the schema-driven config editor.
+message AddonConfigInfo {
+  // Schema "title" if present, else the add-on's human name.
+  string title = 1;
+  // Raw content of config.schema.json (a JSON Schema object).
+  string schema_json = 2;
+  // JSON-encoded merged config (getConfig: defaults + user overrides).
+  string config_json = 3;
+  // JSON-encoded factory defaults from config.json.
+  string defaults_json = 4;
+  // HTML rendered from config.md (empty string when absent).
+  string help_html = 5;
+}
+
+message SetAddonConfigRequest {
+  // JSON-encoded config object to validate and persist.
+  string config_json = 1;
+}
