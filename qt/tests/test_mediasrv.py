@@ -18,7 +18,9 @@ from aqt.mediasrv import (
     _editor_content_security_policy,
     _handle_local_file_request,
     ensure_safe_path,
+    exposed_backend_list,
     is_localhost_origin,
+    is_sveltekit_page,
 )
 
 
@@ -100,6 +102,44 @@ class TestIsLocalhostOrigin:
     )
     def test_rejected_origins(self, origin: str) -> None:
         assert is_localhost_origin(origin) is False
+
+
+class TestIsSveltekitPage:
+    """Routes migrated from PyQt to Svelte must be recognised as SvelteKit pages.
+
+    Each entry is matched on the first path segment, so dynamic route params
+    (e.g. a deck id) do not affect the result.
+    """
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "deck-chooser/1",
+            "deck-description/1",
+            "deck-options/1",
+        ],
+    )
+    def test_migrated_pages_are_recognised(self, path: str) -> None:
+        assert is_sveltekit_page(path) is True
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "not-a-real-page",
+            "deck-chooser-evil",
+            "",
+        ],
+    )
+    def test_unknown_pages_are_rejected(self, path: str) -> None:
+        assert is_sveltekit_page(path) is False
+
+
+class TestExposedBackend:
+    """Backend RPCs the migrated pages call must stay exposed to the frontend."""
+
+    @pytest.mark.parametrize("rpc", ["get_deck", "update_deck", "get_deck_names"])
+    def test_deck_rpcs_exposed(self, rpc: str) -> None:
+        assert rpc in exposed_backend_list
 
 
 def _make_media_file(tmpdir: str, filename: str, content: bytes = b"test") -> str:

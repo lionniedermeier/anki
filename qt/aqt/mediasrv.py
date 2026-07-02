@@ -418,6 +418,8 @@ def is_sveltekit_page(path: str) -> bool:
         "card-info",
         "change-notetype",
         "deck-options",
+        "deck-description",
+        "deck-chooser",
         "import-anki-package",
         "import-csv",
         "import-page",
@@ -723,6 +725,8 @@ exposed_backend_list = [
     "get_custom_colours",
     # DeckService
     "get_deck_names",
+    "get_deck",
+    "update_deck",
     # I18nService
     "i18n_resources",
     # ImportExportService

@@ -59,6 +59,8 @@ class AnkiWebViewKind(Enum):
     FIELDS = "fields"
     IMPORT_LOG = "import log"
     IMPORT_ANKI_PACKAGE = "anki package import"
+    DECK_DESCRIPTION = "deck description"
+    DECK_CHOOSER = "deck chooser"
 
 
 class AuthInterceptor(QWebEngineUrlRequestInterceptor):
@@ -142,6 +144,8 @@ class AnkiWebPage(QWebEnginePage):
             AnkiWebViewKind.IMPORT_ANKI_PACKAGE,
             AnkiWebViewKind.IMPORT_CSV,
             AnkiWebViewKind.IMPORT_LOG,
+            AnkiWebViewKind.DECK_DESCRIPTION,
+            AnkiWebViewKind.DECK_CHOOSER,
         )
 
         global _profile_with_api_access, _profile_without_api_access

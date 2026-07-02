@@ -6,11 +6,11 @@ from __future__ import annotations
 import aqt
 import aqt.main
 import aqt.operations
-from anki.decks import DeckDict
+from anki.decks import DeckDict, DeckId
 from aqt.operations import QueryOp
-from aqt.operations.deck import update_deck_dict
 from aqt.qt import *
 from aqt.utils import disable_help_button, restoreGeom, saveGeom, tr
+from aqt.webview import AnkiWebView, AnkiWebViewKind
 
 
 class DeckDescriptionDialog(QDialog):
@@ -20,9 +20,6 @@ class DeckDescriptionDialog(QDialog):
     def __init__(self, mw: aqt.main.AnkiQt) -> None:
         QDialog.__init__(self, mw, Qt.WindowType.Window)
         self.mw = mw
-
-        # set on success
-        self.deck: DeckDict
 
         QueryOp(
             parent=self.mw,
@@ -34,9 +31,8 @@ class DeckDescriptionDialog(QDialog):
         if deck["dyn"]:
             return
 
-        self.deck = deck
+        self._deck_id = DeckId(deck["id"])
         self._setup_ui()
-        self.show()
 
     def _setup_ui(self) -> None:
         self.setWindowTitle(tr.scheduling_description())
@@ -44,36 +40,28 @@ class DeckDescriptionDialog(QDialog):
         self.mw.garbage_collect_on_dialog_finish(self)
         self.setMinimumWidth(400)
         disable_help_button(self)
-        restoreGeom(self, self.TITLE)
+        restoreGeom(self, self.TITLE, default_size=(400, 400))
 
-        box = QVBoxLayout()
-
-        self.enable_markdown = QCheckBox(tr.deck_config_description_new_handling())
-        self.enable_markdown.setToolTip(tr.deck_config_description_new_handling_hint())
-        self.enable_markdown.setChecked(self.deck.get("md", False))
-        box.addWidget(self.enable_markdown)
-
-        self.description = QPlainTextEdit()
-        self.description.setPlainText(self.deck.get("desc", ""))
-        box.addWidget(self.description)
-
-        button_box = QDialogButtonBox()
-        ok = button_box.addButton(QDialogButtonBox.StandardButton.Ok)
-        assert ok is not None
-        qconnect(ok.clicked, self.save_and_accept)
-        box.addWidget(button_box)
-
-        self.setLayout(box)
+        self.web = AnkiWebView(kind=AnkiWebViewKind.DECK_DESCRIPTION)
+        self.web.set_bridge_command(self._on_bridge_cmd, self)
+        self.web.load_sveltekit_page(f"deck-description/{self._deck_id}")
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.web)
+        self.setLayout(layout)
         self.show()
 
-    def save_and_accept(self) -> None:
-        self.deck["desc"] = self.description.toPlainText()
-        self.deck["md"] = self.enable_markdown.isChecked()
+    def _on_bridge_cmd(self, cmd: str) -> None:
+        if cmd == "close":
+            # defer so the webview isn't torn down from inside its own callback
+            QTimer.singleShot(0, self.close)
 
-        update_deck_dict(parent=self, deck=self.deck).success(
-            lambda _: self.accept()
-        ).run_in_background()
-
-    def accept(self) -> None:
+    def reject(self) -> None:
+        self.web.cleanup()
+        self.web = None  # type: ignore
         saveGeom(self, self.TITLE)
-        QDialog.accept(self)
+        # the description is saved from the page via the update_deck backend
+        # call, which does not run through the Qt operation pipeline, so refresh
+        # the current screen to reflect the change.
+        self.mw.reset()
+        QDialog.reject(self)
