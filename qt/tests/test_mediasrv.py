@@ -108,7 +108,9 @@ class TestIsSveltekitPage:
     """Routes migrated from PyQt to Svelte must be recognised as SvelteKit pages.
 
     Each entry is matched on the first path segment, so dynamic route params
-    (e.g. a deck id) do not affect the result.
+    (e.g. a deck id) do not affect the result. Flask's <path:...> route
+    converter strips the query string before it reaches this function, so
+    query params (e.g. export's ?did=) are never part of the input here.
     """
 
     @pytest.mark.parametrize(
@@ -117,6 +119,7 @@ class TestIsSveltekitPage:
             "deck-chooser/1",
             "deck-description/1",
             "deck-options/1",
+            "export",
         ],
     )
     def test_migrated_pages_are_recognised(self, path: str) -> None:
@@ -127,6 +130,7 @@ class TestIsSveltekitPage:
         [
             "not-a-real-page",
             "deck-chooser-evil",
+            "exports",
             "",
         ],
     )

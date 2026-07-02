@@ -423,6 +423,7 @@ def is_sveltekit_page(path: str) -> bool:
         "deck-options",
         "deck-description",
         "deck-chooser",
+        "export",
         "import-anki-package",
         "import-csv",
         "import-page",

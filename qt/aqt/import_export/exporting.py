@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import time
@@ -10,7 +11,6 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-import aqt.forms
 import aqt.main
 from anki.collection import (
     DeckIdLimit,
@@ -19,7 +19,7 @@ from anki.collection import (
     NoteIdsLimit,
     Progress,
 )
-from anki.decks import DeckId, DeckNameId
+from anki.decks import DeckId
 from anki.notes import NoteId
 from aqt import gui_hooks
 from aqt.errors import show_exception
@@ -30,13 +30,27 @@ from aqt.utils import (
     checkInvalidFilename,
     disable_help_button,
     getSaveFile,
+    restoreGeom,
+    saveGeom,
     showWarning,
     tooltip,
     tr,
 )
+from aqt.webview import AnkiWebView, AnkiWebViewKind
 
 
 class ExportDialog(QDialog):
+    """Format/options picker for exporting a collection, deck, or note selection.
+
+    Renders a Svelte page inside an ``AnkiWebView``. The native save-file
+    dialog and the actual export (via the ``Exporter`` subclasses below,
+    unchanged) stay in Python; the page only collects the chosen format and
+    options and sends them over the bridge as JSON.
+    """
+
+    TITLE = "export"
+    silentlyClose = True
+
     def __init__(
         self,
         mw: aqt.main.AnkiQt,
@@ -46,16 +60,12 @@ class ExportDialog(QDialog):
     ):
         QDialog.__init__(self, parent or mw, Qt.WindowType.Window)
         self.mw = mw
-        self.col = mw.col.weakref()
-        self.frm = aqt.forms.exporting.Ui_ExportDialog()
-        self.frm.setupUi(self)
-        self.exporter: Exporter
+        self.did = did
         self.nids = nids
         disable_help_button(self)
-        self.setup(did)
-        self.open()
+        self._setup_ui()
 
-    def setup(self, did: DeckId | None) -> None:
+    def _setup_ui(self) -> None:
         self.exporter_classes: list[type[Exporter]] = [
             ApkgExporter,
             ColpkgExporter,
@@ -63,61 +73,67 @@ class ExportDialog(QDialog):
             CardCsvExporter,
         ]
         gui_hooks.exporters_list_did_initialize(self.exporter_classes)
-        self.frm.format.insertItems(
-            0, [f"{e.name()} (.{e.extension})" for e in self.exporter_classes]
+
+        self.setWindowTitle(tr.actions_export())
+        self.setMinimumWidth(400)
+        restoreGeom(self, self.TITLE, default_size=(500, 500))
+
+        self.web = AnkiWebView(kind=AnkiWebViewKind.EXPORT)
+        self.web.set_bridge_command(self._on_bridge_cmd, self)
+        params = []
+        if self.did is not None:
+            params.append(f"did={self.did}")
+        if self.nids is not None:
+            params.append("nids=" + ",".join(str(n) for n in self.nids))
+        query = f"?{'&'.join(params)}" if params else ""
+        self.web.load_sveltekit_page(f"export{query}")
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.web)
+        self.setLayout(layout)
+        self.open()
+
+    def _on_bridge_cmd(self, cmd: str) -> None:
+        if cmd == "close":
+            # defer so the webview isn't torn down from inside its own callback
+            QTimer.singleShot(0, self.close)
+        elif cmd.startswith("export:"):
+            _, payload = cmd.split(":", 1)
+            if self._export(json.loads(payload)):
+                QTimer.singleShot(0, self.close)
+
+    def _export(self, payload: dict) -> bool:
+        self.exporter = self.exporter_classes[payload["formatId"]]()
+
+        if not (out_path := self.get_out_path(payload)):
+            return False
+
+        limit: ExportLimit | None = None
+        if self.nids:
+            limit = NoteIdsLimit(self.nids)
+        elif deck_id := payload.get("deckId"):
+            limit = DeckIdLimit(DeckId(int(deck_id)))
+
+        options = ExportOptions(
+            out_path=out_path,
+            include_scheduling=payload["includeScheduling"],
+            include_deck_configs=payload["includeDeckConfigs"],
+            include_media=payload["includeMedia"],
+            include_tags=payload["includeTags"],
+            include_html=payload["includeHtml"],
+            include_deck=payload["includeDeck"],
+            include_notetype=payload["includeNotetype"],
+            include_guid=payload["includeGuid"],
+            legacy_support=payload["legacySupport"],
+            limit=limit,
+            parent=self.parentWidget(),
         )
-        qconnect(self.frm.format.activated, self.exporter_changed)
-        if self.nids is None and not did:
-            # file>export defaults to colpkg
-            default_exporter_idx = 1
-        else:
-            default_exporter_idx = 0
-        self.frm.format.setCurrentIndex(default_exporter_idx)
-        self.exporter_changed(default_exporter_idx)
-        # deck list
-        if self.nids is None:
-            self.all_decks = self.col.decks.all_names_and_ids()
-            decks = [tr.exporting_all_decks()]
-            decks.extend(d.name for d in self.all_decks)
-        else:
-            decks = [tr.exporting_selected_notes()]
-        self.frm.deck.addItems(decks)
-        # save button
-        b = QPushButton(tr.exporting_export())
-        self.frm.buttonBox.addButton(b, QDialogButtonBox.ButtonRole.AcceptRole)
-        self.frm.includeHTML.setChecked(True)
-        # set default option if accessed through deck button
-        if did:
-            deck = self.mw.col.decks.get(did)
-            assert deck is not None
-            name = deck["name"]
-            index = self.frm.deck.findText(name)
-            self.frm.deck.setCurrentIndex(index)
-            self.frm.includeSched.setChecked(False)
+        self.exporter.export(self.mw, options)
+        return True
 
-    def exporter_changed(self, idx: int) -> None:
-        self.exporter = self.exporter_classes[idx]()
-        self.frm.includeSched.setVisible(self.exporter.show_include_scheduling)
-        self.frm.include_deck_configs.setVisible(
-            self.exporter.show_include_deck_configs
-        )
-        self.frm.includeMedia.setVisible(self.exporter.show_include_media)
-        self.frm.includeTags.setVisible(self.exporter.show_include_tags)
-        self.frm.includeHTML.setVisible(self.exporter.show_include_html)
-        self.frm.includeDeck.setVisible(self.exporter.show_include_deck)
-        self.frm.includeNotetype.setVisible(self.exporter.show_include_notetype)
-        self.frm.includeGuid.setVisible(self.exporter.show_include_guid)
-        self.frm.legacy_support.setVisible(self.exporter.show_legacy_support)
-        self.frm.deck.setVisible(self.exporter.show_deck_list)
-
-    def accept(self) -> None:
-        if not (out_path := self.get_out_path()):
-            return
-        self.exporter.export(self.mw, self.options(out_path))
-        QDialog.reject(self)
-
-    def get_out_path(self) -> str | None:
-        filename = self.filename()
+    def get_out_path(self, payload: dict) -> str | None:
+        filename = self.filename(payload)
         while True:
             path = getSaveFile(
                 parent=self,
@@ -138,45 +154,26 @@ class ExportDialog(QDialog):
             break
         return path
 
-    def options(self, out_path: str) -> ExportOptions:
-        limit: ExportLimit | None = None
-        if self.nids:
-            limit = NoteIdsLimit(self.nids)
-        elif current_deck_id := self.current_deck_id():
-            limit = DeckIdLimit(current_deck_id)
-
-        return ExportOptions(
-            out_path=out_path,
-            include_scheduling=self.frm.includeSched.isChecked(),
-            include_deck_configs=self.frm.include_deck_configs.isChecked(),
-            include_media=self.frm.includeMedia.isChecked(),
-            include_tags=self.frm.includeTags.isChecked(),
-            include_html=self.frm.includeHTML.isChecked(),
-            include_deck=self.frm.includeDeck.isChecked(),
-            include_notetype=self.frm.includeNotetype.isChecked(),
-            include_guid=self.frm.includeGuid.isChecked(),
-            legacy_support=self.frm.legacy_support.isChecked(),
-            limit=limit,
-            parent=self.parentWidget(),
-        )
-
-    def current_deck_id(self) -> DeckId | None:
-        return (deck := self.current_deck()) and DeckId(deck.id) or None
-
-    def current_deck(self) -> DeckNameId | None:
+    def filename(self, payload: dict) -> str:
         if self.exporter.show_deck_list:
-            if idx := self.frm.deck.currentIndex():
-                return self.all_decks[idx - 1]
-        return None
-
-    def filename(self) -> str:
-        if self.exporter.show_deck_list:
-            deck_name = self.frm.deck.currentText()
+            deck_id = payload.get("deckId")
+            if deck_id and (deck := self.mw.col.decks.get(DeckId(int(deck_id)))):
+                deck_name = deck["name"]
+            elif self.nids is not None:
+                deck_name = tr.exporting_selected_notes()
+            else:
+                deck_name = tr.exporting_all_decks()
             stem = re.sub('[\\\\/?<>:*|"^]', "_", deck_name)
         else:
             time_str = time.strftime("%Y-%m-%d@%H-%M-%S", time.localtime(time.time()))
             stem = f"{tr.exporting_collection()}-{time_str}"
         return f"{stem}.{self.exporter.extension}"
+
+    def reject(self) -> None:
+        self.web.cleanup()
+        self.web = None  # type: ignore
+        saveGeom(self, self.TITLE)
+        QDialog.reject(self)
 
 
 @dataclass

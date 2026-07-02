@@ -63,6 +63,7 @@ class AnkiWebViewKind(Enum):
     ADDON_CONFIG = "addon config"
     DECK_DESCRIPTION = "deck description"
     DECK_CHOOSER = "deck chooser"
+    EXPORT = "export"
 
 
 class AuthInterceptor(QWebEngineUrlRequestInterceptor):
@@ -150,6 +151,7 @@ class AnkiWebPage(QWebEnginePage):
             AnkiWebViewKind.IMPORT_LOG,
             AnkiWebViewKind.DECK_DESCRIPTION,
             AnkiWebViewKind.DECK_CHOOSER,
+            AnkiWebViewKind.EXPORT,
         )
 
         global _profile_with_api_access, _profile_without_api_access
