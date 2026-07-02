@@ -91,11 +91,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 <div class="config-field" tabindex="-1">
     {#if kind === "boolean"}
-        <SwitchRow
-            bind:value={value as boolean}
-            defaultValue={defaultValue as boolean}
-        >
-            <div><span class="section-breadcrum">{section.join(">")}:&nbsp;</span><span>{label}</span></div>
+        <SwitchRow bind:value={value as boolean} defaultValue={defaultValue as boolean}>
+            <div>
+                <span class="section-breadcrum">{section.join(">")}:&nbsp;</span>
+                <span>{label}</span>
+            </div>
             {#if descriptionHtml}
                 <span class="description">{@html descriptionHtml}</span>
             {/if}
@@ -123,11 +123,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             {/if}
         </TextRow>
     {:else if kind === "enum"}
-        <EnumSelectorRow
-            bind:value
-            defaultValue
-            {choices}
-        >
+        <EnumSelectorRow bind:value defaultValue {choices}>
             <span>{label}</span>
             {#if descriptionHtml}
                 <span class="description">{@html descriptionHtml}</span>

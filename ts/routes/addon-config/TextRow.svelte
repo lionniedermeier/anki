@@ -29,12 +29,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     bind:value
                 ></textarea>
             {:else}
-                <input
-                    {id}
-                    class="text-input"
-                    type="text"
-                    bind:value
-                />
+                <input {id} class="text-input" type="text" bind:value />
             {/if}
             <RevertButton slot="revert" bind:value {defaultValue} />
         </ConfigInput>

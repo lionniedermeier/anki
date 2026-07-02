@@ -57,63 +57,68 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     {#if format.showDeckList}
         <div class="row">
-            <EnumSelector bind:value={deckId} choices={deckChoices} disabled={hasNids} />
+            <EnumSelector
+                bind:value={deckId}
+                choices={deckChoices}
+                disabled={hasNids}
+            />
         </div>
     {/if}
 
     <div class="includes">
         <span class="label">{@html tr.exportingInclude()}</span>
         {#if format.showIncludeScheduling}
-            <CheckBox bind:value={options.includeScheduling}
-                >{tr.exportingIncludeSchedulingInformation()}</CheckBox
-            >
+            <CheckBox bind:value={options.includeScheduling}>
+                {tr.exportingIncludeSchedulingInformation()}
+            </CheckBox>
         {/if}
         {#if format.showIncludeDeckConfigs}
-            <CheckBox bind:value={options.includeDeckConfigs}
-                >{tr.exportingIncludeDeckConfigs()}</CheckBox
-            >
+            <CheckBox bind:value={options.includeDeckConfigs}>
+                {tr.exportingIncludeDeckConfigs()}
+            </CheckBox>
         {/if}
         {#if format.showIncludeMedia}
-            <CheckBox bind:value={options.includeMedia}
-                >{tr.exportingIncludeMedia()}</CheckBox
-            >
+            <CheckBox bind:value={options.includeMedia}>
+                {tr.exportingIncludeMedia()}
+            </CheckBox>
         {/if}
         {#if format.showIncludeHtml}
-            <CheckBox bind:value={options.includeHtml}
-                >{tr.exportingIncludeHtmlAndMediaReferences()}</CheckBox
-            >
+            <CheckBox bind:value={options.includeHtml}>
+                {tr.exportingIncludeHtmlAndMediaReferences()}
+            </CheckBox>
         {/if}
         {#if format.showIncludeTags}
-            <CheckBox bind:value={options.includeTags}
-                >{tr.exportingIncludeTags()}</CheckBox
-            >
+            <CheckBox bind:value={options.includeTags}>
+                {tr.exportingIncludeTags()}
+            </CheckBox>
         {/if}
         {#if format.showIncludeDeck}
-            <CheckBox bind:value={options.includeDeck}
-                >{tr.exportingIncludeDeck()}</CheckBox
-            >
+            <CheckBox bind:value={options.includeDeck}>
+                {tr.exportingIncludeDeck()}
+            </CheckBox>
         {/if}
         {#if format.showIncludeNotetype}
-            <CheckBox bind:value={options.includeNotetype}
-                >{tr.exportingIncludeNotetype()}</CheckBox
-            >
+            <CheckBox bind:value={options.includeNotetype}>
+                {tr.exportingIncludeNotetype()}
+            </CheckBox>
         {/if}
         {#if format.showIncludeGuid}
-            <CheckBox bind:value={options.includeGuid}
-                >{tr.exportingIncludeGuid()}</CheckBox
-            >
+            <CheckBox bind:value={options.includeGuid}>
+                {tr.exportingIncludeGuid()}
+            </CheckBox>
         {/if}
         {#if format.showLegacySupport}
-            <CheckBox bind:value={options.legacySupport}
-                >{tr.exportingSupportOlderAnkiVersions()}</CheckBox
-            >
+            <CheckBox bind:value={options.legacySupport}>
+                {tr.exportingSupportOlderAnkiVersions()}
+            </CheckBox>
         {/if}
     </div>
 
     <div class="buttons">
         <LabelButton tabbable on:click={cancel}>{tr.actionsCancel()}</LabelButton>
-        <LabelButton primary tabbable on:click={submit}>{tr.exportingExport()}</LabelButton
-        >
+        <LabelButton primary tabbable on:click={submit}>
+            {tr.exportingExport()}
+        </LabelButton>
     </div>
 </div>
 

@@ -10,6 +10,7 @@ package anki.frontend;
 import "anki/scheduler.proto";
 import "anki/generic.proto";
 import "anki/search.proto";
+import "anki/decks.proto";
 
 service FrontendService {
   // Returns values from the reviewer
@@ -17,6 +18,10 @@ service FrontendService {
       returns (SchedulingStatesWithContext);
   // Updates reviewer state
   rpc SetSchedulingStates(SetSchedulingStatesRequest) returns (generic.Empty);
+
+  // Returns the deck tree plus the extra context the deck browser needs,
+  // bundled into a single request.
+  rpc GetDeckBrowserContent(generic.Empty) returns (DeckBrowserContent);
 
   // Notify Qt layer so window modality can be updated.
   rpc ImportDone(generic.Empty) returns (generic.Empty);
@@ -42,4 +47,10 @@ message SchedulingStatesWithContext {
 message SetSchedulingStatesRequest {
   string key = 1;
   scheduler.SchedulingStates states = 2;
+}
+
+message DeckBrowserContent {
+  decks.DeckTreeNode tree = 1;
+  int64 current_deck_id = 2;
+  string studied_today = 3;
 }

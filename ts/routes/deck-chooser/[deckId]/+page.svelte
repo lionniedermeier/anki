@@ -40,8 +40,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         ellipsis
         class="deck-button"
         tooltip={tr.qtMiscTargetDeckCtrlandd()}
-        on:click={choose}>{deckName}</LabelButton
+        on:click={choose}
     >
+        {deckName}
+    </LabelButton>
 </div>
 
 <style lang="scss">

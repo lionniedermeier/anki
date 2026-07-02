@@ -38,11 +38,16 @@ Validates JSON on blur and reverts to the previous valid value on parse error.
         {#if description}
             <span class="json-description">{description}</span>
         {/if}
-        <button class="revert-btn" on:click={onRestore} title="Restore default"
-            >↺</button
-        >
+        <button class="revert-btn" on:click={onRestore} title="Restore default">
+            ↺
+        </button>
     </div>
-    <textarea class="json-textarea" bind:value={text} on:blur={onBlur} rows={3}></textarea>
+    <textarea
+        class="json-textarea"
+        bind:value={text}
+        on:blur={onBlur}
+        rows={3}
+    ></textarea>
     {#if parseError}
         <span class="parse-error">{parseError}</span>
     {/if}

@@ -423,6 +423,7 @@ def is_sveltekit_page(path: str) -> bool:
         "deck-options",
         "deck-description",
         "deck-chooser",
+        "deck-browser",
         "export",
         "import-anki-package",
         "import-csv",
@@ -595,6 +596,17 @@ def get_scheduling_states_with_context() -> bytes:
     return SchedulingStatesWithContext(
         states=aqt.mw.reviewer.get_scheduling_states(),
         context=aqt.mw.reviewer.get_scheduling_context(),
+    ).SerializeToString()
+
+
+def get_deck_browser_content() -> bytes:
+    from anki.frontend_pb2 import DeckBrowserContent
+
+    col = aqt.mw.col
+    return DeckBrowserContent(
+        tree=col.sched.deck_due_tree(),
+        current_deck_id=col.decks.get_current_id(),
+        studied_today=col.studied_today(),
     ).SerializeToString()
 
 
@@ -1123,6 +1135,7 @@ post_handler_list = [
     update_deck_configs,
     get_scheduling_states_with_context,
     set_scheduling_states,
+    get_deck_browser_content,
     change_notetype,
     import_done,
     import_csv,
@@ -1159,6 +1172,8 @@ exposed_backend_list = [
     "get_deck_names",
     "get_deck",
     "update_deck",
+    "set_deck_collapsed",
+    "reparent_decks",
     # I18nService
     "i18n_resources",
     # ImportExportService
@@ -1238,6 +1253,20 @@ def _extract_collection_post_request(path: str) -> DynamicRequest | NotFound:
         return NotFound(message=f"{path} not found")
 
 
+# Endpoints reachable from webview kinds without full API access (e.g. the
+# shared main webview, which also hosts the reviewer and must not expose the
+# full backend to note field HTML/third-party JS).
+MAIN_WEBVIEW_API_WHITELIST = (
+    "/_anki/getSchedulingStatesWithContext",
+    "/_anki/setSchedulingStates",
+    "/_anki/i18nResources",
+    "/_anki/congratsInfo",
+    "/_anki/getDeckBrowserContent",
+    "/_anki/setDeckCollapsed",
+    "/_anki/reparentDecks",
+)
+
+
 def _check_dynamic_request_permissions():
     if request.method == "GET":
         return
@@ -1257,12 +1286,7 @@ def _check_dynamic_request_permissions():
         return
 
     # whitelisted API endpoints for reviewer/previewer
-    if request.path in (
-        "/_anki/getSchedulingStatesWithContext",
-        "/_anki/setSchedulingStates",
-        "/_anki/i18nResources",
-        "/_anki/congratsInfo",
-    ):
+    if request.path in MAIN_WEBVIEW_API_WHITELIST:
         pass
     else:
         # other legacy pages may contain third-party JS, so we do not

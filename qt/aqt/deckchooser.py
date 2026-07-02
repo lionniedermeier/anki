@@ -61,9 +61,7 @@ class DeckChooser(QHBoxLayout):
         )
         # keep the embedded view to a single control's height
         self.web.setFixedHeight(QPushButton().sizeHint().height())
-        self.web.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
-        )
+        self.web.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.addWidget(self.web)
 
         qconnect(

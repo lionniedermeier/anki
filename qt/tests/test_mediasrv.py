@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from aqt.mediasrv import (
+    MAIN_WEBVIEW_API_WHITELIST,
     UNTRUSTED_MEDIA_CSP,
     LocalFileRequest,
     UnsafePathException,
@@ -120,6 +121,7 @@ class TestIsSveltekitPage:
             "deck-description/1",
             "deck-options/1",
             "export",
+            "deck-browser",
         ],
     )
     def test_migrated_pages_are_recognised(self, path: str) -> None:
@@ -141,9 +143,35 @@ class TestIsSveltekitPage:
 class TestExposedBackend:
     """Backend RPCs the migrated pages call must stay exposed to the frontend."""
 
-    @pytest.mark.parametrize("rpc", ["get_deck", "update_deck", "get_deck_names"])
+    @pytest.mark.parametrize(
+        "rpc",
+        [
+            "get_deck",
+            "update_deck",
+            "get_deck_names",
+            "set_deck_collapsed",
+            "reparent_decks",
+        ],
+    )
     def test_deck_rpcs_exposed(self, rpc: str) -> None:
         assert rpc in exposed_backend_list
+
+
+class TestMainWebviewApiWhitelist:
+    """The deck browser (rendered in the shared, lower-trust main webview,
+    which also hosts the reviewer) needs its endpoints explicitly
+    whitelisted, since that webview doesn't get blanket API access."""
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/_anki/getDeckBrowserContent",
+            "/_anki/setDeckCollapsed",
+            "/_anki/reparentDecks",
+        ],
+    )
+    def test_deck_browser_endpoints_whitelisted(self, path: str) -> None:
+        assert path in MAIN_WEBVIEW_API_WHITELIST
 
 
 def _make_media_file(tmpdir: str, filename: str, content: bytes = b"test") -> str:
