@@ -13,7 +13,7 @@ import { ModuleName, setupI18n } from "@tslib/i18n";
 import { checkNightMode } from "@tslib/nightmode";
 import { mount } from "svelte";
 
-import CongratsPage from "./CongratsPage.svelte";
+import CongratsPage from "../(main)/congrats/CongratsPage.svelte";
 
 const i18n = setupI18n({ modules: [ModuleName.SCHEDULING] });
 
