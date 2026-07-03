@@ -23,6 +23,10 @@ service FrontendService {
   // bundled into a single request.
   rpc GetDeckBrowserContent(generic.Empty) returns (DeckBrowserContent);
 
+  // Returns everything the deck overview screen needs for the current deck,
+  // bundled into a single request.
+  rpc GetDeckOverviewContent(generic.Empty) returns (DeckOverviewContent);
+
   // Notify Qt layer so window modality can be updated.
   rpc ImportDone(generic.Empty) returns (generic.Empty);
 
@@ -53,4 +57,24 @@ message DeckBrowserContent {
   decks.DeckTreeNode tree = 1;
   int64 current_deck_id = 2;
   string studied_today = 3;
+}
+
+message DeckOverviewContent {
+  string deck_name = 1;
+  // deck["dyn"]: a filtered/cram deck
+  bool is_filtered = 2;
+  // markdown- or filtered-blurb-rendered server-side, ready to inject
+  string description_html = 3;
+  // 0 = not a shared deck
+  int64 shared_from = 4;
+  // deck["ver"], used to build the review URL
+  int32 shared_ver = 5;
+  uint32 new_count = 6;
+  uint32 learn_count = 7;
+  uint32 review_count = 8;
+  // signed deltas = deck-due-tree total - live count (0 outside v3)
+  int32 buried_new = 9;
+  int32 buried_learn = 10;
+  int32 buried_review = 11;
+  bool have_buried = 12;
 }

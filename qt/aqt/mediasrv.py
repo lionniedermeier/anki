@@ -424,6 +424,7 @@ def is_sveltekit_page(path: str) -> bool:
         "deck-description",
         "deck-chooser",
         "deck-browser",
+        "deck-overview",
         "export",
         "import-anki-package",
         "import-csv",
@@ -607,6 +608,57 @@ def get_deck_browser_content() -> bytes:
         tree=col.sched.deck_due_tree(),
         current_deck_id=col.decks.get_current_id(),
         studied_today=col.studied_today(),
+    ).SerializeToString()
+
+
+def get_deck_overview_content() -> bytes:
+    from anki.frontend_pb2 import DeckOverviewContent
+
+    col = aqt.mw.col
+    deck = col.decks.current()
+    did = col.decks.get_current_id()
+    is_filtered = bool(deck["dyn"])
+
+    counts = list(col.sched.counts())
+    if col.v3_scheduler():
+        node = col.sched.deck_due_tree(did)
+        assert node is not None
+        buried_new = node.new_count - counts[0]
+        buried_learn = node.learn_count - counts[1]
+        buried_review = node.review_count - counts[2]
+    else:
+        buried_new = buried_learn = buried_review = 0
+
+    # Description, rendered server-side (matches the legacy overview's _desc).
+    if is_filtered:
+        desc = col.tr.studying_this_is_a_special_deck_for()
+        desc += f" {col.tr.studying_cards_will_be_automatically_returned_to()}"
+        desc += f" {col.tr.studying_deleting_this_deck_from_the_deck()}"
+    else:
+        desc = deck.get("desc", "")
+        if deck.get("md", False):
+            desc = col.render_markdown(desc)
+    if desc:
+        dyn = "dyn" if is_filtered else ""
+        description_html = (
+            f'<div class="descfont descmid description {dyn}">{desc}</div>'
+        )
+    else:
+        description_html = ""
+
+    return DeckOverviewContent(
+        deck_name=deck["name"],
+        is_filtered=is_filtered,
+        description_html=description_html,
+        shared_from=deck.get("sharedFrom") or 0,
+        shared_ver=deck.get("ver") or 0,
+        new_count=counts[0],
+        learn_count=counts[1],
+        review_count=counts[2],
+        buried_new=buried_new,
+        buried_learn=buried_learn,
+        buried_review=buried_review,
+        have_buried=col.sched.have_buried(),
     ).SerializeToString()
 
 
@@ -1136,6 +1188,7 @@ post_handler_list = [
     get_scheduling_states_with_context,
     set_scheduling_states,
     get_deck_browser_content,
+    get_deck_overview_content,
     change_notetype,
     import_done,
     import_csv,
@@ -1262,6 +1315,7 @@ MAIN_WEBVIEW_API_WHITELIST = (
     "/_anki/i18nResources",
     "/_anki/congratsInfo",
     "/_anki/getDeckBrowserContent",
+    "/_anki/getDeckOverviewContent",
     "/_anki/setDeckCollapsed",
     "/_anki/reparentDecks",
 )

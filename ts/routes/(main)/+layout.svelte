@@ -3,7 +3,6 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    import { goto } from "$app/navigation";
     import { page } from "$app/state";
     import * as tr from "@generated/ftl";
     import { bridgeCommand } from "@tslib/bridgecommand";
@@ -11,10 +10,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import ActivityBar from "$lib/components/ActivityBar/ActivityBar.svelte";
     import ActivityBarItem from "$lib/components/ActivityBar/ActivityBarItem.svelte";
     import Icon from "$lib/components/Icon.svelte";
-    import { cardsOutlineIcon, chartBarIcon, magnifyIcon, mdiRefresh, plusIcon } from "$lib/components/icons";
+    import {
+        cardsOutlineIcon,
+        chartBarIcon,
+        magnifyIcon,
+        mdiRefresh,
+        plusIcon,
+    } from "$lib/components/icons";
 
     function openDecks(): void {
-        goto("/deck-browser");
+        bridgeCommand("decks");
     }
 
     function addCard(): void {

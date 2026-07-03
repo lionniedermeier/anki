@@ -47,54 +47,6 @@ hooks = [
         title.""",
     ),
     Hook(
-        name="overview_will_render_content",
-        args=[
-            "overview: aqt.overview.Overview",
-            "content: aqt.overview.OverviewContent",
-        ],
-        doc="""Used to modify HTML content sections in the overview body
-
-        'content' contains the sections of HTML content the overview body
-        will be updated with.
-
-        When modifying the content of a particular section, please make sure your
-        changes only perform the minimum required edits to make your add-on work.
-        You should avoid overwriting or interfering with existing data as much
-        as possible, instead opting to append your own changes, e.g.:
-
-            def on_overview_will_render_content(overview, content):
-                content.table += "\\n<div>my html</div>"
-        """,
-    ),
-    Hook(
-        name="overview_will_render_bottom",
-        args=[
-            "link_handler: Callable[[str], bool]",
-            "links: list[list[str]]",
-        ],
-        return_type="Callable[[str], bool]",
-        doc="""Allows adding buttons to the Overview bottom bar.
-
-        Append a list of strings to 'links' argument to add new buttons.
-        - The first value is the shortcut to appear in the tooltip.
-        - The second value is the url to be triggered.
-        - The third value is the text of the new button.
-
-        Extend the callable 'link_handler' to handle new urls. This callable
-        accepts one argument: the triggered url.
-        Make a check of the triggered url, call any functions related to
-        that trigger, and return the new link_handler.
-
-        Example:
-            links.append(['H', 'hello', 'Click me!'])
-            def custom_link_handler(url):
-                if url == 'hello':
-                    print('Hello World!')
-                return link_handler(url=url)
-            return custom_link_handler
-        """,
-    ),
-    Hook(
         name="reviewer_did_show_question",
         args=["card: Card"],
         legacy_hook="showQuestion",

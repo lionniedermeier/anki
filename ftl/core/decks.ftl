@@ -36,6 +36,9 @@ decks-repeat-failed-cards-after = Delay Repeat failed cards after
 decks-study = Study
 decks-study-deck = Study Deck
 decks-filtered-deck-search-empty = No cards matched the provided search. Some cards may have been excluded because they are in a different filtered deck, or suspended.
+# Shown while dragging a deck in the deck list, as a drop target that removes
+# the deck from its current parent deck.
+decks-drop-here-to-remove-from-parent = Drop here to remove from parent deck
 
 ## Sort order of cards
 

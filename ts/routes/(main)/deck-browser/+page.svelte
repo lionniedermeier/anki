@@ -103,7 +103,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     </div>
 
     <div class="tree-scroll">
-        <TreeView nodes={rows} topLevelDroppable on:toggle={toggle} on:dragdrop={dragdrop}>
+        <TreeView
+            nodes={rows}
+            topLevelDroppable
+            on:toggle={toggle}
+            on:dragdrop={dragdrop}
+        >
             <svelte:fragment slot="row" let:node>
                 {@const row = node as DeckRowNode}
                 <div class="deck-row" class:current={row.deckId === currentDeckId}>
