@@ -102,40 +102,42 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <span class="col-opts"></span>
     </div>
 
-    <TreeView nodes={rows} topLevelDroppable on:toggle={toggle} on:dragdrop={dragdrop}>
-        <svelte:fragment slot="row" let:node>
-            {@const row = node as DeckRowNode}
-            <div class="deck-row" class:current={row.deckId === currentDeckId}>
-                <LabelButton
-                    tabbable
-                    ellipsis
-                    class="deck-name {row.filtered ? 'filtered' : ''}"
-                    on:click={() => open(row.deckId)}
-                >
-                    {row.name}
-                </LabelButton>
-                <span class={countClass(row.newCount, "new-count")}>
-                    {row.newCount}
-                </span>
-                <span class={countClass(row.learnCount, "learn-count")}>
-                    {row.learnCount}
-                </span>
-                <span class={countClass(row.reviewCount, "review-count")}>
-                    {row.reviewCount}
-                </span>
-                <IconButton
-                    tabbable
-                    tooltip={tr.actionsOptions()}
-                    on:click={() => openOptions(row.deckId)}
-                >
-                    <Icon icon={cogIcon} />
-                </IconButton>
-            </div>
-        </svelte:fragment>
-        <svelte:fragment slot="topLevel">
-            {tr.decksDropHereToRemoveFromParent()}
-        </svelte:fragment>
-    </TreeView>
+    <div class="tree-scroll">
+        <TreeView nodes={rows} topLevelDroppable on:toggle={toggle} on:dragdrop={dragdrop}>
+            <svelte:fragment slot="row" let:node>
+                {@const row = node as DeckRowNode}
+                <div class="deck-row" class:current={row.deckId === currentDeckId}>
+                    <LabelButton
+                        tabbable
+                        ellipsis
+                        class="deck-name {row.filtered ? 'filtered' : ''}"
+                        on:click={() => open(row.deckId)}
+                    >
+                        {row.name}
+                    </LabelButton>
+                    <span class={countClass(row.newCount, "new-count")}>
+                        {row.newCount}
+                    </span>
+                    <span class={countClass(row.learnCount, "learn-count")}>
+                        {row.learnCount}
+                    </span>
+                    <span class={countClass(row.reviewCount, "review-count")}>
+                        {row.reviewCount}
+                    </span>
+                    <IconButton
+                        tabbable
+                        tooltip={tr.actionsOptions()}
+                        on:click={() => openOptions(row.deckId)}
+                    >
+                        <Icon icon={cogIcon} />
+                    </IconButton>
+                </div>
+            </svelte:fragment>
+            <svelte:fragment slot="topLevel">
+                {tr.decksDropHereToRemoveFromParent()}
+            </svelte:fragment>
+        </TreeView>
+    </div>
 
     <div class="stats">{studiedToday}</div>
 
@@ -158,6 +160,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     .deck-browser {
         display: flex;
         flex-direction: column;
+        height: 100%;
         padding: 0.5rem 1rem;
         gap: 0.25rem;
     }
@@ -172,9 +175,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     .tree-header {
+        flex: none;
         font-weight: bold;
         padding-block: 0.25rem;
         border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .tree-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     .col-count {
@@ -207,11 +218,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     .stats {
+        flex: none;
         margin-top: 1rem;
         text-align: center;
     }
 
     .bottom-bar {
+        flex: none;
         display: flex;
         justify-content: center;
         gap: 0.5rem;
