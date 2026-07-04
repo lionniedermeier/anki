@@ -13,7 +13,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import type { BrowserColumns_Column, BrowserRow } from "@generated/anki/search_pb";
     import { createEventDispatcher, onMount } from "svelte";
 
-    import VirtualTable from "$lib/components/VirtualTable.svelte";
+    import ColumnResizeHandle from "$lib/components/VirtualTable/ColumnResizeHandle.svelte";
+    import VirtualTable from "$lib/components/VirtualTable/VirtualTable.svelte";
+    import { loadColumnWidths, saveColumnWidths } from "$lib/components/VirtualTable/VirtualTable";
 
     import { colorVarForRow } from "./lib";
 
@@ -27,6 +29,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     const dispatch = createEventDispatcher<{ sort: { column: string } }>();
 
     const ROW_HEIGHT = 30;
+    const DEFAULT_COLUMN_WIDTH = 150;
     // Matches pylib/anki/browser.py's BrowserDefaults; column customization
     // (persisting the user's chosen active columns) is deferred for now.
     const DEFAULT_CARD_COLUMNS = ["noteFld", "template", "cardDue", "deck"];
@@ -50,6 +53,30 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         .map((key) => allColumns.get(key))
         .filter((column): column is BrowserColumns_Column => Boolean(column));
     $: idStrings = ids.map((id) => id.toString());
+
+    // Cards and Notes mode both happen to have 4 columns, so a single
+    // storage key could carry sizes from one mode's columns over to the
+    // other's; keep them separate per mode instead.
+    $: columnWidthsViewId = notesMode ? "browseTableNotes" : "browseTableCards";
+    let columnWidths: number[] = [];
+    // Only (re)load when the mode's view id or the column count actually
+    // changes - not on every reactive tick - so a live drag (which mutates
+    // columnWidths[i]) isn't immediately clobbered by a reload.
+    let loadedWidthsFor = "";
+    $: if (
+        activeColumns.length > 0
+        && `${columnWidthsViewId}:${activeColumns.length}` !== loadedWidthsFor
+    ) {
+        loadedWidthsFor = `${columnWidthsViewId}:${activeColumns.length}`;
+        columnWidths = loadColumnWidths(
+            columnWidthsViewId,
+            activeColumns.map(() => DEFAULT_COLUMN_WIDTH),
+        );
+    }
+
+    function onColumnResizeCommit(): void {
+        saveColumnWidths(columnWidthsViewId, columnWidths);
+    }
 
     // `ids` is reassigned by the parent on every new search or mode switch,
     // so keying the cache reset off it also covers mode changes (which
@@ -87,8 +114,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         rowCache = next;
     }
 
-    function onVisible(event: CustomEvent<{ start: number; end: number }>): void {
-        visibleRange = { start: event.detail.start, end: event.detail.end };
+    function onVisible(range: { start: number; end: number }): void {
+        visibleRange = range;
         fetchMissing(visibleRange.start, visibleRange.end);
     }
 
@@ -132,34 +159,58 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     function sortBy(key: string): void {
         dispatch("sort", { column: key });
     }
+
+    function onHeaderKeydown(event: KeyboardEvent, key: string): void {
+        if (event.key === "Enter" || event.key === " ") {
+            sortBy(key);
+            event.preventDefault();
+        }
+    }
 </script>
 
 <VirtualTable
     class="browse-table"
     itemsCount={idStrings.length}
     itemHeight={ROW_HEIGHT}
-    on:visible={onVisible}
+    bind:columnWidths
+    onvisible={onVisible}
 >
-    <svelte:fragment slot="headers">
-        <tr>
-            {#each activeColumns as column (column.key)}
-                <th on:click={() => sortBy(column.key)}>{labelFor(column)}</th>
+    {#snippet headers()}
+        <div class="vg-row">
+            {#each activeColumns as column, i (column.key)}
+                <div
+                    class="vg-cell header-cell"
+                    role="columnheader"
+                    tabindex="0"
+                    on:click={() => sortBy(column.key)}
+                    on:keydown={(event) => onHeaderKeydown(event, column.key)}
+                >
+                    {labelFor(column)}
+                    <ColumnResizeHandle
+                        bind:width={columnWidths[i]}
+                        on:commit={onColumnResizeCommit}
+                    />
+                </div>
             {/each}
-        </tr>
-    </svelte:fragment>
-    <svelte:fragment slot="row" let:index>
+        </div>
+    {/snippet}
+    {#snippet row(index)}
         {@const id = idStrings[index]}
-        {@const row = rowCache.get(id)}
-        <tr
+        {@const rowData = rowCache.get(id)}
+        <!-- Rows are click-selectable; keyboard-based selection is a separate
+        feature not yet migrated, so no keydown handler / focus role here. -->
+        <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+        <div
+            class="vg-row"
             class:selected={selectedIds.has(id)}
-            style={rowStyle(row)}
+            style={rowStyle(rowData)}
             on:click={(event) => onRowClick(event, id, index)}
         >
             {#each activeColumns as column, columnIndex (column.key)}
-                <td>{cellText(row, columnIndex)}</td>
+                <div class="vg-cell">{cellText(rowData, columnIndex)}</div>
             {/each}
-        </tr>
-    </svelte:fragment>
+        </div>
+    {/snippet}
 </VirtualTable>
 
 <style lang="scss">
@@ -167,7 +218,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         height: 100%;
     }
 
-    tr {
+    .vg-row {
         cursor: pointer;
 
         &.selected {
@@ -176,7 +227,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    th {
+    .header-cell {
         cursor: pointer;
         user-select: none;
     }

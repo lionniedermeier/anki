@@ -8,7 +8,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Icon from "$lib/components/Icon.svelte";
     import IconButton from "$lib/components/IconButton.svelte";
     import { magnifyIcon } from "$lib/components/icons";
-    import VirtualTable from "$lib/components/VirtualTable.svelte";
+    import ColumnResizeHandle from "$lib/components/VirtualTable/ColumnResizeHandle.svelte";
+    import VirtualTable from "$lib/components/VirtualTable/VirtualTable.svelte";
+    import { loadColumnWidths, saveColumnWidths } from "$lib/components/VirtualTable/VirtualTable";
 
     import { getRows, showInBrowser } from "./lib";
     import TableCellWithTooltip from "./TableCellWithTooltip.svelte";
@@ -17,8 +19,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     export let summaries: SummarizedLogQueues[];
     export let bottomOffset: number = 0;
 
+    const VIEW_ID = "importDetailsTable";
+
     let bottom: HTMLElement;
     $: rows = getRows(summaries);
+
+    let columnWidths = loadColumnWidths(VIEW_ID, [50, 90, 400, 50]);
+
+    function onColumnResizeCommit(): void {
+        saveColumnWidths(VIEW_ID, columnWidths);
+    }
 </script>
 
 <div bind:this={bottom}>
@@ -27,17 +37,31 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             class="details-table"
             itemHeight={40}
             itemsCount={rows.length}
+            bind:columnWidths
             {bottomOffset}
         >
-            <tr slot="headers">
-                <th>#</th>
-                <th>{tr.importingStatus()}</th>
-                <th>{tr.editingFields()}</th>
-                <th></th>
-            </tr>
-            <svelte:fragment slot="row" let:index>
-                <tr>
-                    <td class="index-cell">{index + 1}</td>
+            {#snippet headers()}
+                <div class="vg-row">
+                    <div class="vg-cell">
+                        #
+                        <ColumnResizeHandle bind:width={columnWidths[0]} on:commit={onColumnResizeCommit} />
+                    </div>
+                    <div class="vg-cell">
+                        {tr.importingStatus()}
+                        <ColumnResizeHandle bind:width={columnWidths[1]} on:commit={onColumnResizeCommit} />
+                    </div>
+                    <div class="vg-cell">
+                        {tr.editingFields()}
+                        <ColumnResizeHandle bind:width={columnWidths[2]} on:commit={onColumnResizeCommit} />
+                    </div>
+                    <div class="vg-cell">
+                        <ColumnResizeHandle bind:width={columnWidths[3]} on:commit={onColumnResizeCommit} />
+                    </div>
+                </div>
+            {/snippet}
+            {#snippet row(index)}
+                <div class="vg-row">
+                    <div class="vg-cell index-cell">{index + 1}</div>
                     <TableCellWithTooltip
                         class="status-cell"
                         tooltip={rows[index].queue.reason}
@@ -50,7 +74,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     >
                         {rows[index].note.fields.join(",")}
                     </TableCellWithTooltip>
-                    <td class="search-cell">
+                    <div class="vg-cell search-cell">
                         <IconButton
                             class="search-icon"
                             iconSize={100}
@@ -62,9 +86,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         >
                             <Icon icon={magnifyIcon} />
                         </IconButton>
-                    </td>
-                </tr>
-            </svelte:fragment>
+                    </div>
+                </div>
+            {/snippet}
         </VirtualTable>
     {/if}
 </div>
@@ -72,27 +96,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <style lang="scss">
     :global(.details-table) {
         margin: 0 auto;
-        width: 100%;
 
         :global(.search-icon) {
             border: none !important;
             background: transparent !important;
         }
-        tr {
-            height: 40px;
+        .vg-row {
             text-align: center;
-        }
-        .index-cell {
-            width: 3em;
-        }
-        :global(.status-cell) {
-            width: 5em;
         }
         :global(.contents-cell) {
             text-align: left;
-        }
-        :global(.search-cell) {
-            width: 3em;
         }
     }
 </style>

@@ -16,6 +16,6 @@
     });
 </script>
 
-<td bind:this={element} class={className}>
+<div bind:this={element} class="vg-cell {className}">
     <slot />
-</td>
+</div>
