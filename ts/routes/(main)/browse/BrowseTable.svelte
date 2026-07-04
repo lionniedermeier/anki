@@ -3,7 +3,13 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    import { allBrowserColumns, getBrowserRows, setActiveBrowserColumns } from "@generated/backend";
+    import {
+        allBrowserColumns,
+        getBrowserRows,
+        setActiveBrowserColumns,
+        setConfigBool,
+    } from "@generated/backend";
+    import { ConfigKey_Bool } from "@generated/anki/config_pb";
     import type { BrowserColumns_Column, BrowserRow } from "@generated/anki/search_pb";
     import { createEventDispatcher, onMount } from "svelte";
 
@@ -66,6 +72,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             return;
         }
         await setActiveBrowserColumns({ vals: activeKeys });
+        // browser_row_for_id interprets the given ids as card or note ids
+        // based on this stored flag, not on anything passed to the RPC
+        // itself - it must be kept in sync before fetching rows, exactly
+        // like the active columns above.
+        await setConfigBool({
+            key: ConfigKey_Bool.BROWSER_TABLE_SHOW_NOTES_MODE,
+            value: notesMode,
+            undoable: false,
+        });
         const response = await getBrowserRows({ ids: missing.map((id) => BigInt(id)) });
         const next = new Map(rowCache);
         missing.forEach((id, index) => next.set(id, response.rows[index]));

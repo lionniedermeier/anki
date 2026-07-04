@@ -1249,6 +1249,8 @@ exposed_backend_list = [
     "update_deck",
     "set_deck_collapsed",
     "reparent_decks",
+    # ConfigService
+    "set_config_bool",
     # SearchService
     "build_search_string",
     "search_cards",
@@ -1355,6 +1357,7 @@ MAIN_WEBVIEW_API_WHITELIST = (
     "/_anki/joinSearchNodes",
     "/_anki/allBrowserColumns",
     "/_anki/setActiveBrowserColumns",
+    "/_anki/setConfigBool",
 )
 
 
