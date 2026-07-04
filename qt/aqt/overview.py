@@ -96,6 +96,14 @@ class Overview:
             self.empty_current_filtered_deck()
         elif url == "decks":
             self.mw.moveToState("deckBrowser")
+        elif url == "add":
+            self.mw.onAddCard()
+        elif url == "browse":
+            self.mw.browse.show()
+        elif url == "stats":
+            self.mw.onStats()
+        elif url == "sync":
+            self.mw.on_sync_button_clicked()
         elif url == "review":
             deck = self.mw.col.decks.current()
             openLink(

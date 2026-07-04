@@ -27,6 +27,14 @@ service FrontendService {
   // bundled into a single request.
   rpc GetDeckOverviewContent(generic.Empty) returns (DeckOverviewContent);
 
+  // Returns the browse sidebar tree (decks/tags/saved searches/card
+  // state/flags/notetypes), each node carrying a ready-to-use search string.
+  rpc GetBrowseSidebar(generic.Empty) returns (BrowseSidebarNode);
+
+  // Batch-fetches rendered browser rows for the given ids, avoiding one
+  // request per row for the visible window of a virtualized table.
+  rpc GetBrowserRows(GetBrowserRowsRequest) returns (BrowserRows);
+
   // Notify Qt layer so window modality can be updated.
   rpc ImportDone(generic.Empty) returns (generic.Empty);
 
@@ -77,4 +85,48 @@ message DeckOverviewContent {
   int32 buried_learn = 10;
   int32 buried_review = 11;
   bool have_buried = 12;
+}
+
+message BrowseSidebarNode {
+  enum NodeType {
+    ROOT = 0;
+    SAVED_SEARCH_ROOT = 1;
+    SAVED_SEARCH = 2;
+    TODAY_ROOT = 3;
+    TODAY = 4;
+    FLAG_ROOT = 5;
+    FLAG = 6;
+    FLAG_NONE = 7;
+    CARD_STATE_ROOT = 8;
+    CARD_STATE = 9;
+    DECK_ROOT = 10;
+    DECK_CURRENT = 11;
+    DECK = 12;
+    NOTETYPE_ROOT = 13;
+    NOTETYPE = 14;
+    NOTETYPE_TEMPLATE = 15;
+    NOTETYPE_FIELD = 16;
+    TAG_ROOT = 17;
+    TAG_NONE = 18;
+    TAG = 19;
+  }
+
+  string name = 1;
+  NodeType node_type = 2;
+  // Parsable search string; empty if this node is not directly searchable
+  // (e.g. the root, or section roots that have no aggregate search).
+  string search = 3;
+  // Deck id / notetype id / flag index / template or field ordinal. 0 if
+  // not applicable.
+  int64 id = 4;
+  bool expanded = 5;
+  repeated BrowseSidebarNode children = 6;
+}
+
+message GetBrowserRowsRequest {
+  repeated int64 ids = 1;
+}
+
+message BrowserRows {
+  repeated search.BrowserRow rows = 1;
 }

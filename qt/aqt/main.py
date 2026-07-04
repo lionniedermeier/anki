@@ -242,6 +242,7 @@ class AnkiQt(QMainWindow):
         self.setupDeckBrowser()
         self.setupOverview()
         self.setupReviewer()
+        self.setupBrowse()
 
     def finish_ui_setup(self) -> None:
         "Actions that are deferred until after add-on loading."
@@ -1076,6 +1077,11 @@ title="{}" {}>{}</button>""".format(
         from aqt.reviewer import Reviewer
 
         self.reviewer = Reviewer(self)
+
+    def setupBrowse(self) -> None:
+        from aqt.browse import Browse
+
+        self.browse = Browse(self)
 
     # Syncing
     ##########################################################################

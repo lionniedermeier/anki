@@ -1,0 +1,117 @@
+// Copyright: Ankitects Pty Ltd and contributors
+// License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
+
+import type { Writable } from "svelte/store";
+
+export const splitViewKey = Symbol("splitView");
+
+export interface SplitViewContext {
+    panes: Writable<PaneState[]>;
+    direction: "horizontal" | "vertical";
+    register(pane: PaneState): void;
+    unregister(id: string): void;
+    resize(id: string, delta: number): void;
+    toggleCollapsed(id: string): void;
+}
+
+export interface PaneState {
+    id: string;
+    /** Current width/height in px. Ignored while `grow` or `collapsed`. */
+    size: number;
+    /** Minimum width/height in px, enforced while resizing. */
+    min: number;
+    /** Fills remaining space via flex-grow instead of a fixed `size`. At most
+     * one pane on either side of a given divider should be a filler, or
+     * dragging that divider has no effect. */
+    grow: boolean;
+    collapsed: boolean;
+}
+
+/** Resize the divider trailing `panes[index]`, transferring `delta` px
+ * to/from its neighbour(s). A `grow` pane absorbs space automatically via
+ * flexbox and is left untouched unless its non-growing neighbour needs a
+ * matching adjustment; if neither side has a fixed size to give, the drag
+ * is a no-op. Collapsed panes are not resized. */
+export function resizeDivider(
+    panes: readonly PaneState[],
+    index: number,
+    delta: number,
+): PaneState[] {
+    const left = panes[index];
+    const right = panes[index + 1];
+    if (!left || !right || left.collapsed || right.collapsed) {
+        return panes.slice();
+    }
+
+    const result = panes.slice();
+
+    if (!left.grow && !right.grow) {
+        // Neither side auto-fills, so keep their combined width constant.
+        const maxGrow = right.size - right.min;
+        const maxShrink = left.size - left.min;
+        const clamped = Math.max(-maxShrink, Math.min(maxGrow, delta));
+        result[index] = { ...left, size: left.size + clamped };
+        result[index + 1] = { ...right, size: right.size - clamped };
+    } else if (!left.grow) {
+        result[index] = { ...left, size: Math.max(left.min, left.size + delta) };
+    } else if (!right.grow) {
+        result[index + 1] = { ...right, size: Math.max(right.min, right.size - delta) };
+    }
+    // If both sides are fillers, dragging has no defined effect.
+
+    return result;
+}
+
+export function toggleCollapsed(panes: readonly PaneState[], id: string): PaneState[] {
+    return panes.map((pane) =>
+        pane.id === id ? { ...pane, collapsed: !pane.collapsed } : pane
+    );
+}
+
+interface StoredPaneLayout {
+    size: number;
+    collapsed: boolean;
+}
+
+function storageKey(viewId: string): string {
+    return `splitView:${viewId}`;
+}
+
+/** Overlays sizes/collapsed-state persisted under `viewId` onto `defaults`,
+ * matching panes by id. Panes absent from storage (e.g. added since the
+ * layout was last saved) keep their default. */
+export function loadPaneLayout(
+    viewId: string,
+    defaults: readonly PaneState[],
+): PaneState[] {
+    let saved: Record<string, StoredPaneLayout>;
+    try {
+        const raw = localStorage.getItem(storageKey(viewId));
+        if (!raw) {
+            return defaults.slice();
+        }
+        saved = JSON.parse(raw);
+    } catch {
+        return defaults.slice();
+    }
+
+    return defaults.map((pane) => {
+        const stored = saved[pane.id];
+        return stored
+            ? { ...pane, size: stored.size, collapsed: stored.collapsed }
+            : pane;
+    });
+}
+
+export function savePaneLayout(viewId: string, panes: readonly PaneState[]): void {
+    const data: Record<string, StoredPaneLayout> = {};
+    for (const pane of panes) {
+        data[pane.id] = { size: pane.size, collapsed: pane.collapsed };
+    }
+    try {
+        localStorage.setItem(storageKey(viewId), JSON.stringify(data));
+    } catch {
+        // storage may be unavailable (e.g. private browsing) - layout just
+        // won't persist across reloads.
+    }
+}

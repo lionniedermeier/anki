@@ -3,12 +3,16 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
+    import { createEventDispatcher } from "svelte";
+
     let className: string = "";
     export { className as class };
 
     export let itemsCount: number = 0;
     export let itemHeight: number;
     export let bottomOffset: number = 0;
+
+    const dispatch = createEventDispatcher<{ visible: { start: number; end: number } }>();
 
     let container: HTMLElement;
     let scrollTop: number = 0;
@@ -25,6 +29,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     $: startIndex = Math.floor(scrollTop / itemHeight);
     $: endIndex = Math.min(startIndex + sliceLength, itemsCount);
     $: slice = new Array(endIndex - startIndex).fill(0).map((_, i) => startIndex + i);
+    // Lets consumers whose row data must be fetched on demand (e.g. from a
+    // backend) know which rows need loading, without every consumer having
+    // to duplicate this component's scroll/height math.
+    $: dispatch("visible", { start: startIndex, end: endIndex });
 
     window.addEventListener("resize", () => {
         containerHeight = containerHeight;

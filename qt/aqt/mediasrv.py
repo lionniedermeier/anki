@@ -425,6 +425,7 @@ def is_sveltekit_page(path: str) -> bool:
         "deck-chooser",
         "deck-browser",
         "deck-overview",
+        "browse",
         "export",
         "import-anki-package",
         "import-csv",
@@ -660,6 +661,25 @@ def get_deck_overview_content() -> bytes:
         buried_review=buried_review,
         have_buried=col.sched.have_buried(),
     ).SerializeToString()
+
+
+def get_browse_sidebar() -> bytes:
+    from aqt.browser.sidebar.content import build_browse_sidebar
+
+    return build_browse_sidebar(aqt.mw).SerializeToString()
+
+
+def get_browser_rows() -> bytes:
+    from anki.frontend_pb2 import BrowserRows, GetBrowserRowsRequest
+
+    req = GetBrowserRowsRequest()
+    req.ParseFromString(request.data)
+
+    rows = BrowserRows()
+    rows.rows.extend(
+        aqt.mw.col._backend.browser_row_for_id(id) for id in req.ids
+    )
+    return rows.SerializeToString()
 
 
 def set_scheduling_states() -> bytes:
@@ -1189,6 +1209,8 @@ post_handler_list = [
     set_scheduling_states,
     get_deck_browser_content,
     get_deck_overview_content,
+    get_browse_sidebar,
+    get_browser_rows,
     change_notetype,
     import_done,
     import_csv,
@@ -1227,6 +1249,13 @@ exposed_backend_list = [
     "update_deck",
     "set_deck_collapsed",
     "reparent_decks",
+    # SearchService
+    "build_search_string",
+    "search_cards",
+    "search_notes",
+    "join_search_nodes",
+    "all_browser_columns",
+    "set_active_browser_columns",
     # I18nService
     "i18n_resources",
     # ImportExportService
@@ -1318,6 +1347,14 @@ MAIN_WEBVIEW_API_WHITELIST = (
     "/_anki/getDeckOverviewContent",
     "/_anki/setDeckCollapsed",
     "/_anki/reparentDecks",
+    "/_anki/getBrowseSidebar",
+    "/_anki/getBrowserRows",
+    "/_anki/buildSearchString",
+    "/_anki/searchCards",
+    "/_anki/searchNotes",
+    "/_anki/joinSearchNodes",
+    "/_anki/allBrowserColumns",
+    "/_anki/setActiveBrowserColumns",
 )
 
 

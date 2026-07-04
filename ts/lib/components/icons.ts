@@ -15,14 +15,32 @@ import AlignVerticalCenter_ from "@mdi/svg/svg/align-vertical-center.svg?compone
 import alignVerticalCenter_ from "@mdi/svg/svg/align-vertical-center.svg?url";
 import AlignVerticalTop_ from "@mdi/svg/svg/align-vertical-top.svg?component";
 import alignVerticalTop_ from "@mdi/svg/svg/align-vertical-top.svg?url";
+import ApplicationBracesOutline_ from "@mdi/svg/svg/application-braces-outline.svg?component";
+import applicationBracesOutline_ from "@mdi/svg/svg/application-braces-outline.svg?url";
+import BookClockOutline_ from "@mdi/svg/svg/book-clock-outline.svg?component";
+import bookClockOutline_ from "@mdi/svg/svg/book-clock-outline.svg?url";
+import BookCogOutline_ from "@mdi/svg/svg/book-cog-outline.svg?component";
+import bookCogOutline_ from "@mdi/svg/svg/book-cog-outline.svg?url";
+import BookOutline_ from "@mdi/svg/svg/book-outline.svg?component";
+import bookOutline_ from "@mdi/svg/svg/book-outline.svg?url";
 import CardsOutline_ from "@mdi/svg/svg/cards-outline.svg?component";
 import cardsOutline_ from "@mdi/svg/svg/cards-outline.svg?url";
 import ChartBar_ from "@mdi/svg/svg/chart-bar.svg?component";
 import chartBar_ from "@mdi/svg/svg/chart-bar.svg?url";
 import CheckCircle_ from "@mdi/svg/svg/check-circle.svg?component";
 import checkCircle_ from "@mdi/svg/svg/check-circle.svg?url";
+import CircleOutline_ from "@mdi/svg/svg/circle-outline.svg?component";
+import circleOutline_ from "@mdi/svg/svg/circle-outline.svg?url";
+import Circle_ from "@mdi/svg/svg/circle.svg?component";
+import circle_ from "@mdi/svg/svg/circle.svg?url";
+import ClockOutline_ from "@mdi/svg/svg/clock-outline.svg?component";
+import clockOutline_ from "@mdi/svg/svg/clock-outline.svg?url";
 import ChevronDown_ from "@mdi/svg/svg/chevron-down.svg?component";
 import chevronDown_ from "@mdi/svg/svg/chevron-down.svg?url";
+import ChevronLeft_ from "@mdi/svg/svg/chevron-left.svg?component";
+import chevronLeft_ from "@mdi/svg/svg/chevron-left.svg?url";
+import ChevronRight_ from "@mdi/svg/svg/chevron-right.svg?component";
+import chevronRight_ from "@mdi/svg/svg/chevron-right.svg?url";
 import ChevronUp_ from "@mdi/svg/svg/chevron-up.svg?component";
 import chevronUp_ from "@mdi/svg/svg/chevron-up.svg?url";
 import CloseBox_ from "@mdi/svg/svg/close-box.svg?component";
@@ -49,6 +67,12 @@ import Delete_ from "@mdi/svg/svg/delete.svg?component";
 import delete_ from "@mdi/svg/svg/delete.svg?url";
 import Dots_ from "@mdi/svg/svg/dots-vertical.svg?component";
 import dots_ from "@mdi/svg/svg/dots-vertical.svg?url";
+import FlagVariantOffOutline_ from "@mdi/svg/svg/flag-variant-off-outline.svg?component";
+import flagVariantOffOutline_ from "@mdi/svg/svg/flag-variant-off-outline.svg?url";
+import FlagVariantOutline_ from "@mdi/svg/svg/flag-variant-outline.svg?component";
+import flagVariantOutline_ from "@mdi/svg/svg/flag-variant-outline.svg?url";
+import FormTextbox_ from "@mdi/svg/svg/form-textbox.svg?component";
+import formTextbox_ from "@mdi/svg/svg/form-textbox.svg?url";
 import HorizontalHandle_ from "@mdi/svg/svg/drag-horizontal.svg?component";
 import horizontalHandle_ from "@mdi/svg/svg/drag-horizontal.svg?url";
 import VerticalHandle_ from "@mdi/svg/svg/drag-vertical.svg?component";
@@ -91,6 +115,8 @@ import Block_ from "@mdi/svg/svg/format-wrap-top-bottom.svg?component";
 import block_ from "@mdi/svg/svg/format-wrap-top-bottom.svg?url";
 import Function_ from "@mdi/svg/svg/function-variant.svg?component";
 import function_ from "@mdi/svg/svg/function-variant.svg?url";
+import HeartOutline_ from "@mdi/svg/svg/heart-outline.svg?component";
+import heartOutline_ from "@mdi/svg/svg/heart-outline.svg?url";
 import Group_ from "@mdi/svg/svg/group.svg?component";
 import group_ from "@mdi/svg/svg/group.svg?url";
 import InfoCircle_ from "@mdi/svg/svg/help-circle.svg?component";
@@ -115,6 +141,8 @@ import Math_ from "@mdi/svg/svg/math-integral-box.svg?component";
 import math_ from "@mdi/svg/svg/math-integral-box.svg?url";
 import NewBox_ from "@mdi/svg/svg/new-box.svg?component";
 import newBox_ from "@mdi/svg/svg/new-box.svg?url";
+import Newspaper_ from "@mdi/svg/svg/newspaper.svg?component";
+import newspaper_ from "@mdi/svg/svg/newspaper.svg?url";
 import Paperclip_ from "@mdi/svg/svg/paperclip.svg?component";
 import paperclip_ from "@mdi/svg/svg/paperclip.svg?url";
 import RectangleOutline_ from "@mdi/svg/svg/rectangle-outline.svg?component";
@@ -129,6 +157,8 @@ import Square_ from "@mdi/svg/svg/square.svg?component";
 import square_ from "@mdi/svg/svg/square.svg?url";
 import TableRefresh_ from "@mdi/svg/svg/table-refresh.svg?component";
 import tableRefresh_ from "@mdi/svg/svg/table-refresh.svg?url";
+import TagOffOutline_ from "@mdi/svg/svg/tag-off-outline.svg?component";
+import tagOffOutline_ from "@mdi/svg/svg/tag-off-outline.svg?url";
 import Tag_ from "@mdi/svg/svg/tag-outline.svg?component";
 import tag_ from "@mdi/svg/svg/tag-outline.svg?url";
 import AddTag_ from "@mdi/svg/svg/tag-plus-outline.svg?component";
@@ -200,6 +230,8 @@ export const chartBarIcon = { url: chartBar_, component: ChartBar_ };
 export const checkCircle = { url: checkCircle_, component: CheckCircle_ };
 export const chevronDown = { url: chevronDown_, component: ChevronDown_ };
 export const chevronUp = { url: chevronUp_, component: ChevronUp_ };
+export const chevronLeft = { url: chevronLeft_, component: ChevronLeft_ };
+export const chevronRight = { url: chevronRight_, component: ChevronRight_ };
 export const closeBox = { url: closeBox_, component: CloseBox_ };
 export const dotsIcon = { url: dots_, component: Dots_ };
 export const horizontalHandle = { url: horizontalHandle_, component: HorizontalHandle_ };
@@ -208,7 +240,32 @@ export const infoCircle = { url: infoCircle_, component: InfoCircle_ };
 export const magnifyIcon = { url: magnify_, component: Magnify_ };
 export const newBox = { url: newBox_, component: NewBox_ };
 export const tagIcon = { url: tag_, component: Tag_ };
+export const tagOffOutlineIcon = { url: tagOffOutline_, component: TagOffOutline_ };
 export const addTagIcon = { url: addTag_, component: AddTag_ };
+export const heartOutlineIcon = { url: heartOutline_, component: HeartOutline_ };
+export const clockOutlineIcon = { url: clockOutline_, component: ClockOutline_ };
+export const flagVariantOutlineIcon = {
+    url: flagVariantOutline_,
+    component: FlagVariantOutline_,
+};
+export const flagVariantOffOutlineIcon = {
+    url: flagVariantOffOutline_,
+    component: FlagVariantOffOutline_,
+};
+export const circleIcon = { url: circle_, component: Circle_ };
+export const circleOutlineIcon = { url: circleOutline_, component: CircleOutline_ };
+export const bookOutlineIcon = { url: bookOutline_, component: BookOutline_ };
+export const bookClockOutlineIcon = {
+    url: bookClockOutline_,
+    component: BookClockOutline_,
+};
+export const bookCogOutlineIcon = { url: bookCogOutline_, component: BookCogOutline_ };
+export const newspaperIcon = { url: newspaper_, component: Newspaper_ };
+export const applicationBracesOutlineIcon = {
+    url: applicationBracesOutline_,
+    component: ApplicationBracesOutline_,
+};
+export const formTextboxIcon = { url: formTextbox_, component: FormTextbox_ };
 export const updateIcon = { url: update_, component: Update_ };
 export const revertIcon = { url: revert_, component: Revert_ };
 export const arrowLeftIcon = { url: arrowLeft_, component: ArrowLeft_ };

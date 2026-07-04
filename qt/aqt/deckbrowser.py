@@ -94,7 +94,7 @@ class DeckBrowser:
         elif kind == "add":
             self.mw.onAddCard()
         elif kind == "browse":
-            self.mw.onBrowse()
+            self.mw.browse.show()
         elif kind == "stats":
             self.mw.onStats()
         elif kind == "sync":

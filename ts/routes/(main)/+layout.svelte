@@ -51,7 +51,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <ActivityBarItem tooltip={tr.actionsAdd()} on:click={addCard}>
             <Icon icon={plusIcon} />
         </ActivityBarItem>
-        <ActivityBarItem tooltip={tr.qtMiscBrowse()} on:click={browse}>
+        <ActivityBarItem
+            active={page.url.pathname === "/browse"}
+            tooltip={tr.qtMiscBrowse()}
+            on:click={browse}
+        >
             <Icon icon={magnifyIcon} />
         </ActivityBarItem>
         <ActivityBarItem tooltip={tr.qtMiscStats()} on:click={stats}>
