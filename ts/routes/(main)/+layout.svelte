@@ -58,7 +58,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         >
             <Icon icon={magnifyIcon} />
         </ActivityBarItem>
-        <ActivityBarItem tooltip={tr.qtMiscStats()} on:click={stats}>
+        <ActivityBarItem
+            active={page.url.pathname === "/graphs"}
+            tooltip={tr.qtMiscStats()}
+            on:click={stats}
+        >
             <Icon icon={chartBarIcon} />
         </ActivityBarItem>
         <ActivityBarItem tooltip={tr.qtMiscSync()} on:click={sync}>

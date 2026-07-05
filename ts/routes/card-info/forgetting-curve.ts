@@ -8,8 +8,8 @@ import {
 import * as tr from "@generated/ftl";
 import { timeSpan } from "@tslib/time";
 import { axisBottom, axisLeft, line, max, min, pointer, scaleLinear, scaleTime, select } from "d3";
-import { type GraphBounds, setDataAvailable } from "../graphs/graph-helpers";
-import { hideTooltip, showTooltip } from "../graphs/tooltip-utils.svelte";
+import { type GraphBounds, setDataAvailable } from "../(main)/graphs/graph-helpers";
+import { hideTooltip, showTooltip } from "../(main)/graphs/tooltip-utils.svelte";
 
 const MIN_POINTS = 1000;
 

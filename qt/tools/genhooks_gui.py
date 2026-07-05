@@ -1268,11 +1268,6 @@ hooks = [
     # Stats
     ###################
     Hook(
-        name="stats_dialog_will_show",
-        args=["dialog: aqt.stats.NewDeckStats"],
-        doc="""Allows changing the stats dialog before it is shown.""",
-    ),
-    Hook(
         name="stats_dialog_old_will_show",
         args=["dialog: aqt.stats.DeckStats"],
         doc="""Allows changing the old stats dialog before it is shown.""",

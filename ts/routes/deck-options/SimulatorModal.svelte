@@ -5,22 +5,28 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import SpinBoxRow from "./SpinBoxRow.svelte";
     import SettingTitle from "$lib/components/SettingTitle.svelte";
-    import Graph from "../graphs/Graph.svelte";
-    import HoverColumns from "../graphs/HoverColumns.svelte";
-    import CumulativeOverlay from "../graphs/CumulativeOverlay.svelte";
-    import AxisTicks from "../graphs/AxisTicks.svelte";
-    import NoDataOverlay from "../graphs/NoDataOverlay.svelte";
-    import TableData from "../graphs/TableData.svelte";
-    import InputBox from "../graphs/InputBox.svelte";
-    import { defaultGraphBounds, type TableDatum } from "../graphs/graph-helpers";
+    import Graph from "../(main)/graphs/Graph.svelte";
+    import HoverColumns from "../(main)/graphs/HoverColumns.svelte";
+    import CumulativeOverlay from "../(main)/graphs/CumulativeOverlay.svelte";
+    import AxisTicks from "../(main)/graphs/AxisTicks.svelte";
+    import NoDataOverlay from "../(main)/graphs/NoDataOverlay.svelte";
+    import TableData from "../(main)/graphs/TableData.svelte";
+    import InputBox from "../(main)/graphs/InputBox.svelte";
+    import {
+        defaultGraphBounds,
+        type TableDatum,
+    } from "../(main)/graphs/graph-helpers";
     import {
         SimulateSubgraph,
         SimulateWorkloadSubgraph,
         type Point,
         type WorkloadPoint,
-    } from "../graphs/simulator";
+    } from "../(main)/graphs/simulator";
     import * as tr from "@generated/ftl";
-    import { renderSimulationChart, renderWorkloadChart } from "../graphs/simulator";
+    import {
+        renderSimulationChart,
+        renderWorkloadChart,
+    } from "../(main)/graphs/simulator";
     import {
         computeOptimalRetention,
         simulateFsrsReview,

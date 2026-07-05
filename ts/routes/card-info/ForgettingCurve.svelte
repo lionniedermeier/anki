@@ -5,19 +5,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import { type CardStatsResponse_StatsRevlogEntry as RevlogEntry } from "@generated/anki/stats_pb";
     import * as tr from "@generated/ftl";
-    import Graph from "../graphs/Graph.svelte";
-    import NoDataOverlay from "../graphs/NoDataOverlay.svelte";
-    import AxisTicks from "../graphs/AxisTicks.svelte";
+    import Graph from "../(main)/graphs/Graph.svelte";
+    import NoDataOverlay from "../(main)/graphs/NoDataOverlay.svelte";
+    import AxisTicks from "../(main)/graphs/AxisTicks.svelte";
     import { writable, type Writable } from "svelte/store";
-    import InputBox from "../graphs/InputBox.svelte";
+    import InputBox from "../(main)/graphs/InputBox.svelte";
     import {
         renderForgettingCurve,
         TimeRange,
         calculateMaxDays,
         filterRevlog,
     } from "./forgetting-curve";
-    import { defaultGraphBounds } from "../graphs/graph-helpers";
-    import HoverColumns from "../graphs/HoverColumns.svelte";
+    import { defaultGraphBounds } from "../(main)/graphs/graph-helpers";
+    import HoverColumns from "../(main)/graphs/HoverColumns.svelte";
 
     export let revlog: RevlogEntry[];
     export let desiredRetention: number;

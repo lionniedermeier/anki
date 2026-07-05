@@ -9,11 +9,9 @@ from typing import Any
 import aqt
 import aqt.forms
 import aqt.main
-from anki.decks import DeckId
-from anki.utils import is_mac
 from aqt import gui_hooks
-from aqt.operations.deck import set_current_deck
 from aqt.qt import *
+from aqt.sound import av_player
 from aqt.theme import theme_manager
 from aqt.utils import (
     disable_help_button,
@@ -27,118 +25,40 @@ from aqt.utils import (
 from aqt.webview import LegacyStatsWebView
 
 
-class NewDeckStats(QDialog):
-    """New deck stats."""
+class Stats:
+    """The Svelte statistics/graphs screen, reached from the main window's
+    ActivityBar.
+
+    Like Browse, this doesn't register a new ``mw.state`` - it's a content
+    swap on top of whatever state was active before.
+    """
 
     def __init__(self, mw: aqt.main.AnkiQt) -> None:
-        QDialog.__init__(self, mw, Qt.WindowType.Window)
-        mw.garbage_collect_on_dialog_finish(self)
         self.mw = mw
-        self.name = "deckStats"
-        self.period = 0
-        self.form = aqt.forms.stats.Ui_Dialog()
-        self.oldPos = None
-        self.wholeCollection = False
-        self.setMinimumWidth(700)
-        disable_help_button(self)
-        f = self.form
-        f.setupUi(self)
-        f.groupBox.setVisible(False)
-        f.groupBox_2.setVisible(False)
-        if not is_mac:
-            f.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
-        restoreGeom(self, self.name, default_size=(800, 800))
+        self.web = mw.web
 
-        from aqt.deckchooser import DeckChooser
+    def show(self) -> None:
+        av_player.stop_and_clear_queue()
+        self.web.set_bridge_command(self._on_bridge_cmd, self)
+        self.web.load_sveltekit_page("graphs")
+        self.mw.bottomWeb.hide()
 
-        self.deck_chooser = DeckChooser(
-            self.mw,
-            f.deckArea,
-            on_deck_changed=self.on_deck_changed,
-            dyn=True,  # include filtered decks
-        )
-
-        b = f.buttonBox.addButton(
-            tr.statistics_save_pdf(), QDialogButtonBox.ButtonRole.ActionRole
-        )
-        assert b is not None
-        qconnect(b.clicked, self.saveImage)
-        b.setAutoDefault(False)
-        b = f.buttonBox.button(QDialogButtonBox.StandardButton.Close)
-        assert b is not None
-        b.setAutoDefault(False)
-        maybeHideClose(self.form.buttonBox)
-        gui_hooks.stats_dialog_will_show(self)
-        self.form.web.hide_while_preserving_layout()
-        self.show()
-        self.refresh()
-        self.form.web.set_bridge_command(self._on_bridge_cmd, self)
-        self.activateWindow()
-
-    def reject(self) -> None:
-        self.deck_chooser.cleanup()
-        self.form.web.cleanup()
-        self.form.web = None  # type: ignore
-        saveGeom(self, self.name)
-        aqt.dialogs.markClosed("NewDeckStats")
-        QDialog.reject(self)
-
-    def closeWithCallback(self, callback: Callable[[], None]) -> None:
-        self.reject()
-        callback()
-
-    def on_deck_changed(self, deck_id: int) -> None:
-        set_current_deck(parent=self, deck_id=DeckId(deck_id)).success(
-            lambda _: self.refresh()
-        ).run_in_background()
-
-    def _imagePath(self) -> str | None:
-        name = time.strftime("-%Y-%m-%d@%H-%M-%S.pdf", time.localtime(time.time()))
-        name = f"anki-{tr.statistics_stats()}{name}"
-        file = getSaveFile(
-            self,
-            title=tr.statistics_save_pdf(),
-            dir_description="stats",
-            key="stats",
-            ext=".pdf",
-            fname=name,
-        )
-        return file
-
-    def saveImage(self) -> None:
-        path = self._imagePath()
-        if not path:
-            return
-
-        # When scrolled down in dark mode, the top of the page in the
-        # final PDF will have a white background, making the text and graphs
-        # unreadable. A simple fix for now is to scroll to the top of the
-        # page first.
-        def after_scroll(arg: Any) -> None:
-            form_web_page = self.form.web.page()
-            assert form_web_page is not None
-            form_web_page.printToPdf(path)
-            tooltip(tr.statistics_saved())
-
-        self.form.web.evalWithCallback("window.scrollTo(0, 0);", after_scroll)
-
-    # legacy add-ons
-    def changePeriod(self, n: Any) -> None:
-        pass
-
-    def changeScope(self, type: Any) -> None:
-        pass
-
-    def _on_bridge_cmd(self, cmd: str) -> bool:
+    def _on_bridge_cmd(self, cmd: str) -> Any:
         if cmd.startswith("browserSearch"):
             _, query = cmd.split(":", 1)
             browser = aqt.dialogs.open("Browser", self.mw)
             browser.search_for(query)
-
+        elif cmd == "decks":
+            self.mw.moveToState("deckBrowser")
+        elif cmd == "add":
+            self.mw.onAddCard()
+        elif cmd == "browse":
+            self.mw.browse.show()
+        elif cmd == "stats":
+            self.show()
+        elif cmd == "sync":
+            self.mw.on_sync_button_clicked()
         return False
-
-    def refresh(self) -> None:
-        self.form.web.load_sveltekit_page("graphs")
 
 
 class DeckStats(QDialog):

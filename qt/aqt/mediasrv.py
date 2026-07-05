@@ -1358,6 +1358,9 @@ MAIN_WEBVIEW_API_WHITELIST = (
     "/_anki/allBrowserColumns",
     "/_anki/setActiveBrowserColumns",
     "/_anki/setConfigBool",
+    "/_anki/graphs",
+    "/_anki/getGraphPreferences",
+    "/_anki/setGraphPreferences",
 )
 
 

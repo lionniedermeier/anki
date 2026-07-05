@@ -243,6 +243,7 @@ class AnkiQt(QMainWindow):
         self.setupOverview()
         self.setupReviewer()
         self.setupBrowse()
+        self.setupStats()
 
     def finish_ui_setup(self) -> None:
         "Actions that are deferred until after add-on loading."
@@ -1083,6 +1084,11 @@ title="{}" {}>{}</button>""".format(
 
         self.browse = Browse(self)
 
+    def setupStats(self) -> None:
+        from aqt.stats import Stats
+
+        self.stats = Stats(self)
+
     # Syncing
     ##########################################################################
 
@@ -1320,7 +1326,7 @@ title="{}" {}>{}</button>""".format(
         if want_old:
             aqt.dialogs.open("DeckStats", self)
         else:
-            aqt.dialogs.open("NewDeckStats", self)
+            self.stats.show()
 
     def onPrefs(self) -> None:
         aqt.dialogs.open("Preferences", self)
