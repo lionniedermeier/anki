@@ -60,7 +60,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         background: none;
         box-shadow: none !important;
         border: none;
-        border-radius: 0;
+        border-radius: 4px;
         color: var(--fg);
 
         &:hover {
@@ -82,13 +82,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             color: var(--fg-disabled);
         }
 
-        /* selection highlight */
-        &:not(.rtl) {
-            border-left: 3px solid transparent;
-        }
-        &.rtl {
-            border-right: 3px solid transparent;
-        }
         &.active {
             &:not(.rtl) {
                 border-left-color: var(--border-focus);
