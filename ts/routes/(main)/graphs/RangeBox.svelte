@@ -125,7 +125,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         position: sticky;
         z-index: 1;
         top: 0;
-        width: 100vw;
+        width: 100%;
+        box-sizing: border-box;
         color: var(--fg);
         background: var(--canvas);
         padding: 0.5em;
