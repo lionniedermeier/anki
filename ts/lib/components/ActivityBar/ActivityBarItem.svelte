@@ -3,13 +3,27 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    export let id: string | undefined = undefined;
-    let className = "";
-    export { className as class };
+    import type { Snippet } from "svelte";
 
-    export let active = false;
-    export let disabled = false;
-    export let tooltip: string | undefined = undefined;
+    interface Props {
+        id?: string;
+        class?: string;
+        active?: boolean;
+        disabled?: boolean;
+        tooltip?: string;
+        onclick?: (event: MouseEvent) => void;
+        children?: Snippet;
+    }
+
+    let {
+        id,
+        class: className = "",
+        active = false,
+        disabled = false,
+        tooltip,
+        onclick,
+        children,
+    }: Props = $props();
 </script>
 
 <button
@@ -20,9 +34,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     {disabled}
     role="tab"
     aria-selected={active}
-    on:click
+    {onclick}
 >
-    <slot />
+    {@render children?.()}
 </button>
 
 <style lang="scss">

@@ -3,12 +3,17 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    export let id: string | undefined = undefined;
-    let className = "";
-    export { className as class };
+    import type { Snippet } from "svelte";
 
-    /** Lay items out in a column (VSCode-style) rather than a row. */
-    export let vertical = true;
+    interface Props {
+        id?: string;
+        class?: string;
+        /** Lay items out in a column rather than a row. */
+        vertical?: boolean;
+        children?: Snippet;
+    }
+
+    let { id, class: className = "", vertical = true, children }: Props = $props();
 </script>
 
 <div
@@ -19,7 +24,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     role="tablist"
     aria-orientation={vertical ? "vertical" : "horizontal"}
 >
-    <slot />
+    {@render children?.()}
 </div>
 
 <style lang="scss">

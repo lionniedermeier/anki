@@ -17,6 +17,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         mdiRefresh,
         plusIcon,
     } from "$lib/components/icons";
+    import IconConstrain from "$lib/components/IconConstrain.svelte";
 
     function openDecks(): void {
         bridgeCommand("decks");
@@ -44,29 +45,39 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <ActivityBarItem
             active={page.url.pathname === "/deck-browser"}
             tooltip={tr.actionsDecks()}
-            on:click={openDecks}
+            onclick={openDecks}
         >
-            <Icon icon={cardsOutlineIcon} />
+            <IconConstrain>
+                <Icon icon={cardsOutlineIcon} />
+            </IconConstrain>
         </ActivityBarItem>
-        <ActivityBarItem tooltip={tr.actionsAdd()} on:click={addCard}>
-            <Icon icon={plusIcon} />
+        <ActivityBarItem tooltip={tr.actionsAdd()} onclick={addCard}>
+            <IconConstrain>
+                <Icon icon={plusIcon} />
+            </IconConstrain>
         </ActivityBarItem>
         <ActivityBarItem
             active={page.url.pathname === "/browse"}
             tooltip={tr.qtMiscBrowse()}
-            on:click={browse}
+            onclick={browse}
         >
-            <Icon icon={magnifyIcon} />
+            <IconConstrain>
+                <Icon icon={magnifyIcon} />
+            </IconConstrain>
         </ActivityBarItem>
         <ActivityBarItem
             active={page.url.pathname === "/graphs"}
             tooltip={tr.qtMiscStats()}
-            on:click={stats}
+            onclick={stats}
         >
-            <Icon icon={chartBarIcon} />
+            <IconConstrain>
+                <Icon icon={chartBarIcon} />
+            </IconConstrain>
         </ActivityBarItem>
-        <ActivityBarItem tooltip={tr.qtMiscSync()} on:click={sync}>
-            <Icon icon={mdiRefresh} />
+        <ActivityBarItem tooltip={tr.qtMiscSync()} onclick={sync}>
+            <IconConstrain>
+                <Icon icon={mdiRefresh} />
+            </IconConstrain>
         </ActivityBarItem>
     </ActivityBar>
     <div class="router-outlet">
