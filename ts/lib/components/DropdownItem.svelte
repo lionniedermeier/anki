@@ -3,29 +3,59 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    export let id: string | undefined = undefined;
-    export let role: string | undefined = undefined;
-    export let selected = false;
-    let className = "";
-    export { className as class };
+    import type { Snippet } from "svelte";
 
-    export let buttonRef: HTMLButtonElement | undefined = undefined;
+    interface Props {
+        id?: string;
+        role?: string;
+        selected?: boolean;
+        class?: string;
+        buttonRef?: HTMLButtonElement;
+        tooltip?: string;
+        active?: boolean;
+        disabled?: boolean;
+        tabbable?: boolean;
+        children?: Snippet;
+        onmouseenter?: (e: MouseEvent) => void;
+        onfocus?: (e: FocusEvent) => void;
+        onkeydown?: (e: KeyboardEvent) => void;
+        onclick?: (e: MouseEvent) => void;
+        onmousedown?: (e: MouseEvent) => void;
+    }
 
-    export let tooltip: string | undefined = undefined;
-
-    export let active = false;
-    export let disabled = false;
+    let {
+        id = undefined,
+        role = undefined,
+        selected = false,
+        class: className = "",
+        buttonRef = $bindable(undefined),
+        tooltip = undefined,
+        active = false,
+        disabled = false,
+        tabbable = false,
+        children,
+        onmouseenter,
+        onfocus,
+        onkeydown,
+        onclick,
+        onmousedown,
+    }: Props = $props();
 
     const rtl: boolean = window.getComputedStyle(document.body).direction == "rtl";
 
-    $: if (buttonRef && active) {
-        buttonRef!.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-        });
-    }
+    $effect(() => {
+        if (buttonRef && active) {
+            buttonRef!.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
+        }
+    });
 
-    export let tabbable = false;
+    function handleMousedown(e: MouseEvent) {
+        e.preventDefault();
+        onmousedown?.(e);
+    }
 </script>
 
 <button
@@ -39,13 +69,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     class:rtl
     title={tooltip}
     {disabled}
-    on:mouseenter
-    on:focus
-    on:keydown
-    on:click
-    on:mousedown|preventDefault
+    {onmouseenter}
+    {onfocus}
+    {onkeydown}
+    {onclick}
+    onmousedown={handleMousedown}
 >
-    <slot />
+    {@render children?.()}
 </button>
 
 <style lang="scss">
