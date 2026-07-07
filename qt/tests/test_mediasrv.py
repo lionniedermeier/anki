@@ -16,8 +16,8 @@ from aqt.mediasrv import (
     UNTRUSTED_MEDIA_CSP,
     LocalFileRequest,
     UnsafePathException,
-    _editor_content_security_policy,
     _handle_local_file_request,
+    _legacy_editor_content_security_policy,
     ensure_safe_path,
     exposed_backend_list,
     is_localhost_origin,
@@ -275,7 +275,7 @@ class TestMediaFileCSP:
 
 class TestEditorPageCSP:
     def test_editor_csp_does_not_block_user_embeds(self) -> None:
-        csp = _editor_content_security_policy(port=12345)
+        csp = _legacy_editor_content_security_policy(port=12345)
         directives = _csp_directives(csp)
 
         assert directives["script-src"] == (

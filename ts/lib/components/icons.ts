@@ -27,6 +27,8 @@ import CardsOutline_ from "@mdi/svg/svg/cards-outline.svg?component";
 import cardsOutline_ from "@mdi/svg/svg/cards-outline.svg?url";
 import ChartBar_ from "@mdi/svg/svg/chart-bar.svg?component";
 import chartBar_ from "@mdi/svg/svg/chart-bar.svg?url";
+import BookOutline_ from "@mdi/svg/svg/book-outline.svg?component";
+import bookOutline_ from "@mdi/svg/svg/book-outline.svg?url";
 import CheckCircle_ from "@mdi/svg/svg/check-circle.svg?component";
 import checkCircle_ from "@mdi/svg/svg/check-circle.svg?url";
 import CircleOutline_ from "@mdi/svg/svg/circle-outline.svg?component";
@@ -183,6 +185,8 @@ import ArrowLeft_ from "bootstrap-icons/icons/arrow-left.svg?component";
 import arrowLeft_ from "bootstrap-icons/icons/arrow-left.svg?url";
 import ArrowRight_ from "bootstrap-icons/icons/arrow-right.svg?component";
 import arrowRight_ from "bootstrap-icons/icons/arrow-right.svg?url";
+import CaretDownFill_ from "bootstrap-icons/icons/caret-down-fill.svg?component";
+import caretDownFill_ from "bootstrap-icons/icons/caret-down-fill.svg?url";
 import Minus_ from "bootstrap-icons/icons/dash-lg.svg?component";
 import minus_ from "bootstrap-icons/icons/dash-lg.svg?url";
 import Eraser_ from "bootstrap-icons/icons/eraser.svg?component";
@@ -234,7 +238,10 @@ export const chevronLeft = { url: chevronLeft_, component: ChevronLeft_ };
 export const chevronRight = { url: chevronRight_, component: ChevronRight_ };
 export const closeBox = { url: closeBox_, component: CloseBox_ };
 export const dotsIcon = { url: dots_, component: Dots_ };
-export const horizontalHandle = { url: horizontalHandle_, component: HorizontalHandle_ };
+export const horizontalHandle = {
+    url: horizontalHandle_,
+    component: HorizontalHandle_,
+};
 export const verticalHandle = { url: verticalHandle_, component: VerticalHandle_ };
 export const infoCircle = { url: infoCircle_, component: InfoCircle_ };
 export const magnifyIcon = { url: magnify_, component: Magnify_ };
@@ -314,37 +321,79 @@ export const underlineIcon = { url: underline_, component: Underline_ };
 export const deleteIcon = { url: delete_, component: Delete_ };
 export const inlineIcon = { url: inline_, component: Inline_ };
 export const blockIcon = { url: block_, component: Block_ };
-export const mdiAlignHorizontalCenter = { url: alignHorizontalCenter_, component: AlignHorizontalCenter_ };
-export const mdiAlignHorizontalLeft = { url: alignHorizontalLeft_, component: AlignHorizontalLeft_ };
-export const mdiAlignHorizontalRight = { url: alignHorizontalRight_, component: AlignHorizontalRight_ };
-export const mdiAlignVerticalBottom = { url: alignVerticalBottom_, component: AlignVerticalBottom_ };
-export const mdiAlignVerticalCenter = { url: alignVerticalCenter_, component: AlignVerticalCenter_ };
-export const mdiAlignVerticalTop = { url: alignVerticalTop_, component: AlignVerticalTop_ };
+export const mdiAlignHorizontalCenter = {
+    url: alignHorizontalCenter_,
+    component: AlignHorizontalCenter_,
+};
+export const mdiAlignHorizontalLeft = {
+    url: alignHorizontalLeft_,
+    component: AlignHorizontalLeft_,
+};
+export const mdiAlignHorizontalRight = {
+    url: alignHorizontalRight_,
+    component: AlignHorizontalRight_,
+};
+export const mdiAlignVerticalBottom = {
+    url: alignVerticalBottom_,
+    component: AlignVerticalBottom_,
+};
+export const mdiAlignVerticalCenter = {
+    url: alignVerticalCenter_,
+    component: AlignVerticalCenter_,
+};
+export const mdiAlignVerticalTop = {
+    url: alignVerticalTop_,
+    component: AlignVerticalTop_,
+};
 export const mdiClose = { url: close_, component: Close_ };
 export const mdiCodeTags = { url: codeTags_, component: CodeTags_ };
 export const mdiCopy = { url: copy_, component: Copy_ };
-export const mdiCursorDefaultOutline = { url: cursorDefaultOutline_, component: CursorDefaultOutline_ };
+export const mdiCursorDefaultOutline = {
+    url: cursorDefaultOutline_,
+    component: CursorDefaultOutline_,
+};
 export const mdiDeleteOutline = { url: deleteOutline_, component: DeleteOutline_ };
 export const mdiEllipseOutline = { url: ellipseOutline_, component: EllipseOutline_ };
 export const mdiEye = { url: eye_, component: Eye_ };
-export const mdiFormatAlignCenter = { url: formatAlignCenter_, component: FormatAlignCenter_ };
+export const mdiFormatAlignCenter = {
+    url: formatAlignCenter_,
+    component: FormatAlignCenter_,
+};
 export const mdiFormatBold = { url: formatBold_, component: FormatBold_ };
-export const mdiFormatColorFill = { url: formatColorFill_, component: FormatColorFill_ };
+export const mdiFormatColorFill = {
+    url: formatColorFill_,
+    component: FormatColorFill_,
+};
 export const mdiFormatItalic = { url: formatItalic_, component: FormatItalic_ };
-export const mdiFormatUnderline = { url: formatUnderline_, component: FormatUnderline_ };
+export const mdiFormatUnderline = {
+    url: formatUnderline_,
+    component: FormatUnderline_,
+};
 export const mdiGroup = { url: group_, component: Group_ };
 export const mdiZoomReset = { url: zoomReset_, component: ZoomReset_ };
 export const mdiZoomOut = { url: zoomOut_, component: ZoomOut_ };
 export const mdiZoomIn = { url: zoomIn_, component: ZoomIn_ };
 export const mdiMagnifyScan = { url: magnifyScan_, component: MagnifyScan_ };
-export const mdiRectangleOutline = { url: rectangleOutline_, component: RectangleOutline_ };
+export const mdiRectangleOutline = {
+    url: rectangleOutline_,
+    component: RectangleOutline_,
+};
 export const mdiRedo = { url: redo_, component: Redo_ };
 export const mdiSelectAll = { url: selectAll_, component: SelectAll_ };
 export const mdiSquare = { url: square_, component: Square_ };
 export const mdiTextBox = { url: textBox_, component: TextBox_ };
 export const mdiUndo = { url: undo_, component: Undo_ };
-export const mdiUnfoldMoreHorizontal = { url: unfoldMoreHorizontal_, component: UnfoldMoreHorizontal_ };
+export const mdiUnfoldMoreHorizontal = {
+    url: unfoldMoreHorizontal_,
+    component: UnfoldMoreHorizontal_,
+};
 export const mdiUngroup = { url: ungroup_, component: Ungroup_ };
-export const mdiVectorPolygonVariant = { url: vectorPolygonVariant_, component: VectorPolygonVariant_ };
+export const mdiVectorPolygonVariant = {
+    url: vectorPolygonVariant_,
+    component: VectorPolygonVariant_,
+};
 export const incrementClozeIcon = { url: incrementCloze_, component: IncrementCloze_ };
 export const mdiEarth = { url: earth_, component: Earth_ };
+export const caretDownFill = { url: caretDownFill_, component: CaretDownFill_ };
+export const mdiNewspaper = { url: newspaper_, component: Newspaper_ };
+export const mdiBookOutline = { url: bookOutline_, component: BookOutline_ };

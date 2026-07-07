@@ -11,6 +11,9 @@ import "anki/scheduler.proto";
 import "anki/generic.proto";
 import "anki/search.proto";
 import "anki/decks.proto";
+import "anki/notes.proto";
+import "anki/notetypes.proto";
+import "anki/links.proto";
 
 service FrontendService {
   // Returns values from the reviewer
@@ -45,6 +48,33 @@ service FrontendService {
   // Warns python that the deck option web view is ready to receive requests.
   rpc deckOptionsReady(generic.Empty) returns (generic.Empty);
 
+  // Editor
+  rpc ConvertPastedImage(ConvertPastedImageRequest)
+      returns (ConvertPastedImageResponse);
+  rpc OpenFilePicker(openFilePickerRequest) returns (generic.String);
+  rpc OpenMedia(generic.String) returns (generic.Empty);
+  rpc ShowInMediaFolder(generic.String) returns (generic.Empty);
+  rpc RecordAudio(generic.Empty) returns (generic.String);
+  rpc CloseAddCards(generic.Bool) returns (generic.Empty);
+  rpc CloseEditCurrent(generic.Empty) returns (generic.Empty);
+  rpc OpenLink(generic.String) returns (generic.Empty);
+  rpc AskUser(AskUserRequest) returns (generic.Bool);
+  rpc ShowMessageBox(ShowMessageBoxRequest) returns (generic.Empty);
+  rpc OpenFieldsDialog(generic.Empty) returns (generic.Empty);
+  rpc OpenCardsDialog(generic.Empty) returns (generic.Empty);
+
+  // Profile config
+  rpc GetProfileConfigJson(generic.String) returns (generic.Json);
+  rpc SetProfileConfigJson(SetSettingJsonRequest) returns (generic.Empty);
+
+  // Metadata
+  rpc GetMetaJson(generic.String) returns (generic.Json);
+  rpc SetMetaJson(SetSettingJsonRequest) returns (generic.Empty);
+
+  // Clipboard
+  rpc ReadClipboard(ReadClipboardRequest) returns (ReadClipboardResponse);
+  rpc WriteClipboard(WriteClipboardRequest) returns (generic.Empty);
+
   // Save colour picker's custom colour palette
   rpc SaveCustomColours(generic.Empty) returns (generic.Empty);
 }
@@ -59,74 +89,4 @@ message SchedulingStatesWithContext {
 message SetSchedulingStatesRequest {
   string key = 1;
   scheduler.SchedulingStates states = 2;
-}
-
-message DeckBrowserContent {
-  decks.DeckTreeNode tree = 1;
-  int64 current_deck_id = 2;
-  string studied_today = 3;
-}
-
-message DeckOverviewContent {
-  string deck_name = 1;
-  // deck["dyn"]: a filtered/cram deck
-  bool is_filtered = 2;
-  // markdown- or filtered-blurb-rendered server-side, ready to inject
-  string description_html = 3;
-  // 0 = not a shared deck
-  int64 shared_from = 4;
-  // deck["ver"], used to build the review URL
-  int32 shared_ver = 5;
-  uint32 new_count = 6;
-  uint32 learn_count = 7;
-  uint32 review_count = 8;
-  // signed deltas = deck-due-tree total - live count (0 outside v3)
-  int32 buried_new = 9;
-  int32 buried_learn = 10;
-  int32 buried_review = 11;
-  bool have_buried = 12;
-}
-
-message BrowseSidebarNode {
-  enum NodeType {
-    ROOT = 0;
-    SAVED_SEARCH_ROOT = 1;
-    SAVED_SEARCH = 2;
-    TODAY_ROOT = 3;
-    TODAY = 4;
-    FLAG_ROOT = 5;
-    FLAG = 6;
-    FLAG_NONE = 7;
-    CARD_STATE_ROOT = 8;
-    CARD_STATE = 9;
-    DECK_ROOT = 10;
-    DECK_CURRENT = 11;
-    DECK = 12;
-    NOTETYPE_ROOT = 13;
-    NOTETYPE = 14;
-    NOTETYPE_TEMPLATE = 15;
-    NOTETYPE_FIELD = 16;
-    TAG_ROOT = 17;
-    TAG_NONE = 18;
-    TAG = 19;
-  }
-
-  string name = 1;
-  NodeType node_type = 2;
-  // Parsable search string; empty if this node is not directly searchable
-  // (e.g. the root, or section roots that have no aggregate search).
-  string search = 3;
-  // Deck id / notetype id / flag index / template or field ordinal. 0 if
-  // not applicable.
-  int64 id = 4;
-  bool expanded = 5;
-  repeated BrowseSidebarNode children = 6;
-}
-
-message GetBrowserRowsRequest {
-  repeated int64 ids = 1;
-}
-
-message BrowserRows {
-  repeated search.BrowserRow rows = 1;
 }
