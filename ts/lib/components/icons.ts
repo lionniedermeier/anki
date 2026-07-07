@@ -27,8 +27,6 @@ import CardsOutline_ from "@mdi/svg/svg/cards-outline.svg?component";
 import cardsOutline_ from "@mdi/svg/svg/cards-outline.svg?url";
 import ChartBar_ from "@mdi/svg/svg/chart-bar.svg?component";
 import chartBar_ from "@mdi/svg/svg/chart-bar.svg?url";
-import BookOutline_ from "@mdi/svg/svg/book-outline.svg?component";
-import bookOutline_ from "@mdi/svg/svg/book-outline.svg?url";
 import CheckCircle_ from "@mdi/svg/svg/check-circle.svg?component";
 import checkCircle_ from "@mdi/svg/svg/check-circle.svg?url";
 import CircleOutline_ from "@mdi/svg/svg/circle-outline.svg?component";

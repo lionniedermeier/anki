@@ -90,3 +90,134 @@ message SetSchedulingStatesRequest {
   string key = 1;
   scheduler.SchedulingStates states = 2;
 }
+
+message DeckBrowserContent {
+  decks.DeckTreeNode tree = 1;
+  int64 current_deck_id = 2;
+  string studied_today = 3;
+}
+
+message DeckOverviewContent {
+  string deck_name = 1;
+  // deck["dyn"]: a filtered/cram deck
+  bool is_filtered = 2;
+  // markdown- or filtered-blurb-rendered server-side, ready to inject
+  string description_html = 3;
+  // 0 = not a shared deck
+  int64 shared_from = 4;
+  // deck["ver"], used to build the review URL
+  int32 shared_ver = 5;
+  uint32 new_count = 6;
+  uint32 learn_count = 7;
+  uint32 review_count = 8;
+  // signed deltas = deck-due-tree total - live count (0 outside v3)
+  int32 buried_new = 9;
+  int32 buried_learn = 10;
+  int32 buried_review = 11;
+  bool have_buried = 12;
+}
+
+message BrowseSidebarNode {
+  enum NodeType {
+    ROOT = 0;
+    SAVED_SEARCH_ROOT = 1;
+    SAVED_SEARCH = 2;
+    TODAY_ROOT = 3;
+    TODAY = 4;
+    FLAG_ROOT = 5;
+    FLAG = 6;
+    FLAG_NONE = 7;
+    CARD_STATE_ROOT = 8;
+    CARD_STATE = 9;
+    DECK_ROOT = 10;
+    DECK_CURRENT = 11;
+    DECK = 12;
+    NOTETYPE_ROOT = 13;
+    NOTETYPE = 14;
+    NOTETYPE_TEMPLATE = 15;
+    NOTETYPE_FIELD = 16;
+    TAG_ROOT = 17;
+    TAG_NONE = 18;
+    TAG = 19;
+  }
+
+  string name = 1;
+  NodeType node_type = 2;
+  // Parsable search string; empty if this node is not directly searchable
+  // (e.g. the root, or section roots that have no aggregate search).
+  string search = 3;
+  // Deck id / notetype id / flag index / template or field ordinal. 0 if
+  // not applicable.
+  int64 id = 4;
+  bool expanded = 5;
+  repeated BrowseSidebarNode children = 6;
+}
+
+message GetBrowserRowsRequest {
+  repeated int64 ids = 1;
+}
+
+message BrowserRows {
+  repeated search.BrowserRow rows = 1;
+}
+
+message ConvertPastedImageRequest {
+  bytes data = 1;
+  string ext = 2;
+}
+
+message ConvertPastedImageResponse {
+  bytes data = 1;
+}
+
+message SetSettingJsonRequest {
+  string key = 1;
+  bytes value_json = 2;
+}
+
+message openFilePickerRequest {
+  string title = 1;
+  string key = 2;
+  string filter_description = 3;
+  repeated string extensions = 4;
+}
+
+message ReadClipboardRequest {
+  repeated string types = 1;
+}
+
+message ReadClipboardResponse {
+  map<string, bytes> data = 1;
+}
+
+message WriteClipboardRequest {
+  map<string, bytes> data = 1;
+}
+
+message Help {
+  oneof value {
+    links.HelpPageLinkRequest.HelpPage help_page = 1;
+    string help_link = 2;
+  }
+}
+
+message AskUserRequest {
+  string text = 1;
+  optional Help help = 2;
+  optional string title = 4;
+  optional bool default_no = 5;
+}
+
+enum MessageBoxType {
+  INFO = 0;
+  WARNING = 1;
+  CRITICAL = 2;
+}
+
+message ShowMessageBoxRequest {
+  string text = 1;
+  MessageBoxType type = 2;
+  optional Help help = 3;
+  optional string title = 4;
+  optional string text_format = 5;
+}
