@@ -3,7 +3,8 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    import { getContext, onDestroy } from "svelte";
+    import type { Snippet } from "svelte";
+    import { getContext, onDestroy, untrack } from "svelte";
     import * as tr from "@generated/ftl";
 
     import { chevronDown, chevronLeft, chevronRight, chevronUp } from "../icons";
@@ -12,15 +13,27 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import type { SplitViewContext } from "./SplitView";
     import { splitViewKey } from "./SplitView";
 
-    export let id: string;
-    /** Initial width/height in px. Ignored while `grow` is set. */
-    export let size = 240;
-    export let min = 120;
-    /** Fill remaining space instead of being individually resizable. Use
-     * this for the main/content pane. */
-    export let grow = false;
-    /** Whether the divider trailing this pane offers a collapse toggle. */
-    export let collapsible = true;
+    interface SplitPaneProps {
+        id: string;
+        /** Initial width/height in px. Ignored while `grow` is set. */
+        size?: number;
+        min?: number;
+        /** Fill remaining space instead of being individually resizable. Use
+         * this for the main/content pane. */
+        grow?: boolean;
+        /** Whether the pane is collapsible. */
+        collapsible?: boolean;
+        children?: Snippet;
+    }
+
+    let {
+        id,
+        size = 240,
+        min = 120,
+        grow = false,
+        collapsible = false,
+        children,
+    }: SplitPaneProps = $props();
 
     const ctx = getContext<SplitViewContext>(splitViewKey);
     if (!ctx) {
@@ -29,17 +42,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     const panes = ctx.panes;
 
-    ctx.register({ id, size, min, grow, collapsed: false });
+    // Register once with the pane's initial size/constraints; subsequent
+    // sizing is driven through the shared store, so the props are read
+    // untracked here to capture their initial values.
+    untrack(() => ctx.register({ id, size, min, grow, collapsed: false }));
     onDestroy(() => ctx.unregister(id));
 
-    $: state = $panes.find((pane) => pane.id === id);
-    $: collapsed = state?.collapsed ?? false;
-    $: flexBasis = state?.grow
-        ? "1 1 0"
-        : `0 0 ${collapsed ? 0 : (state?.size ?? size)}px`;
-    $: isLast = $panes.length > 0 && $panes[$panes.length - 1].id === id;
-    $: vertical = ctx.direction === "vertical";
-    $: collapseIcon = collapseIconFor(vertical, collapsed);
+    const state = $derived($panes.find((pane) => pane.id === id));
+    const collapsed = $derived(state?.collapsed ?? false);
+    const flexBasis = $derived(
+        state?.grow ? "1 1 0" : `0 0 ${collapsed ? 0 : (state?.size ?? size)}px`,
+    );
+    const isLast = $derived($panes.length > 0 && $panes[$panes.length - 1].id === id);
+    const vertical = $derived(ctx.direction === "vertical");
+    const collapseIcon = $derived(collapseIconFor(vertical, collapsed));
 
     function collapseIconFor(vertical: boolean, collapsed: boolean) {
         if (vertical) {
@@ -49,7 +65,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     const DRAG_KEY_STEP = 20;
-    let dragPos: number | null = null;
+    // Pointer position where the current drag started, or null when idle.
+    let dragOrigin: number | null = null;
+    // Px already applied to the divider this drag. Because we always request
+    // the delta relative to `dragOrigin` minus what has actually been applied,
+    // overshoot past a min-size boundary is not baked into the origin: the
+    // divider only starts moving again once the pointer returns to the
+    // position where it stopped.
+    let appliedDelta = 0;
 
     function pointerPos(event: PointerEvent): number {
         return vertical ? event.clientY : event.clientX;
@@ -59,22 +82,22 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         if (event.button !== 0) {
             return;
         }
-        dragPos = pointerPos(event);
+        dragOrigin = pointerPos(event);
+        appliedDelta = 0;
         window.addEventListener("pointermove", onDragMove);
         window.addEventListener("pointerup", onDragEnd);
     }
 
     function onDragMove(event: PointerEvent): void {
-        if (dragPos === null) {
+        if (dragOrigin === null) {
             return;
         }
-        const pos = pointerPos(event);
-        ctx.resize(id, pos - dragPos);
-        dragPos = pos;
+        const desired = pointerPos(event) - dragOrigin;
+        appliedDelta += ctx.resize(id, desired - appliedDelta);
     }
 
     function onDragEnd(): void {
-        dragPos = null;
+        dragOrigin = null;
         window.removeEventListener("pointermove", onDragMove);
         window.removeEventListener("pointerup", onDragEnd);
     }
@@ -103,7 +126,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <div class="split-pane" class:collapsed style={`flex: ${flexBasis};`}>
     {#if !collapsed}
         <div class="split-pane-content">
-            <slot />
+            {@render children?.()}
         </div>
     {/if}
 </div>
@@ -112,8 +135,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     resizable divider is legitimately both a static role and a keyboard/
     pointer-operable widget, which the linter's fixed interactive-role list
     doesn't recognize. -->
-    <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
         class="split-view-divider"
         class:vertical
@@ -122,21 +145,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         aria-valuenow={state?.grow ? undefined : (state?.size ?? size)}
         aria-valuemin={state?.grow ? undefined : min}
         tabindex="0"
-        on:pointerdown={startDrag}
-        on:keydown={onKeydown}
-    >
-        {#if collapsible}
-            <IconButton
-                tabbable
-                tooltip={collapsed
-                    ? tr.browsingSidebarExpand()
-                    : tr.browsingSidebarCollapse()}
-                on:click={() => ctx.toggleCollapsed(id)}
-            >
-                <Icon icon={collapseIcon} />
-            </IconButton>
-        {/if}
-    </div>
+        onpointerdown={startDrag}
+        onkeydown={onKeydown}
+    ></div>
 {/if}
 
 <style lang="scss">

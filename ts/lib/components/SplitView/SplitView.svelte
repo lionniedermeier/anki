@@ -3,11 +3,13 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
+    import type { Snippet } from "svelte";
     import { onMount, setContext } from "svelte";
     import { writable } from "svelte/store";
 
     import type { PaneState, SplitViewContext } from "./SplitView";
     import {
+        appliedDividerDelta,
         loadPaneLayout,
         resizeDivider,
         savePaneLayout,
@@ -15,13 +17,21 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         toggleCollapsed as toggleCollapsedState,
     } from "./SplitView";
 
-    /** Persistence key; pane sizes/collapsed state are remembered across
-     * reloads under this id (see SplitView.ts's storageKey). */
-    export let id: string;
-    export let direction: "horizontal" | "vertical" = "horizontal";
+    interface SplitViewProps {
+        /** Persistence key; pane sizes/collapsed state are remembered across
+         * reloads under this id (see SplitView.ts's storageKey). */
+        id: string;
+        direction?: "horizontal" | "vertical";
+        class?: string;
+        children?: Snippet;
+    }
 
-    let className = "";
-    export { className as class };
+    let {
+        id,
+        direction = "horizontal",
+        class: className = "",
+        children,
+    }: SplitViewProps = $props();
 
     const panes = writable<PaneState[]>([]);
     let registered: PaneState[] = [];
@@ -45,12 +55,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    function resize(paneId: string, delta: number): void {
+    function resize(paneId: string, delta: number): number {
         const index = registered.findIndex((pane) => pane.id === paneId);
-        if (index === -1) {
-            return;
+        if (index === -1 || index + 1 >= registered.length) {
+            return 0;
         }
-        persist(resizeDivider(registered, index, delta));
+        const before = registered;
+        const next = resizeDivider(before, index, delta);
+        persist(next);
+        return appliedDividerDelta(before, next, index);
     }
 
     function toggleCollapsed(paneId: string): void {
@@ -59,7 +72,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     setContext<SplitViewContext>(splitViewKey, {
         panes,
-        direction,
+        get direction() {
+            return direction;
+        },
         register,
         unregister,
         resize,
@@ -78,7 +93,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </script>
 
 <div class="split-view {className}" class:vertical={direction === "vertical"}>
-    <slot />
+    {@render children?.()}
 </div>
 
 <style lang="scss">

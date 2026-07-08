@@ -4,6 +4,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
+    appliedDividerDelta,
     loadPaneLayout,
     type PaneState,
     resizeDivider,
@@ -69,6 +70,42 @@ describe("resizeDivider", () => {
         const panes = [pane({ id: "a", collapsed: true }), pane({ id: "b" })];
         const result = resizeDivider(panes, 0, 40);
         expect(result).toEqual(panes);
+    });
+});
+
+describe("appliedDividerDelta", () => {
+    // Mirrors how a pointer drag is anchored: the delta actually applied,
+    // rather than the requested one, is what advances the drag so that
+    // overshoot past a min-size boundary is not baked into the origin.
+    test("two fixed panes: reports the full delta when unclamped", () => {
+        const panes = [pane({ id: "a" }), pane({ id: "b" })];
+        const next = resizeDivider(panes, 0, 30);
+        expect(appliedDividerDelta(panes, next, 0)).toBe(30);
+    });
+
+    test("two fixed panes: reports only the delta applied before the minimum", () => {
+        const panes = [pane({ id: "a", size: 110 }), pane({ id: "b" })];
+        const next = resizeDivider(panes, 0, -50);
+        // left could only give up 10px before hitting its min of 100
+        expect(appliedDividerDelta(panes, next, 0)).toBe(-10);
+    });
+
+    test("fixed pane trailing a filler: reports the fixed pane's shrink", () => {
+        const panes = [pane({ id: "a", grow: true }), pane({ id: "b", size: 110 })];
+        const next = resizeDivider(panes, 0, 100);
+        // right shrinks from 110 to its min of 100, so only 10px applied
+        expect(appliedDividerDelta(panes, next, 0)).toBe(10);
+    });
+
+    test("two growing panes: reports zero", () => {
+        const panes = [pane({ id: "a", grow: true }), pane({ id: "b", grow: true })];
+        const next = resizeDivider(panes, 0, 40);
+        expect(appliedDividerDelta(panes, next, 0)).toBe(0);
+    });
+
+    test("last pane has no divider: reports zero", () => {
+        const panes = [pane({ id: "a" }), pane({ id: "b" })];
+        expect(appliedDividerDelta(panes, panes, 1)).toBe(0);
     });
 });
 

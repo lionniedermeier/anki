@@ -10,7 +10,11 @@ export interface SplitViewContext {
     direction: "horizontal" | "vertical";
     register(pane: PaneState): void;
     unregister(id: string): void;
-    resize(id: string, delta: number): void;
+    /** Move the divider trailing `id` by `delta` px, clamped to the panes'
+     * size constraints. Returns the px actually applied (i.e. the real
+     * divider displacement), which may be smaller in magnitude than `delta`
+     * or zero when a min-size boundary was hit. */
+    resize(id: string, delta: number): number;
     toggleCollapsed(id: string): void;
 }
 
@@ -60,6 +64,25 @@ export function resizeDivider(
     // If both sides are fillers, dragging has no defined effect.
 
     return result;
+}
+
+/** The px the divider trailing `panes[index]` moved between `before` and
+ * `after` (both produced by `resizeDivider` for the same `index`). Its
+ * on-screen displacement equals the size change of whichever side is fixed:
+ * the left pane grows when it isn't a filler, otherwise the right pane
+ * shrinks by the same amount. Zero when the drag was clamped or a no-op. */
+export function appliedDividerDelta(
+    before: readonly PaneState[],
+    after: readonly PaneState[],
+    index: number,
+): number {
+    const left = before[index];
+    if (!left || index + 1 >= before.length) {
+        return 0;
+    }
+    return left.grow
+        ? before[index + 1].size - after[index + 1].size
+        : after[index].size - left.size;
 }
 
 export function toggleCollapsed(panes: readonly PaneState[], id: string): PaneState[] {
