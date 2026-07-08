@@ -5,8 +5,6 @@ import { BrowseSidebarNode_NodeType } from "@generated/anki/frontend_pb";
 import type { BrowseSidebarNode } from "@generated/anki/frontend_pb";
 import { BrowserRow_Color } from "@generated/anki/search_pb";
 
-import type { IconData } from "$lib/components/types";
-import type { TreeViewNode } from "$lib/components/TreeView/TreeView";
 import {
     applicationBracesOutlineIcon,
     bookClockOutlineIcon,
@@ -22,6 +20,8 @@ import {
     tagIcon,
     tagOffOutlineIcon,
 } from "$lib/components/icons";
+import type { TreeViewNode } from "$lib/components/TreeView/TreeView";
+import type { IconData } from "$lib/components/types";
 
 export interface SidebarRowNode extends TreeViewNode {
     name: string;

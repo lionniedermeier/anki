@@ -10,7 +10,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { magnifyIcon } from "$lib/components/icons";
     import ColumnResizeHandle from "$lib/components/VirtualTable/ColumnResizeHandle.svelte";
     import VirtualTable from "$lib/components/VirtualTable/VirtualTable.svelte";
-    import { loadColumnWidths, saveColumnWidths } from "$lib/components/VirtualTable/VirtualTable";
+    import {
+        loadColumnWidths,
+        saveColumnWidths,
+    } from "$lib/components/VirtualTable/VirtualTable";
 
     import { getRows, showInBrowser } from "./lib";
     import TableCellWithTooltip from "./TableCellWithTooltip.svelte";
@@ -44,18 +47,30 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <div class="vg-row">
                     <div class="vg-cell">
                         #
-                        <ColumnResizeHandle bind:width={columnWidths[0]} on:commit={onColumnResizeCommit} />
+                        <ColumnResizeHandle
+                            bind:width={columnWidths[0]}
+                            on:commit={onColumnResizeCommit}
+                        />
                     </div>
                     <div class="vg-cell">
                         {tr.importingStatus()}
-                        <ColumnResizeHandle bind:width={columnWidths[1]} on:commit={onColumnResizeCommit} />
+                        <ColumnResizeHandle
+                            bind:width={columnWidths[1]}
+                            on:commit={onColumnResizeCommit}
+                        />
                     </div>
                     <div class="vg-cell">
                         {tr.editingFields()}
-                        <ColumnResizeHandle bind:width={columnWidths[2]} on:commit={onColumnResizeCommit} />
+                        <ColumnResizeHandle
+                            bind:width={columnWidths[2]}
+                            on:commit={onColumnResizeCommit}
+                        />
                     </div>
                     <div class="vg-cell">
-                        <ColumnResizeHandle bind:width={columnWidths[3]} on:commit={onColumnResizeCommit} />
+                        <ColumnResizeHandle
+                            bind:width={columnWidths[3]}
+                            on:commit={onColumnResizeCommit}
+                        />
                     </div>
                 </div>
             {/snippet}

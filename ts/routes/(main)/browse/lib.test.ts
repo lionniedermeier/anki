@@ -10,8 +10,8 @@ import {
     filterSidebarRows,
     findSidebarRow,
     iconForNodeType,
-    sidebarToRows,
     type SidebarRowNode,
+    sidebarToRows,
 } from "./lib";
 
 function makeNode(partial: Partial<BrowseSidebarNode>): BrowseSidebarNode {

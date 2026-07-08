@@ -210,9 +210,7 @@ def _notetypes(col: Collection, root: BrowseSidebarNode) -> None:
             child.id = tmpl["ord"]
             child.search = _search(
                 col,
-                col.group_searches(
-                    SearchNode(note=nt["name"]), SearchNode(template=c)
-                ),
+                col.group_searches(SearchNode(note=nt["name"]), SearchNode(template=c)),
             )
 
         for c, fld in enumerate(nt["flds"]):

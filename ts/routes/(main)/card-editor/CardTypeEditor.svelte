@@ -3,16 +3,19 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    import type {
-        Notetype,
-        NotetypeNameId,
-    } from "@generated/anki/notetypes_pb";
+    import type { Notetype, NotetypeNameId } from "@generated/anki/notetypes_pb";
     import { getNotetype } from "@generated/backend";
+    import * as tr from "@generated/ftl";
     import { untrack } from "svelte";
+    import { writable } from "svelte/store";
 
+    import CodeMirrorEditor from "$lib/components/CodeMirror/CodeMirrorEditor.svelte";
     import SplitPane from "$lib/components/SplitView/SplitPane.svelte";
     import SplitView from "$lib/components/SplitView/SplitView.svelte";
+    import Tab from "$lib/components/TabView/Tab.svelte";
+    import TabView from "$lib/components/TabView/TabView.svelte";
 
+    import { htmlanki } from "../../editor/code-mirror";
     import CardTypeSidebar from "./CardTypeSidebar.svelte";
 
     interface Props {
@@ -28,6 +31,25 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     );
     let notetype = $state<Notetype | null>(null);
     let selectedOrd = $state<number | null>(null);
+
+    // The card template currently being edited.
+    const template = $derived(
+        notetype?.templates.find((t) => t.ord?.val === selectedOrd) ?? null,
+    );
+
+    // Editor contents. Kept as stores so CodeMirrorEditor can bind to them and
+    // edits survive the editor being recreated on tab switches. The front/back
+    // are per-template; the CSS is shared across the whole notetype.
+    const frontCode = writable("");
+    const backCode = writable("");
+    const cssCode = writable("");
+
+    // Seed the editors whenever the selected template or notetype changes.
+    $effect(() => {
+        frontCode.set(template?.config?.qFormat ?? "");
+        backCode.set(template?.config?.aFormat ?? "");
+        cssCode.set(notetype?.config?.css ?? "");
+    });
 
     // Fetch the full notetype (fields + card templates + css) whenever the
     // selected notetype changes. The fetch is async, so a stale response is
@@ -63,7 +85,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         />
     </SplitPane>
     <SplitPane id="editor" grow>
-        <div class="pane-placeholder">Template editor coming soon.</div>
+        <TabView id="card-template-tabs" grow>
+            <Tab id="front" title={tr.cardTemplatesFrontTemplate()}>
+                <CodeMirrorEditor code={frontCode} mode={htmlanki} />
+            </Tab>
+            <Tab id="back" title={tr.cardTemplatesBackTemplate()}>
+                <CodeMirrorEditor code={backCode} mode={htmlanki} />
+            </Tab>
+            <Tab id="css" title={tr.cardTemplatesTemplateStyling()}>
+                <CodeMirrorEditor code={cssCode} mode="css" />
+            </Tab>
+        </TabView>
     </SplitPane>
     <SplitPane id="preview">
         <div class="pane-placeholder">Preview coming soon.</div>

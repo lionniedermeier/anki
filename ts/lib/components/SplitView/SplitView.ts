@@ -86,9 +86,7 @@ export function appliedDividerDelta(
 }
 
 export function toggleCollapsed(panes: readonly PaneState[], id: string): PaneState[] {
-    return panes.map((pane) =>
-        pane.id === id ? { ...pane, collapsed: !pane.collapsed } : pane
-    );
+    return panes.map((pane) => pane.id === id ? { ...pane, collapsed: !pane.collapsed } : pane);
 }
 
 interface StoredPaneLayout {

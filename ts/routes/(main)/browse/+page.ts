@@ -2,8 +2,8 @@
 // License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 import type { PlainMessage } from "@bufbuild/protobuf";
-import { getBrowseSidebar, searchCards } from "@generated/backend";
 import type { SortOrder } from "@generated/anki/search_pb";
+import { getBrowseSidebar, searchCards } from "@generated/backend";
 
 import type { PageLoad } from "./$types";
 

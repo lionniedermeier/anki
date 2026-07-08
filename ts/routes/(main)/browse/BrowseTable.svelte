@@ -15,25 +15,28 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     import ColumnResizeHandle from "$lib/components/VirtualTable/ColumnResizeHandle.svelte";
     import VirtualTable from "$lib/components/VirtualTable/VirtualTable.svelte";
-    import { loadColumnWidths, saveColumnWidths } from "$lib/components/VirtualTable/VirtualTable";
+    import {
+        loadColumnWidths,
+        saveColumnWidths,
+    } from "$lib/components/VirtualTable/VirtualTable";
 
     import { colorVarForRow } from "./lib";
 
     interface Props {
-        ids: bigint[],
-        notesMode: boolean,
+        ids: bigint[];
+        notesMode: boolean;
         selectedIds?: Set<string>;
-        onSort?: (detail:  {column: string }) => void;
+        onSort?: (detail: { column: string }) => void;
     }
 
     let {
         ids,
         notesMode,
         /** Selected row ids (as strings, since bigint doesn't work well as a Set
-        * key across reactive re-renders). Exposed so a future editor/preview
-        * pane can bind to the current selection. */
+         * key across reactive re-renders). Exposed so a future editor/preview
+         * pane can bind to the current selection. */
         selectedIds = $bindable(new Set<string>()),
-        onSort
+        onSort,
     }: Props = $props();
 
     const dispatch = createEventDispatcher<{ sort: { column: string } }>();
@@ -59,15 +62,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     });
 
     let activeKeys = $derived(notesMode ? DEFAULT_NOTE_COLUMNS : DEFAULT_CARD_COLUMNS);
-    let activeColumns = $derived(activeKeys
-        .map((key) => allColumns.get(key))
-        .filter((column): column is BrowserColumns_Column => Boolean(column)));
+    let activeColumns = $derived(
+        activeKeys
+            .map((key) => allColumns.get(key))
+            .filter((column): column is BrowserColumns_Column => Boolean(column)),
+    );
     let idStrings = $derived(ids.map((id) => id.toString()));
 
     // Cards and Notes mode both happen to have 4 columns, so a single
     // storage key could carry sizes from one mode's columns over to the
     // other's; keep them separate per mode instead.
-    let columnWidthsViewId = $derived(notesMode ? "browseTableNotes" : "browseTableCards");
+    let columnWidthsViewId = $derived(
+        notesMode ? "browseTableNotes" : "browseTableCards",
+    );
     let columnWidths: number[] = $state([]);
     // Only (re)load when the mode's view id or the column count actually
     // changes - not on every reactive tick - so a live drag (which mutates
@@ -76,8 +83,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     $effect(() => {
         if (
-            activeColumns.length > 0
-            && `${columnWidthsViewId}:${activeColumns.length}` !== loadedWidthsFor
+            activeColumns.length > 0 &&
+            `${columnWidthsViewId}:${activeColumns.length}` !== loadedWidthsFor
         ) {
             loadedWidthsFor = `${columnWidthsViewId}:${activeColumns.length}`;
             columnWidths = loadColumnWidths(

@@ -36,9 +36,7 @@ export function loadColumnWidths(viewId: string, defaults: number[]): number[] {
         if (!Array.isArray(stored) || stored.length !== defaults.length) {
             return defaults.slice();
         }
-        return stored.map((width, index) =>
-            typeof width === "number" && width > 0 ? width : defaults[index],
-        );
+        return stored.map((width, index) => typeof width === "number" && width > 0 ? width : defaults[index]);
     } catch {
         return defaults.slice();
     }

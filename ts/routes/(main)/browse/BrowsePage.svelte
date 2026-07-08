@@ -56,7 +56,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     async function runSearch(text: string): Promise<void> {
         const request = { search: text, order: order() };
-        const result = notesMode ? await searchNotes(request) : await searchCards(request);
+        const result = notesMode
+            ? await searchNotes(request)
+            : await searchCards(request);
         ids = result.ids;
         searchText = text;
     }
