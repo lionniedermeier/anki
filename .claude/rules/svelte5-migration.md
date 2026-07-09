@@ -13,9 +13,9 @@ Svelte 5 supports old Svelte 4 syntax too, but always prefer Svelte 5 syntax bel
 - `$: y = x * 2` (derivation) → `const y = $derived(x * 2)`.
 - `$: { ... }` (side effect) → `$effect(() => { ... })`.
 - `export let prop` → destructure from `$props()`: `let { optional = 'unset', required } = $props();`
-    - Rename: `let { class: klass } = $props();`
-    - Rest props: `let { foo, ...rest } = $props();`
-    - All props: `let props = $props();`
+  - Rename: `let { class: klass } = $props();`
+  - Rest props: `let { foo, ...rest } = $props();`
+  - All props: `let props = $props();`
 - Bindable props require `$bindable()`: `let { foo = $bindable('bar') } = $props();`. Bind consumer must pass a defined value if using a default.
 - Classes are not auto-reactive. Define `$state` fields inside the class itself; wrapping `new Foo()` in `$state()` does nothing.
 
@@ -50,17 +50,17 @@ Svelte 5 supports old Svelte 4 syntax too, but always prefer Svelte 5 syntax bel
 ## Components Are Functions, Not Classes
 
 - Instantiate with `mount` or `hydrate` from `svelte`, not `new Component(...)`.
-    ```js
-    import { mount } from "svelte";
-    const app = mount(App, { target: document.getElementById("app") });
-    ```
+  ```js
+  import { mount } from "svelte";
+  const app = mount(App, { target: document.getElementById("app") });
+  ```
 - `$on` → pass `events` option to `mount` (discouraged, prefer callback props).
 - `$set` → use `$state` for props object, then mutate it directly.
-    ```js
-    const props = $state({ foo: "bar" });
-    const app = mount(App, { target, props });
-    props.foo = "baz";
-    ```
+  ```js
+  const props = $state({ foo: "bar" });
+  const app = mount(App, { target, props });
+  props.foo = "baz";
+  ```
 - `$destroy` → `unmount(app)` from `svelte`.
 - `mount`/`hydrate` are async (not synchronous like `new Component()`). Use `flushSync` from `svelte` if you need synchronous behavior right after.
 - Server render: `Component.render(...)` → `render(Component, { props })` imported from `svelte/server`.
