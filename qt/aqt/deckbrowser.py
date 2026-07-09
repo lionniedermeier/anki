@@ -91,6 +91,8 @@ class DeckBrowser:
             self._showOptions(arg)
         elif kind == "changed":
             self._on_changed()
+        elif kind == "decks":
+            self.mw.moveToState("deckBrowser")
         elif kind == "add":
             self.mw.onAddCard()
         elif kind == "browse":

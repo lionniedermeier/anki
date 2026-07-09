@@ -1665,6 +1665,7 @@ exposed_backend_list = [
     "encode_iri_paths",
     "decode_iri_paths",
     "html_to_text_line",
+    "render_uncommitted_card",
     # ConfigService
     "set_config_json",
     "get_config_bool",
@@ -1762,6 +1763,8 @@ MAIN_WEBVIEW_API_WHITELIST = (
     "/_anki/reparentDecks",
     "/_anki/getNotetypeNames",
     "/_anki/getNotetype",
+    "/_anki/updateNotetype",
+    "/_anki/renderUncommittedCard",
     "/_anki/getBrowseSidebar",
     "/_anki/getBrowserRows",
     "/_anki/buildSearchString",

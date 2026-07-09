@@ -82,6 +82,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         if (event.button !== 0) {
             return;
         }
+        // Capture the pointer on the divider so pointer events keep flowing to
+        // it even when the cursor moves over an iframe pane. Without this, a
+        // fast drag toward an iframe lets the iframe swallow the pointermove
+        // events and the divider stops tracking.
+        try {
+            (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+        } catch {
+            // Non-fatal: fall back to the window listeners below.
+        }
         dragOrigin = pointerPos(event);
         appliedDelta = 0;
         window.addEventListener("pointermove", onDragMove);

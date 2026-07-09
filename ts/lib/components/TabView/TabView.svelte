@@ -19,8 +19,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         children?: Snippet;
     }
 
-    let { id, grow = false, class: className = "", children }: TabViewProps =
-        $props();
+    let { id, grow = false, class: className = "", children }: TabViewProps = $props();
 
     const tabs = writable<TabState[]>([]);
     const activeId = writable<string | null>(null);

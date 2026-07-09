@@ -15,13 +15,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         selectedNotetypeId: bigint | null;
         templates: Notetype_Template[];
         selectedOrd: number | null;
+        /** Request switching to another notetype (may be vetoed by the parent
+         * when there are unsaved edits, so selection is not bound directly). */
+        onSelectNotetype: (id: bigint) => void;
+        /** Request switching to another card template. */
+        onSelectTemplate: (ord: number | null) => void;
     }
 
     let {
         notetypeNames,
-        selectedNotetypeId = $bindable(),
+        selectedNotetypeId,
         templates,
-        selectedOrd = $bindable(),
+        selectedOrd,
+        onSelectNotetype,
+        onSelectTemplate,
     }: Props = $props();
 
     const selectedName = $derived(
@@ -34,7 +41,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <Select
             class="notetype-select"
             list={notetypeNames}
-            bind:value={selectedNotetypeId}
+            value={selectedNotetypeId}
+            on:change={(e) => onSelectNotetype(e.detail.value)}
             parser={(notetype) => ({
                 content: notetype.name,
                 value: notetype.id,
@@ -50,7 +58,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     type="button"
                     class="card-type"
                     class:selected={template.ord?.val === selectedOrd}
-                    onclick={() => (selectedOrd = template.ord?.val ?? null)}
+                    onclick={() => onSelectTemplate(template.ord?.val ?? null)}
                 >
                     {template.name}
                 </button>
