@@ -263,6 +263,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         display: flex;
         align-items: center;
         width: 100%;
+        min-height: var(--tree-row-height, 40px);
         padding-inline-end: 0.25rem;
         border-radius: var(--border-radius, 5px);
 
@@ -313,8 +314,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        // Fill the full row height and stay square, so the toggle target
+        // scales with the parent-controlled row height.
+        align-self: stretch;
+        aspect-ratio: 1;
 
         &.interactive {
             cursor: pointer;

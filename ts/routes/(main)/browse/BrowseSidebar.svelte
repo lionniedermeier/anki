@@ -102,6 +102,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         overflow-y: auto;
         overflow-x: hidden;
         padding: 0.25rem;
+        --tree-row-height: 24px;
     }
 
     .sidebar-row {
@@ -109,7 +110,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         align-items: center;
         gap: 0.5rem;
         min-width: 0;
-        padding: 4px 0;
+        padding: 2px 0;
     }
 
     .sidebar-row-name {
