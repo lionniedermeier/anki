@@ -18,6 +18,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         mdiRefresh,
         plusIcon,
         mdiEarth,
+        mdiCodeBlockTags,
     } from "$lib/components/icons";
     import IconConstrain from "$lib/components/IconConstrain.svelte";
 
@@ -86,7 +87,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             onclick={() => goto("/card-editor")}
         >
             <IconConstrain>
-                <Icon icon={mdiEarth} />
+                <Icon icon={mdiCodeBlockTags} />
             </IconConstrain>
         </ActivityBarItem>
     </ActivityBar>
