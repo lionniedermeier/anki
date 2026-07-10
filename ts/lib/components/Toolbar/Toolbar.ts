@@ -37,8 +37,7 @@ export interface ToolbarContext {
 
 /** Type-safe context pair; `getToolbarContext` throws if used outside a
  * `<Toolbar>`. */
-export const [getToolbarContext, setToolbarContext] =
-    createContext<ToolbarContext>();
+export const [getToolbarContext, setToolbarContext] = createContext<ToolbarContext>();
 
 /** Mutate a `Set` store, always notifying subscribers. */
 function updateSet(

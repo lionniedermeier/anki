@@ -210,7 +210,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     <div class="preview-body" class:split={mode === "both"}>
         {#if mode === "front"}
-            <CardPreview html={questionHtml} {css} ord={ord ?? 0} {nightMode} {mobile} />
+            <CardPreview
+                html={questionHtml}
+                {css}
+                ord={ord ?? 0}
+                {nightMode}
+                {mobile}
+            />
         {:else if mode === "back"}
             <CardPreview html={answerHtml} {css} ord={ord ?? 0} {nightMode} {mobile} />
         {:else}

@@ -19,7 +19,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import LabelButton from "$lib/components/LabelButton.svelte";
     import TreeView from "$lib/components/TreeView/TreeView.svelte";
 
-    import { countClass, deckTreeToRows, findRow, type DeckRowNode } from "./lib";
+    import { countClass, deckTreeToRows, findRow } from "./lib";
     import type { PageData } from "./$types";
 
     export let data: PageData;
@@ -46,12 +46,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         bridgeCommand(`open:${deckId}`);
     }
 
+    function openKeydown(event: KeyboardEvent, deckId: bigint): void {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            open(deckId);
+        }
+    }
+
     function openOptions(deckId: bigint): void {
         bridgeCommand(`opts:${deckId}`);
     }
 
-    function toggle(event: CustomEvent<{ id: string }>): void {
-        const row = findRow(rows, event.detail.id);
+    function toggle(id: string): void {
+        const row = findRow(rows, id);
         if (!row) {
             return;
         }
@@ -64,10 +71,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }).then(() => bridgeCommand("changed"));
     }
 
-    async function dragdrop(
-        event: CustomEvent<{ sourceId: string; targetId: string | null }>,
-    ): Promise<void> {
-        const { sourceId, targetId } = event.detail;
+    async function dragdrop(sourceId: string, targetId: string | null): Promise<void> {
         await reparentDecks({
             deckIds: [BigInt(sourceId)],
             newParent: targetId ? BigInt(targetId) : 0n,
@@ -106,41 +110,43 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <TreeView
             nodes={rows}
             topLevelDroppable
-            on:toggle={toggle}
-            on:dragdrop={dragdrop}
+            onToggle={toggle}
+            onDragdrop={dragdrop}
         >
-            <svelte:fragment slot="row" let:node>
-                {@const row = node as DeckRowNode}
-                <div class="deck-row" class:current={row.deckId === currentDeckId}>
-                    <LabelButton
-                        tabbable
-                        ellipsis
-                        class="deck-name {row.filtered ? 'filtered' : ''}"
-                        on:click={() => open(row.deckId)}
+            {#snippet row(node)}
+                <div class="deck-row" class:current={node.deckId === currentDeckId}>
+                    <div
+                        class="deck-name"
+                        class:filtered={node.filtered}
+                        role="button"
+                        tabindex="0"
+                        on:click={() => open(node.deckId)}
+                        on:keydown={(event) => openKeydown(event, node.deckId)}
                     >
-                        {row.name}
-                    </LabelButton>
-                    <span class={countClass(row.newCount, "new-count")}>
-                        {row.newCount}
+                        {node.name}
+                    </div>
+                    <span class={countClass(node.newCount, "new-count")}>
+                        {node.newCount}
                     </span>
-                    <span class={countClass(row.learnCount, "learn-count")}>
-                        {row.learnCount}
+                    <span class={countClass(node.learnCount, "learn-count")}>
+                        {node.learnCount}
                     </span>
-                    <span class={countClass(row.reviewCount, "review-count")}>
-                        {row.reviewCount}
+                    <span class={countClass(node.reviewCount, "review-count")}>
+                        {node.reviewCount}
                     </span>
                     <IconButton
                         tabbable
+                        class="deck-opts"
                         tooltip={tr.actionsOptions()}
-                        on:click={() => openOptions(row.deckId)}
+                        on:click={() => openOptions(node.deckId)}
                     >
                         <Icon icon={cogIcon} />
                     </IconButton>
                 </div>
-            </svelte:fragment>
-            <svelte:fragment slot="topLevel">
+            {/snippet}
+            {#snippet topLevel()}
                 {tr.decksDropHereToRemoveFromParent()}
-            </svelte:fragment>
+            {/snippet}
         </TreeView>
     </div>
 
@@ -201,18 +207,32 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         min-width: 0;
     }
 
-    .deck-row :global(.deck-name) {
-        text-align: start;
+    .deck-name {
         min-width: 0;
-        padding: 8px 0 8px 0;
+        padding: 8px 0;
+        text-align: start;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        cursor: pointer;
+        user-select: none;
     }
 
-    .deck-row :global(.deck-name.filtered) {
+    .deck-name.filtered {
         font-style: italic;
     }
 
-    .current :global(.deck-name) {
+    .current .deck-name {
         font-weight: bold;
+    }
+
+    .deck-row :global(.deck-opts) {
+        visibility: hidden;
+    }
+
+    .deck-row:hover :global(.deck-opts),
+    .deck-row :global(.deck-opts):focus-visible {
+        visibility: visible;
     }
 
     .new-count,
@@ -220,6 +240,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     .review-count,
     .zero-count {
         text-align: end;
+        user-select: none;
     }
 
     .stats {

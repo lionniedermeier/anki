@@ -9,7 +9,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Icon from "$lib/components/Icon.svelte";
     import IconConstrain from "$lib/components/IconConstrain.svelte";
     import { magnifyIcon } from "$lib/components/icons";
-    import LabelButton from "$lib/components/LabelButton.svelte";
     import TreeView from "$lib/components/TreeView/TreeView.svelte";
 
     import {
@@ -22,13 +21,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     export let rows: SidebarRowNode[];
 
     let filterText = "";
+    let selectedId: string | null = null;
 
     $: displayRows = filterSidebarRows(rows, filterText);
 
     const dispatch = createEventDispatcher<{ search: { search: string } }>();
 
-    function toggle(event: CustomEvent<{ id: string }>): void {
-        const row = findSidebarRow(rows, event.detail.id);
+    function toggle(id: string): void {
+        const row = findSidebarRow(rows, id);
         if (!row) {
             return;
         }
@@ -36,8 +36,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         rows = rows;
     }
 
-    function select(row: SidebarRowNode): void {
-        if (row.search) {
+    function select(id: string): void {
+        selectedId = id;
+        const row = findSidebarRow(rows, id);
+        if (row?.search) {
             dispatch("search", { search: row.search });
         }
     }
@@ -56,24 +58,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         />
     </div>
     <div class="tree-scroll">
-        <TreeView nodes={displayRows} on:toggle={toggle}>
-            <svelte:fragment slot="row" let:node>
-                {@const row = node as SidebarRowNode}
-                {@const icon = iconForNodeType(row.nodeType)}
-                <LabelButton
-                    tabbable
-                    ellipsis
-                    class="sidebar-row"
-                    on:click={() => select(row)}
-                >
+        <TreeView nodes={displayRows} {selectedId} onToggle={toggle} onSelect={select}>
+            {#snippet row(node)}
+                {@const icon = iconForNodeType(node.nodeType)}
+                <div class="sidebar-row">
                     {#if icon}
                         <IconConstrain>
                             <Icon {icon} />
                         </IconConstrain>
                     {/if}
-                    {row.name}
-                </LabelButton>
-            </svelte:fragment>
+                    <span class="sidebar-row-name">{node.name}</span>
+                </div>
+            {/snippet}
         </TreeView>
     </div>
 </div>
@@ -105,15 +101,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 0.25rem 0.5rem;
+        padding: 0.25rem;
     }
 
-    :global(.sidebar-row) {
+    .sidebar-row {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        width: 100%;
-        text-align: start;
+        min-width: 0;
         padding: 4px 0;
+    }
+
+    .sidebar-row-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 </style>

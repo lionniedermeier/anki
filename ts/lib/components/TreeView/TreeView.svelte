@@ -2,45 +2,63 @@
 Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
-<script lang="ts">
-    import { createEventDispatcher, onDestroy, onMount } from "svelte";
+<script lang="ts" generics="T extends TreeViewNode">
+    import type { Snippet } from "svelte";
+    import { onDestroy, onMount } from "svelte";
 
     import { chevronDown } from "../icons";
     import Icon from "../Icon.svelte";
-    import IconButton from "../IconButton.svelte";
+    import IconConstrain from "../IconConstrain.svelte";
     import { collectSubtreeIds, flattenVisible, type TreeViewNode } from "./TreeView";
 
-    type T = $$Generic<TreeViewNode>;
+    interface Props {
+        nodes: T[];
+        /** Indentation per depth level, in rem. */
+        indent?: number;
+        /** Renders an always-present drop target (via the `topLevel` snippet)
+         * that reports a null targetId, for un-parenting a dragged row. */
+        topLevelDroppable?: boolean;
+        /** Id of the selected row. Only meaningful together with `onSelect`. */
+        selectedId?: string | null;
+        onToggle?: (id: string) => void;
+        /** When provided, rows become the clickable and focusable surface, and
+         * paint hover/selected states. Omit for a presentational tree whose
+         * rows carry their own controls. */
+        onSelect?: (id: string) => void;
+        onDragdrop?: (sourceId: string, targetId: string | null) => void;
+        row: Snippet<[T, number]>;
+        topLevel?: Snippet;
+    }
 
-    export let nodes: T[];
-    /** Indentation per depth level, in rem. */
-    export let indent = 1.25;
-    /** Renders an always-present drop target (via the "topLevel" slot) that
-     * reports a null targetId, for un-parenting a dragged row. */
-    export let topLevelDroppable = false;
+    let {
+        nodes,
+        indent = 1.25,
+        topLevelDroppable = false,
+        selectedId = null,
+        onToggle,
+        onSelect,
+        onDragdrop,
+        row,
+        topLevel,
+    }: Props = $props();
 
-    const dispatch = createEventDispatcher<{
-        toggle: { id: string };
-        dragdrop: { sourceId: string; targetId: string | null };
-    }>();
-
-    $: visibleRows = flattenVisible(nodes);
-    $: nodeById = new Map(visibleRows.map((row) => [row.node.id, row.node]));
+    const visibleRows = $derived(flattenVisible(nodes));
+    const nodeById = $derived(new Map(visibleRows.map((r) => [r.node.id, r.node])));
+    const selectable = $derived(onSelect !== undefined);
 
     const TOP_LEVEL = "__top_level__";
     // Pointer movement (px) required before a press becomes a drag rather than
     // a click. Anki's webview does not support native HTML5 drag-and-drop
-    // reliably (see TreeView notes), so dragging is implemented with pointer
-    // events instead.
+    // reliably.
     const DRAG_THRESHOLD = 5;
 
     let pointerStart: { x: number; y: number; node: T } | null = null;
-    let dragging = false;
-    let draggedNode: T | null = null;
-    let dragOverId: string | null = null;
+    let dragging = $state(false);
+    let draggedNode: T | null = $state(null);
+    let dragOverId: string | null = $state(null);
     let excludedIds = new Set<string>();
-    let ghostX = 0;
-    let ghostY = 0;
+    let ghostX = $state(0);
+    let ghostY = $state(0);
     // Set when a drag completes, to swallow the click the browser fires right
     // after pointerup so it doesn't also trigger the row's click action.
     let suppressNextClick = false;
@@ -73,9 +91,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             const valid = target && target.droppable !== false && !excludedIds.has(id);
             dragOverId = valid ? id : null;
         } else if (topLevelDroppable) {
-            // Anywhere else in the view (blank space around/below the rows,
-            // the header, ...) counts as "drop outside any deck" so
-            // un-parenting isn't confined to a single hard-to-hit target.
             dragOverId = TOP_LEVEL;
         } else {
             dragOverId = null;
@@ -106,9 +121,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         if (dragging && draggedNode) {
             const sourceId = draggedNode.id;
             if (dragOverId === TOP_LEVEL) {
-                dispatch("dragdrop", { sourceId, targetId: null });
+                onDragdrop?.(sourceId, null);
             } else if (dragOverId) {
-                dispatch("dragdrop", { sourceId, targetId: dragOverId });
+                onDragdrop?.(sourceId, dragOverId);
             }
             // a click event follows pointerup; swallow it so a drag that ends
             // on the source row doesn't also fire the row's click action
@@ -145,6 +160,28 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
+    function onRowKeyDown(event: KeyboardEvent, id: string): void {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onSelect?.(id);
+        }
+    }
+
+    function toggle(event: MouseEvent, id: string): void {
+        // Expanding a node must not also select it.
+        event.stopPropagation();
+        onToggle?.(id);
+    }
+
+    function onChevronKeyDown(event: KeyboardEvent, id: string): void {
+        if (event.key === "Enter" || event.key === " ") {
+            // Toggle on the chevron, and stop the row from also handling it.
+            event.preventDefault();
+            event.stopPropagation();
+            onToggle?.(id);
+        }
+    }
+
     onMount(() => {
         window.addEventListener("click", onWindowClickCapture, true);
     });
@@ -155,51 +192,58 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     });
 </script>
 
-<!--
-    Note: this does not use ARIA tree/treeitem roles. Those roles imply
-    arrow-key navigation, which isn't implemented yet (tracked as Phase E
-    follow-up work) - declaring them without that support would be a false
-    promise to assistive-technology users.
--->
 <div class="tree-view" class:drag-over-top-level={dragOverId === TOP_LEVEL}>
     {#each visibleRows as { node, depth } (node.id)}
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <!-- The role and tabindex are only set when the tree is selectable,
+        which the compiler can't see through. -->
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div
             class="tree-row"
+            class:selectable
+            class:selected={selectable && node.id === selectedId}
             class:drag-over={dragOverId === node.id}
             class:dragged={dragging && draggedNode?.id === node.id}
+            style="padding-inline-start: {depth * indent}rem"
             data-tree-row-id={node.id}
-            on:pointerdown={(event) => onPointerDown(event, node)}
+            role={selectable ? "button" : undefined}
+            tabindex={selectable ? 0 : undefined}
+            onpointerdown={(event) => onPointerDown(event, node)}
+            onclick={() => onSelect?.(node.id)}
+            onkeydown={(event) => onRowKeyDown(event, node.id)}
         >
-            <span class="tree-indent" style="width: {depth * indent}rem"></span>
             {#if node.children.length > 0}
-                <IconButton
-                    class="tree-chevron"
-                    tabbable
-                    on:click={() => dispatch("toggle", { id: node.id })}
+                <div
+                    class="tree-chevron interactive"
+                    role="button"
+                    tabindex="0"
+                    aria-expanded={!node.collapsed}
+                    onclick={(event) => toggle(event, node.id)}
+                    onkeydown={(event) => onChevronKeyDown(event, node.id)}
                 >
                     <span class="tree-chevron-icon" class:collapsed={node.collapsed}>
-                        <Icon icon={chevronDown} />
+                        <IconConstrain iconSize={100}>
+                            <Icon icon={chevronDown} />
+                        </IconConstrain>
                     </span>
-                </IconButton>
+                </div>
             {:else}
-                <span class="tree-chevron tree-chevron-spacer"></span>
+                <div class="tree-chevron"></div>
             {/if}
             <div class="tree-row-content">
-                <slot name="row" {node} {depth} />
+                {@render row(node, depth)}
             </div>
         </div>
     {/each}
     {#if topLevelDroppable && dragging}
         <div class="tree-top-level-drop" class:drag-over={dragOverId === TOP_LEVEL}>
-            <slot name="topLevel" />
+            {@render topLevel?.()}
         </div>
     {/if}
 </div>
 
 {#if dragging && draggedNode}
     <div class="tree-drag-ghost" style="left: {ghostX}px; top: {ghostY}px">
-        <slot name="row" node={draggedNode!} depth={0} />
+        {@render row(draggedNode!, 0)}
     </div>
 {/if}
 
@@ -218,6 +262,24 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     .tree-row {
         display: flex;
         align-items: center;
+        width: 100%;
+        padding-inline-end: 0.25rem;
+        border-radius: var(--border-radius, 5px);
+
+        &.selectable {
+            cursor: pointer;
+            user-select: none;
+
+            &:hover {
+                background: var(--highlight-bg);
+                color: var(--highlight-fg);
+            }
+
+            &.selected {
+                background: var(--selected-bg);
+                color: var(--selected-fg);
+            }
+        }
 
         &.drag-over {
             outline: 1px solid var(--border-focus);
@@ -246,14 +308,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    .tree-indent {
-        flex-shrink: 0;
-    }
+    .tree-chevron {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
 
-    .tree-chevron-spacer {
-        display: inline-block;
-        width: var(--buttons-size);
-        min-width: calc(var(--buttons-size) * 0.75);
+        &.interactive {
+            cursor: pointer;
+        }
     }
 
     .tree-chevron-icon {
@@ -266,7 +331,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     .tree-row-content {
-        flex: 1;
+        flex: 1 1 auto;
         min-width: 0;
     }
 

@@ -30,8 +30,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }: Props = $props();
 
     // Throws if not rendered inside a <Toolbar>.
-    const { hidden: hiddenIds, disabled: disabledIds } =
-        getToolbarContext().controller;
+    const { hidden: hiddenIds, disabled: disabledIds } = getToolbarContext().controller;
     const isHidden = $derived(hidden || $hiddenIds.has(id));
     const isDisabled = $derived(disabled || $disabledIds.has(id));
 </script>
