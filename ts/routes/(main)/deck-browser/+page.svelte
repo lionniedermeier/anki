@@ -199,6 +199,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         overflow-x: hidden;
     }
 
+    // The rows carry their own controls, so TreeView leaves them without a
+    // hover state; give the whole tree item a subtle highlight on hover.
+    .tree-scroll :global(.tree-row:hover) {
+        background: var(--border-subtle);
+    }
+
     .col-count {
         text-align: end;
     }
