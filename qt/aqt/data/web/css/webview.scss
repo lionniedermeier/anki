@@ -6,10 +6,7 @@
 @use "../../../../../ts/lib/sass/buttons";
 
 * {
-    // border-box would be better, but we need to
-    // keep the old behaviour for now to avoid breaking
-    // add-ons/card templates
-    box-sizing: content-box;
+    box-sizing: border-box;
 }
 
 body {
