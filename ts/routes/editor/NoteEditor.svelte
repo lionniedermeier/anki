@@ -736,7 +736,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { wrapInternal } from "@tslib/wrap";
     import { getProfileConfig, getMeta, setMeta, getColConfig } from "@tslib/profile";
     import Shortcut from "$lib/components/Shortcut.svelte";
-    import { registerOperationHandler } from "@tslib/operations";
+    import {
+        deregisterOperationHandler,
+        registerOperationHandler,
+    } from "@tslib/operations";
 
     import { mathjaxConfig } from "$lib/editable/mathjax-element.svelte";
     import ImageOcclusionPage from "../image-occlusion/ImageOcclusionPage.svelte";
@@ -1358,7 +1361,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     });
 
     onDestroy(() => {
-        deregisterSticky();
+        deregisterOperationHandler(onOperationDidExecute);
+        deregisterSticky?.();
         destroyToast();
     });
 

@@ -10,6 +10,13 @@ export function registerOperationHandler(handler: (changes: Partial<OpChanges>) 
     handlers.push(handler);
 }
 
+export function deregisterOperationHandler(handler: (changes: Partial<OpChanges>) => void): void {
+    const index = handlers.indexOf(handler);
+    if (index !== -1) {
+        handlers.splice(index, 1);
+    }
+}
+
 function onOperationDidExecute(changes: Partial<OpChanges>): void {
     for (const handler of handlers) {
         handler(changes);
