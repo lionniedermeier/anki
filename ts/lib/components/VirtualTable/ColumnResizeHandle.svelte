@@ -9,24 +9,32 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
      * `VirtualTable`'s `columnWidths` prop, e.g.:
      * `<div class="vg-cell">{label}<ColumnResizeHandle
      * bind:width={columnWidths[i]} /></div>` */
-    import { createEventDispatcher } from "svelte";
+    import { stopPropagation } from "../helpers";
 
-    export let width: number;
-    export let min: number = 60;
+    interface ColumnResizeHandleProps {
+        width: number;
+        min?: number;
+        // Fired once the drag ends, so a consumer that persists widths (e.g. to
+        // localStorage) can do so once per drag instead of on every pointermove.
+        oncommit?: () => void;
+    }
+
+    let { width = $bindable(), min = 60, oncommit }: ColumnResizeHandleProps = $props();
 
     const KEY_STEP = 20;
 
-    // Fired once the drag ends, so a consumer that persists widths (e.g. to
-    // localStorage) can do so once per drag instead of on every pointermove.
-    const dispatch = createEventDispatcher<{ commit: void }>();
+    let startX = $state(0);
+    let startWidth = $state(0);
 
-    let startX = 0;
-    let startWidth = 0;
+    // Keeps the divider highlighted for the whole drag, since the pointer
+    // routinely leaves the handle's narrow grab target while dragging.
+    let active = $state(false);
 
     function onPointerDown(event: PointerEvent): void {
         if (event.button !== 0) {
             return;
         }
+        active = true;
         startX = event.clientX;
         startWidth = width;
         window.addEventListener("pointermove", onPointerMove);
@@ -38,40 +46,38 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     function onPointerUp(): void {
+        active = false;
         window.removeEventListener("pointermove", onPointerMove);
         window.removeEventListener("pointerup", onPointerUp);
-        dispatch("commit");
+        oncommit?.();
     }
 
     function onKeydown(event: KeyboardEvent): void {
         if (event.key === "ArrowRight") {
             width = Math.max(min, width + KEY_STEP);
-            dispatch("commit");
+            oncommit?.();
             event.preventDefault();
         } else if (event.key === "ArrowLeft") {
             width = Math.max(min, width - KEY_STEP);
-            dispatch("commit");
+            oncommit?.();
             event.preventDefault();
         }
     }
 </script>
 
-<!-- Focusable separator (WAI-ARIA APG "Window Splitter" pattern), matching
-SplitPane's divider: a resizable column edge is legitimately both a static
-role and a keyboard/pointer-operable widget, which the linter's fixed
-interactive-role list doesn't recognize. -->
-<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
     class="resize-handle"
+    class:active
     role="separator"
     aria-orientation="vertical"
     aria-valuenow={width}
     aria-valuemin={min}
     tabindex="0"
-    on:pointerdown|stopPropagation={onPointerDown}
-    on:keydown|stopPropagation={onKeydown}
-    on:click|stopPropagation
+    onpointerdown={stopPropagation(onPointerDown)}
+    onkeydown={stopPropagation(onKeydown)}
+    onclick={stopPropagation(() => {})}
 ></div>
 
 <style lang="scss">
@@ -79,17 +85,29 @@ interactive-role list doesn't recognize. -->
         position: absolute;
         top: 0;
         bottom: 0;
-        // Sit fully inside the cell's right edge so a `overflow: hidden`
-        // header cell doesn't clip the handle away (which made resizing
-        // impossible when the handle extended outside the box).
-        right: 0;
-        width: 6px;
+        // Straddle the boundary so the grab target is centered on the column
+        // edge. The header cell uses `overflow: clip` with an
+        // `overflow-clip-margin` so the part sticking out isn't clipped.
+        right: -3px;
+        width: 8px;
+        z-index: 2;
         cursor: col-resize;
-        z-index: 1;
         user-select: none;
 
-        &:hover,
-        &:focus-visible {
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            background: transparent;
+        }
+
+        &:hover::before,
+        &:focus-visible::before,
+        &.active::before {
             background: var(--border-focus);
         }
     }

@@ -186,5 +186,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         background: var(--border);
         text-align: center;
         border-top: 1px solid var(--border-subtle);
+        // Let the resize handle straddle the cell's right edge without being
+        // clipped, while header labels still effectively clip.
+        overflow: clip;
+        overflow-clip-margin: 4px;
     }
 </style>
