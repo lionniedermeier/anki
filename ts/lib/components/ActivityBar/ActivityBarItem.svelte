@@ -24,20 +24,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         onclick,
         children,
     }: Props = $props();
+
+    function onkeydown() {}
 </script>
 
-<button
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<div
     {id}
     class="activity-bar-item {className}"
     class:active
     title={tooltip}
-    {disabled}
     role="tab"
+    tabindex="0"
     aria-selected={active}
     {onclick}
 >
     {@render children?.()}
-</button>
+</div>
 
 <style lang="scss">
     .activity-bar-item {
