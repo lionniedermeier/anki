@@ -18,6 +18,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
          * (e.g. via `ColumnResizeHandle.svelte`) and pass the resulting
          * array back in. */
         columnWidths?: number[];
+        /** When true, every other row (by absolute index, so the pattern is
+         * stable across scrolling) gets a subtly different background. The
+         * stripe colour is `--vg-stripe-bg` (falls back to `--canvas-inset`),
+         * so consumers can theme it. Rows' own `selected`/color styling still
+         * wins, as the stripe is applied at minimal specificity. */
+        stripeRows?: boolean;
         /** Lets consumers whose row data must be fetched on demand (e.g.
          * from a backend) know which rows need loading, without every
          * consumer having to duplicate this component's scroll/height
@@ -33,6 +39,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         itemHeight,
         bottomOffset = 0,
         columnWidths = $bindable([]),
+        stripeRows = false,
         onvisible,
         headers,
         row,
@@ -116,13 +123,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <div class="vg-header">
             {@render headers?.()}
         </div>
-        <div class="vg-body">
-            {#if itemHeight * visibleRange.startIndex > 0}
-                <div
-                    class="vg-spacer"
-                    style="height: {itemHeight * visibleRange.startIndex}px;"
-                ></div>
-            {/if}
+        <div
+            class="vg-body"
+            class:vg-striped={stripeRows}
+            class:vg-striped-shift={stripeRows && visibleRange.startIndex % 2 === 0}
+        >
+            <!-- Always rendered (height 0 when scrolled to top) so the first
+            data row is always the second child; the stripe's :nth-child math
+            below relies on that fixed offset. -->
+            <div
+                class="vg-spacer"
+                style="height: {itemHeight * visibleRange.startIndex}px;"
+            ></div>
 
             {#each slice as index (index)}
                 {@render row?.(index)}
@@ -170,6 +182,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .vg-body :global(.vg-row) {
         height: var(--vg-row-height);
+    }
+
+    // Zebra striping keyed to the absolute row index, not DOM position: the
+    // always-present top spacer is child 1, so the first data row is child 2.
+    // `.vg-striped-shift` (toggled by the first visible row's parity) flips
+    // which child parity is coloured so the pattern stays stable while
+    // scrolling. `:where()` keeps this at :nth-child-only specificity so a
+    // row's own `selected`/color styling still wins.
+    :global(:where(.vg-striped:not(.vg-striped-shift)) :where(.vg-row):nth-child(even)),
+    :global(:where(.vg-striped.vg-striped-shift) :where(.vg-row):nth-child(odd)) {
+        background: var(--vg-stripe-bg, var(--canvas-inset));
     }
 
     :global(.vg-cell) {
