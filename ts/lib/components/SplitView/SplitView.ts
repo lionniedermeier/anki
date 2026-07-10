@@ -16,6 +16,7 @@ export interface SplitViewContext {
      * or zero when a min-size boundary was hit. */
     resize(id: string, delta: number): number;
     toggleCollapsed(id: string): void;
+    setHidden(id: string, hidden: boolean): void;
 }
 
 export interface PaneState {
@@ -29,6 +30,18 @@ export interface PaneState {
      * dragging that divider has no effect. */
     grow: boolean;
     collapsed: boolean;
+    /** Taken out of the layout entirely, along with its divider. Unlike an
+     * unrendered pane, a hidden one keeps its contents mounted - callers rely
+     * on this to preserve expensive children across show/hide. Not persisted. */
+    hidden?: boolean;
+}
+
+/** The id of the last pane that takes part in the layout. The divider trailing
+ * that pane is suppressed, so hiding the rightmost pane also hides the divider
+ * that would otherwise dangle after its neighbour. */
+export function lastVisiblePaneId(panes: readonly PaneState[]): string | null {
+    const visible = panes.filter((pane) => !pane.hidden);
+    return visible.length > 0 ? visible[visible.length - 1].id : null;
 }
 
 /** Resize the divider trailing `panes[index]`, transferring `delta` px
@@ -43,7 +56,7 @@ export function resizeDivider(
 ): PaneState[] {
     const left = panes[index];
     const right = panes[index + 1];
-    if (!left || !right || left.collapsed || right.collapsed) {
+    if (!left || !right || left.collapsed || right.collapsed || left.hidden || right.hidden) {
         return panes.slice();
     }
 

@@ -21,6 +21,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import SplitView from "$lib/components/SplitView/SplitView.svelte";
     import Switch from "$lib/components/Switch.svelte";
 
+    import BrowseEditor from "./BrowseEditor.svelte";
     import BrowseSidebar from "./BrowseSidebar.svelte";
     import BrowseTable from "./BrowseTable.svelte";
     import { sidebarToRows, type SidebarRowNode } from "./lib";
@@ -36,6 +37,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     let ids = initialIds;
     let sortColumn: string | null = null;
     let sortReverse = false;
+    let selectedIds = new Set<string>();
+
+    // The editor only makes sense for a single note, so it is hidden when
+    // nothing or more than one row is selected.
+    $: selectedRowId =
+        selectedIds.size === 1 ? BigInt(selectedIds.values().next().value!) : null;
 
     export async function refresh(): Promise<void> {
         sidebar = await getBrowseSidebar({});
@@ -91,6 +98,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     $: if (notesMode !== previousMode) {
         previousMode = notesMode;
+        // Row ids switch between card and note ids with the mode, so carrying
+        // the old ones over would resolve to unrelated notes.
+        selectedIds = new Set();
         runSearch(searchText);
     }
 </script>
@@ -121,9 +131,27 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         />
                     </div>
                     <div class="table-content">
-                        <BrowseTable {ids} {notesMode} on:sort={onSort} />
+                        <BrowseTable
+                            {ids}
+                            {notesMode}
+                            bind:selectedIds
+                            on:sort={onSort}
+                        />
                     </div>
                 </div>
+            </SplitPane>
+            <!-- Hidden rather than unrendered: NoteEditor is only ever torn
+            down with the page it owns, so its teardown throws outside add mode,
+            and each fresh mount would re-register a backend operation handler
+            that is never removed. -->
+            <SplitPane
+                id="browse-editor"
+                size={420}
+                min={280}
+                collapsible={false}
+                hidden={selectedRowId === null}
+            >
+                <BrowseEditor rowId={selectedRowId} {notesMode} />
             </SplitPane>
         </SplitView>
     </div>

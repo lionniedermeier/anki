@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
     appliedDividerDelta,
+    lastVisiblePaneId,
     loadPaneLayout,
     type PaneState,
     resizeDivider,
@@ -70,6 +71,30 @@ describe("resizeDivider", () => {
         const panes = [pane({ id: "a", collapsed: true }), pane({ id: "b" })];
         const result = resizeDivider(panes, 0, 40);
         expect(result).toEqual(panes);
+    });
+
+    test("hidden neighbour: dragging is a no-op", () => {
+        const panes = [pane({ id: "a" }), pane({ id: "b", hidden: true })];
+        const result = resizeDivider(panes, 0, 40);
+        expect(result).toEqual(panes);
+    });
+});
+
+describe("lastVisiblePaneId", () => {
+    test("returns the trailing pane when all are visible", () => {
+        const panes = [pane({ id: "a" }), pane({ id: "b" })];
+        expect(lastVisiblePaneId(panes)).toBe("b");
+    });
+
+    // The browse view hides its trailing editor pane, and the divider that
+    // would otherwise dangle after the table has to go with it.
+    test("skips trailing hidden panes", () => {
+        const panes = [pane({ id: "a" }), pane({ id: "b", hidden: true })];
+        expect(lastVisiblePaneId(panes)).toBe("a");
+    });
+
+    test("returns null when every pane is hidden", () => {
+        expect(lastVisiblePaneId([pane({ id: "a", hidden: true })])).toBe(null);
     });
 });
 

@@ -1777,6 +1777,58 @@ MAIN_WEBVIEW_API_WHITELIST = (
     "/_anki/graphs",
     "/_anki/getGraphPreferences",
     "/_anki/setGraphPreferences",
+    # The browse page embeds the note editor, which - unlike the editor's own
+    # webview - has no API key, so everything it reaches for has to be listed
+    # here. Add-mode-only endpoints (addNote, newNote, defaultsForAdding, the
+    # deck/notetype choosers, closeAddCards) are deliberately left out: the
+    # embedded editor only ever runs in "browser" mode.
+    # Loading and saving the selected note.
+    "/_anki/getCard",
+    "/_anki/getNote",
+    "/_anki/updateNotes",
+    "/_anki/getFieldNames",
+    "/_anki/getClozeFieldOrds",
+    "/_anki/noteFieldsCheck",
+    "/_anki/encodeIriPaths",
+    "/_anki/decodeIriPaths",
+    "/_anki/htmlToTextLine",
+    # Editor preferences: collection config (mathjax, image shrinking), the
+    # tag editor's collapsed state, and the last-used/custom colours.
+    "/_anki/getConfigJson",
+    "/_anki/setConfigJson",
+    "/_anki/getMetaJson",
+    "/_anki/setMetaJson",
+    "/_anki/getProfileConfigJson",
+    "/_anki/setProfileConfigJson",
+    "/_anki/getCustomColours",
+    "/_anki/saveCustomColours",
+    # Toolbar buttons and the duplicate-note link.
+    "/_anki/openFieldsDialog",
+    "/_anki/openCardsDialog",
+    "/_anki/openLink",
+    "/_anki/searchInBrowser",
+    "/_anki/showMessageBox",
+    "/_anki/askUser",
+    "/_anki/completeTag",
+    # Pasting, dragging and recording media into fields.
+    "/_anki/convertPastedImage",
+    "/_anki/addMediaFile",
+    "/_anki/addMediaFromPath",
+    "/_anki/addMediaFromUrl",
+    "/_anki/extractMediaFiles",
+    "/_anki/getAbsoluteMediaPath",
+    "/_anki/openFilePicker",
+    "/_anki/openMedia",
+    "/_anki/showInMediaFolder",
+    "/_anki/readClipboard",
+    "/_anki/writeClipboard",
+    "/_anki/recordAudio",
+    "/_anki/latestProgress",
+    # Editing an existing image occlusion note.
+    "/_anki/getImageOcclusionFields",
+    "/_anki/getImageOcclusionNote",
+    "/_anki/updateImageOcclusionNote",
+    "/_anki/getImageForOcclusion",
 )
 
 

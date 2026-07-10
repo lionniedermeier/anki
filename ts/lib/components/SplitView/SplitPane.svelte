@@ -11,7 +11,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Icon from "../Icon.svelte";
     import IconButton from "../IconButton.svelte";
     import type { SplitViewContext } from "./SplitView";
-    import { splitViewKey } from "./SplitView";
+    import { lastVisiblePaneId, splitViewKey } from "./SplitView";
 
     interface SplitPaneProps {
         id: string;
@@ -23,6 +23,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         grow?: boolean;
         /** Whether the pane is collapsible. */
         collapsible?: boolean;
+        /** Drop the pane and its divider out of the layout while keeping its
+         * contents mounted. Prefer this over an `{#if}` around the pane when
+         * re-creating the children would be costly or destructive. */
+        hidden?: boolean;
         children?: Snippet;
     }
 
@@ -32,6 +36,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         min = 120,
         grow = false,
         collapsible = false,
+        hidden = false,
         children,
     }: SplitPaneProps = $props();
 
@@ -45,15 +50,21 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     // Register once with the pane's initial size/constraints; subsequent
     // sizing is driven through the shared store, so the props are read
     // untracked here to capture their initial values.
-    untrack(() => ctx.register({ id, size, min, grow, collapsed: false }));
+    untrack(() => ctx.register({ id, size, min, grow, collapsed: false, hidden }));
     onDestroy(() => ctx.unregister(id));
+
+    // Visibility, unlike size, stays owned by the parent, so mirror the prop
+    // into the shared store for the neighbouring panes' divider logic.
+    $effect(() => {
+        ctx.setHidden(id, hidden);
+    });
 
     const state = $derived($panes.find((pane) => pane.id === id));
     const collapsed = $derived(state?.collapsed ?? false);
     const flexBasis = $derived(
         state?.grow ? "1 1 0" : `0 0 ${collapsed ? 0 : (state?.size ?? size)}px`,
     );
-    const isLast = $derived($panes.length > 0 && $panes[$panes.length - 1].id === id);
+    const isLast = $derived(lastVisiblePaneId($panes) === id);
     const vertical = $derived(ctx.direction === "vertical");
     const collapseIcon = $derived(collapseIconFor(vertical, collapsed));
 
@@ -132,14 +143,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 </script>
 
-<div class="split-pane" class:collapsed style={`flex: ${flexBasis};`}>
+<div class="split-pane" class:collapsed class:hidden style={`flex: ${flexBasis};`}>
     {#if !collapsed}
         <div class="split-pane-content">
             {@render children?.()}
         </div>
     {/if}
 </div>
-{#if !isLast}
+{#if !isLast && !hidden}
     <!-- Focusable separator (WAI-ARIA APG "Window Splitter" pattern): a
     resizable divider is legitimately both a static role and a keyboard/
     pointer-operable widget, which the linter's fixed interactive-role list
@@ -168,6 +179,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
         &.collapsed {
             flex-basis: 0 !important;
+        }
+
+        // display:none rather than an {#if}, so the children keep their state.
+        &.hidden {
+            display: none;
         }
     }
 

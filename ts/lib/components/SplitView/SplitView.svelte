@@ -70,6 +70,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         persist(toggleCollapsedState(registered, paneId));
     }
 
+    /** Visibility is driven by the owning view, not by the user, so it is
+     * applied without going through persist(). */
+    function setHidden(paneId: string, hidden: boolean): void {
+        const current = registered.find((pane) => pane.id === paneId);
+        if (!current || (current.hidden ?? false) === hidden) {
+            return;
+        }
+        registered = registered.map((pane) =>
+            pane.id === paneId ? { ...pane, hidden } : pane,
+        );
+        panes.set(registered);
+    }
+
     setContext<SplitViewContext>(splitViewKey, {
         panes,
         get direction() {
@@ -79,6 +92,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         unregister,
         resize,
         toggleCollapsed,
+        setHidden,
     });
 
     // Slotted SplitPane children register themselves during their own
