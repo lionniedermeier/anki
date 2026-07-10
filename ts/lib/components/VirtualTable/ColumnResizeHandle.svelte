@@ -30,6 +30,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     // routinely leaves the handle's narrow grab target while dragging.
     let active = $state(false);
 
+    // A full-height guide line drawn while dragging, tracking the column's
+    // right edge (not the cursor - the two diverge once `width` hits `min`).
+    // It's rendered `position: fixed` (see the .resize-guide style) so it
+    // escapes the header cell's `overflow: clip` and the scroll container's
+    // `overflow: auto`, which a child of the header cell can't. `startEdgeX`
+    // is the edge's viewport x at drag start; the guide follows it by the same
+    // (clamped) delta as `width`. `guideTop`/`guideBottom` span the enclosing
+    // VirtualTable's scroll area.
+    let startEdgeX = $state(0);
+    let guideTop = $state(0);
+    let guideBottom = $state(0);
+    const guideX = $derived(startEdgeX + (width - startWidth));
+
     function onPointerDown(event: PointerEvent): void {
         if (event.button !== 0) {
             return;
@@ -37,6 +50,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         active = true;
         startX = event.clientX;
         startWidth = width;
+        const handle = event.currentTarget as HTMLElement;
+        const handleRect = handle.getBoundingClientRect();
+        startEdgeX = handleRect.left + handleRect.width / 2;
+        const scroller = handle.closest(".vg-scroll");
+        if (scroller) {
+            const rect = scroller.getBoundingClientRect();
+            guideTop = rect.top;
+            guideBottom = rect.bottom;
+        } else {
+            guideTop = 0;
+            guideBottom = window.innerHeight;
+        }
         window.addEventListener("pointermove", onPointerMove);
         window.addEventListener("pointerup", onPointerUp);
     }
@@ -80,6 +105,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     onclick={stopPropagation(() => {})}
 ></div>
 
+{#if active}
+    <div
+        class="resize-guide"
+        style="left: {guideX}px; top: {guideTop}px; height: {guideBottom -
+            guideTop}px"
+    ></div>
+{/if}
+
 <style lang="scss">
     .resize-handle {
         position: absolute;
@@ -110,5 +143,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         &.active::before {
             background: var(--border-focus);
         }
+    }
+
+    .resize-guide {
+        position: fixed;
+        width: 2px;
+        transform: translateX(-50%);
+        background: var(--border-focus);
+        pointer-events: none;
+        z-index: 10;
     }
 </style>
