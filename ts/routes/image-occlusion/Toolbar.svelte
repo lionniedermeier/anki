@@ -318,13 +318,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <Popover slot="floating">
                 <DropdownItem
                     active={$hideAllGuessOne}
-                    on:click={() => changeOcclusionType("all")}
+                    onclick={() => changeOcclusionType("all")}
                 >
                     <span>{tr.notetypesHideAllGuessOne()}</span>
                 </DropdownItem>
                 <DropdownItem
                     active={!$hideAllGuessOne}
-                    on:click={() => changeOcclusionType("one")}
+                    onclick={() => changeOcclusionType("one")}
                 >
                     <span>{tr.notetypesHideOneGuessOne()}</span>
                 </DropdownItem>

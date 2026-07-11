@@ -100,7 +100,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     <Popover slot="floating" --popover-padding-inline="0">
         {#each dropdownItems as [callback, keyCombination, label]}
-            <DropdownItem on:click={() => setTimeout(callback, 100)}>
+            <DropdownItem onclick={() => setTimeout(callback, 100)}>
                 <span>{label}</span>
                 <span class="ms-auto ps-2 shortcut">
                     {getPlatformString(keyCombination)}

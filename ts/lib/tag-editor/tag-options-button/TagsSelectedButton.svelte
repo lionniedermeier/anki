@@ -43,15 +43,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     </div>
 
     <Popover slot="floating">
-        <DropdownItem on:click={() => dispatch("tagselectall")}>
+        <DropdownItem onclick={() => dispatch("tagselectall")}>
             {tr.editingTagsSelectAll()} ({getPlatformString(selectAllShortcut)})
         </DropdownItem>
 
-        <DropdownItem on:click={() => dispatch("tagcopy")}>
+        <DropdownItem onclick={() => dispatch("tagcopy")}>
             {tr.editingTagsCopy()} ({getPlatformString(copyShortcut)})
         </DropdownItem>
 
-        <DropdownItem on:click={() => dispatch("tagdelete")}>
+        <DropdownItem onclick={() => dispatch("tagdelete")}>
             {tr.editingTagsRemove()} ({getPlatformString(removeShortcut)})
         </DropdownItem>
     </Popover>

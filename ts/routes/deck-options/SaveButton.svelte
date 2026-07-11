@@ -95,22 +95,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <Icon icon={chevronDown} />
         </IconButton>
         <Popover slot="floating">
-            <DropdownItem on:click={() => dispatch("add")}>
+            <DropdownItem onclick={() => dispatch("add")}>
                 {tr.deckConfigAddGroup()}
             </DropdownItem>
-            <DropdownItem on:click={() => dispatch("clone")}>
+            <DropdownItem onclick={() => dispatch("clone")}>
                 {tr.deckConfigCloneGroup()}
             </DropdownItem>
-            <DropdownItem on:click={() => dispatch("rename")}>
+            <DropdownItem onclick={() => dispatch("rename")}>
                 {tr.deckConfigRenameGroup()}
             </DropdownItem>
-            <DropdownItem on:click={removeConfig}>
+            <DropdownItem onclick={removeConfig}>
                 {tr.deckConfigRemoveGroup()}
             </DropdownItem>
             <DropdownDivider />
-            <DropdownItem
-                on:click={() => save(UpdateDeckConfigsMode.APPLY_TO_CHILDREN)}
-            >
+            <DropdownItem onclick={() => save(UpdateDeckConfigsMode.APPLY_TO_CHILDREN)}>
                 {tr.deckConfigSaveToAllSubdecks()}
             </DropdownItem>
         </Popover>

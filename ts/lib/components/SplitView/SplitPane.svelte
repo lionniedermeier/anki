@@ -5,11 +5,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import type { Snippet } from "svelte";
     import { getContext, onDestroy, untrack } from "svelte";
-    import * as tr from "@generated/ftl";
 
     import { chevronDown, chevronLeft, chevronRight, chevronUp } from "../icons";
-    import Icon from "../Icon.svelte";
-    import IconButton from "../IconButton.svelte";
     import type { SplitViewContext } from "./SplitView";
     import { lastVisiblePaneId, splitViewKey } from "./SplitView";
 

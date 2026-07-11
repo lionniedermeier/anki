@@ -57,15 +57,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     </IconButton>
 
     <Popover slot="floating" --popover-padding-inline="0">
-        <DropdownItem on:click={toggleShrinkImages}>
+        <DropdownItem onclick={toggleShrinkImages}>
             <CheckBox value={$shrinkImagesByDefault} />
             <span class="d-flex-inline ps-3">{tr.editingShrinkImages()}</span>
         </DropdownItem>
-        <DropdownItem on:click={toggleShowMathjax}>
+        <DropdownItem onclick={toggleShowMathjax}>
             <CheckBox value={mathjaxConfig.enabled} />
             <span class="d-flex-inline ps-3">{tr.editingMathjaxPreview()}</span>
         </DropdownItem>
-        <DropdownItem on:click={toggleCloseHTMLTags}>
+        <DropdownItem onclick={toggleCloseHTMLTags}>
             <CheckBox value={$closeHTMLTags} />
             <span class="d-flex-inline ps-3">{tr.editingCloseHtmlTags()}</span>
         </DropdownItem>

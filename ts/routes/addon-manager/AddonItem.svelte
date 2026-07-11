@@ -102,16 +102,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <Icon icon={dotsIcon} />
             </IconButton>
             <Popover slot="floating">
-                <DropdownItem on:click={onViewFiles}>
+                <DropdownItem onclick={onViewFiles}>
                     {tr.addonsViewFiles()}
                 </DropdownItem>
                 {#if addon.pageUrl}
-                    <DropdownItem on:click={onViewPage}>
+                    <DropdownItem onclick={onViewPage}>
                         {tr.addonsViewAddonPage()}
                     </DropdownItem>
                 {/if}
                 <DropdownDivider />
-                <DropdownItem on:click={onDelete}>
+                <DropdownItem onclick={onDelete}>
                     {tr.actionsDelete()}
                 </DropdownItem>
             </Popover>

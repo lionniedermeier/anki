@@ -135,7 +135,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     <Popover slot="floating" --popover-padding-inline="0">
         {#each showFormats as format (format.name)}
-            <DropdownItem on:click={(event) => onItemClick(event, format)}>
+            <DropdownItem onclick={(event) => onItemClick(event, format)}>
                 <CheckBox bind:value={format.active} />
                 <span class="d-flex-inline ps-3">{format.name}</span>
             </DropdownItem>

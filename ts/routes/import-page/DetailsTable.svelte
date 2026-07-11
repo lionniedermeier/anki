@@ -49,27 +49,27 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         #
                         <ColumnResizeHandle
                             bind:width={columnWidths[0]}
-                            on:commit={onColumnResizeCommit}
+                            oncommit={onColumnResizeCommit}
                         />
                     </div>
                     <div class="vg-cell">
                         {tr.importingStatus()}
                         <ColumnResizeHandle
                             bind:width={columnWidths[1]}
-                            on:commit={onColumnResizeCommit}
+                            oncommit={onColumnResizeCommit}
                         />
                     </div>
                     <div class="vg-cell">
                         {tr.editingFields()}
                         <ColumnResizeHandle
                             bind:width={columnWidths[2]}
-                            on:commit={onColumnResizeCommit}
+                            oncommit={onColumnResizeCommit}
                         />
                     </div>
                     <div class="vg-cell">
                         <ColumnResizeHandle
                             bind:width={columnWidths[3]}
-                            on:commit={onColumnResizeCommit}
+                            oncommit={onColumnResizeCommit}
                         />
                     </div>
                 </div>
