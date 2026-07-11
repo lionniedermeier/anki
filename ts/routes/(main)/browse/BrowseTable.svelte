@@ -254,8 +254,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <style lang="scss">
     :global(.browse-table) {
         height: 100%;
-        // Zebra striping: even rows sit slightly darker than the (unstyled)
-        // odd rows. Consumed by VirtualTable's `stripeRows` stripe rule.
         --vg-stripe-bg: color-mix(in srgb, var(--canvas), black 5%);
     }
 
