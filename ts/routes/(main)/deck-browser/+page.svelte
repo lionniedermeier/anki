@@ -98,15 +98,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </script>
 
 <div class="deck-browser">
-    <div class="tree-header">
-        <span class="col-name">{tr.decksDeck()}</span>
-        <span class="col-count">{tr.actionsNew()}</span>
-        <span class="col-count">{tr.decksLearnHeader()}</span>
-        <span class="col-count">{tr.decksReviewHeader()}</span>
-        <span class="col-opts"></span>
-    </div>
-
     <div class="tree-scroll">
+        <div class="tree-header">
+            <span class="col-name">{tr.decksDeck()}</span>
+            <span class="col-count">{tr.actionsNew()}</span>
+            <span class="col-count">{tr.decksLearnHeader()}</span>
+            <span class="col-count">{tr.decksReviewHeader()}</span>
+            <span class="col-opts"></span>
+        </div>
+
         <TreeView
             nodes={rows}
             topLevelDroppable
@@ -186,9 +186,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     .tree-header {
-        flex: none;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--canvas);
         font-weight: bold;
         padding-block: 0.25rem;
+        // Match the padding-inline-end on TreeView's .tree-row so the header's
+        // right-anchored count columns line up with the rows' counts.
+        padding-inline-end: 0.25rem;
         border-bottom: 1px solid var(--border-subtle);
     }
 
