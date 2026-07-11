@@ -197,18 +197,39 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     .split-view-divider {
         position: relative;
         flex: 0 0 auto;
-        width: 6px;
+        width: 1px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: col-resize;
         background: var(--border-subtle);
         touch-action: none;
+        z-index: 1;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 11px;
+            translate: -50% 0;
+        }
 
         &.vertical {
             width: auto;
-            height: 6px;
+            height: 1px;
             cursor: row-resize;
+
+            &::before {
+                top: 50%;
+                bottom: auto;
+                left: 0;
+                right: 0;
+                width: auto;
+                height: 11px;
+                translate: 0 -50%;
+            }
         }
 
         &:hover,
