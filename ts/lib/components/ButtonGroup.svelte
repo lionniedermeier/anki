@@ -3,26 +3,37 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    export let id: string | undefined = undefined;
-    let className: string = "";
-    export { className as class };
+    import type { Snippet } from "svelte";
 
-    export let size: number | undefined = undefined;
-    export let wrap: boolean | undefined = undefined;
-
-    $: buttonSize = size ? `--buttons-size: ${size}rem; ` : "";
-    let buttonWrap: string;
-    $: if (wrap === undefined) {
-        buttonWrap = "";
-    } else {
-        buttonWrap = wrap ? `--buttons-wrap: wrap; ` : `--buttons-wrap: nowrap; `;
+    interface ButtonGroupProps {
+        id?: string;
+        class?: string;
+        size?: number;
+        wrap?: boolean;
+        children?: Snippet;
     }
 
-    $: style = buttonSize + buttonWrap;
+    let {
+        id = undefined,
+        class: className = "",
+        size = undefined,
+        wrap = undefined,
+        children,
+    }: ButtonGroupProps = $props();
+
+    const buttonSize = $derived(size ? `--buttons-size: ${size}rem; ` : "");
+    const buttonWrap = $derived.by(() => {
+        if (wrap === undefined) {
+            return "";
+        }
+        return wrap ? `--buttons-wrap: wrap; ` : `--buttons-wrap: nowrap; `;
+    });
+
+    const style = $derived(buttonSize + buttonWrap);
 </script>
 
 <div {id} class="button-group btn-group {className}" {style} dir="ltr" role="group">
-    <slot />
+    {@render children?.()}
 </div>
 
 <style lang="scss">

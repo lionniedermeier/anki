@@ -108,8 +108,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 {#if active}
     <div
         class="resize-guide"
-        style="left: {guideX}px; top: {guideTop}px; height: {guideBottom -
-            guideTop}px"
+        style="left: {guideX}px; top: {guideTop}px; height: {guideBottom - guideTop}px"
     ></div>
 {/if}
 

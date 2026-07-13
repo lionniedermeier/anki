@@ -9,7 +9,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { selectKey } from "./context-keys";
     import DropdownItem from "./DropdownItem.svelte";
 
-    interface Props {
+    interface SelectOptionProps {
         selected?: boolean;
         disabled?: boolean;
         id: string;
@@ -25,7 +25,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         value,
         element = $bindable(undefined),
         children,
-    }: Props = $props();
+    }: SelectOptionProps = $props();
 
     const selectContext: Writable<{ value: T; setValue: Function }> =
         getContext(selectKey);

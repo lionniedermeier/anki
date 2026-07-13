@@ -47,6 +47,8 @@ import CloseBox_ from "@mdi/svg/svg/close-box.svg?component";
 import closeBox_ from "@mdi/svg/svg/close-box.svg?url";
 import Close_ from "@mdi/svg/svg/close.svg?component";
 import close_ from "@mdi/svg/svg/close.svg?url";
+import CodeBlockTags_ from "@mdi/svg/svg/code-block-tags.svg?component";
+import codeBlockTags_ from "@mdi/svg/svg/code-block-tags.svg?url";
 import CodeTags_ from "@mdi/svg/svg/code-tags.svg?component";
 import PlainText_ from "@mdi/svg/svg/code-tags.svg?component";
 import codeTags_ from "@mdi/svg/svg/code-tags.svg?url";
@@ -177,8 +179,6 @@ import VectorPolygonVariant_ from "@mdi/svg/svg/vector-polygon-variant.svg?compo
 import vectorPolygonVariant_ from "@mdi/svg/svg/vector-polygon-variant.svg?url";
 import ViewDashboard_ from "@mdi/svg/svg/view-dashboard.svg?component";
 import viewDashboard_ from "@mdi/svg/svg/view-dashboard.svg?url";
-import CodeBlockTags_ from "@mdi/svg/svg/code-block-tags.svg?component";
-import codeBlockTags_ from "@mdi/svg/svg/code-block-tags.svg?url";
 import Revert_ from "bootstrap-icons/icons/arrow-counterclockwise.svg?component";
 import revert_ from "bootstrap-icons/icons/arrow-counterclockwise.svg?url";
 import ArrowLeft_ from "bootstrap-icons/icons/arrow-left.svg?component";

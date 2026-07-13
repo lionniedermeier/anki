@@ -29,7 +29,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <Label for={id} preventMouseClick><slot /></Label>
         <ConfigInput>
             <SpinBox bind:value {min} {max} {step} />
-            <RevertButton slot="revert" bind:value {defaultValue} />
+            {#snippet revert()}
+                <RevertButton bind:value {defaultValue} />
+            {/snippet}
         </ConfigInput>
     </div>
 </Row>

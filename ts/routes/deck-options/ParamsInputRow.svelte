@@ -15,5 +15,7 @@
 <slot />
 <ConfigInput>
     <ParamsInput bind:value />
-    <RevertButton slot="revert" bind:value {defaultValue} />
+    {#snippet revert()}
+        <RevertButton bind:value {defaultValue} />
+    {/snippet}
 </ConfigInput>

@@ -24,35 +24,45 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </script>
 
 <Modal bind:this={modal}>
-    <div slot="header" class="modal-header">
-        <h5 class="modal-title" id="modalLabel">{tr.addingHistory()}</h5>
-        <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-        ></button>
-    </div>
-    <div slot="body" class="modal-body" class:nightMode={$pageTheme.isDark}>
-        <ul class="history-list">
-            {#each history as entry}
-                <li>
-                    <button
-                        type="button"
-                        class="history-entry"
-                        on:click={() => onEntryClick(entry)}
-                    >
-                        {entry.text}
-                    </button>
-                </li>
-            {/each}
-        </ul>
-    </div>
-    <div slot="footer" class="modal-footer">
-        <button type="button" class="btn btn-secondary" on:click={modal.cancelHandler}>
-            Cancel
-        </button>
-    </div>
+    {#snippet header()}
+        <div class="modal-header">
+            <h5 class="modal-title" id="modalLabel">{tr.addingHistory()}</h5>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+            ></button>
+        </div>
+    {/snippet}
+    {#snippet body()}
+        <div class="modal-body" class:nightMode={$pageTheme.isDark}>
+            <ul class="history-list">
+                {#each history as entry}
+                    <li>
+                        <button
+                            type="button"
+                            class="history-entry"
+                            on:click={() => onEntryClick(entry)}
+                        >
+                            {entry.text}
+                        </button>
+                    </li>
+                {/each}
+            </ul>
+        </div>
+    {/snippet}
+    {#snippet footer()}
+        <div class="modal-footer">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                on:click={modal.cancelHandler}
+            >
+                Cancel
+            </button>
+        </div>
+    {/snippet}
 </Modal>
 
 <style lang="scss">

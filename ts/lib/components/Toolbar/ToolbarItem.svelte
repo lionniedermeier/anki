@@ -7,7 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     import { getToolbarContext } from "./Toolbar";
 
-    interface Props {
+    interface ToolbarItemProps {
         id: string;
         /** Hide this item. Combined (OR) with the controller's state. */
         hidden?: boolean;
@@ -27,7 +27,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         disabled = false,
         class: className = "",
         children,
-    }: Props = $props();
+    }: ToolbarItemProps = $props();
 
     // Throws if not rendered inside a <Toolbar>.
     const { hidden: hiddenIds, disabled: disabledIds } = getToolbarContext().controller;

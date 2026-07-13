@@ -31,7 +31,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 on:tagsupdate={({ detail }) => (tags = detail.tags)}
                 {keyCombination}
             />
-            <RevertButton slot="revert" bind:value={$tagsWritable} defaultValue={[]} />
+            {#snippet revert()}
+                <RevertButton bind:value={$tagsWritable} defaultValue={[]} />
+            {/snippet}
         </ConfigInput>
     </Col>
 </Row>

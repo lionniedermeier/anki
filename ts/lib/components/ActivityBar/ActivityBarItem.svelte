@@ -5,7 +5,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import type { Snippet } from "svelte";
 
-    interface Props {
+    interface ActivityBarItemProps {
         id?: string;
         class?: string;
         active?: boolean;
@@ -23,7 +23,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         tooltip,
         onclick,
         children,
-    }: Props = $props();
+    }: ActivityBarItemProps = $props();
 
     function onkeydown() {}
 </script>

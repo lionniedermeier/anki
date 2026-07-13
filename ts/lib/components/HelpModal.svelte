@@ -6,7 +6,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import * as tr from "@generated/ftl";
     import { renderMarkdown } from "@tslib/helpers";
     import Carousel from "bootstrap/js/dist/carousel";
-    import { createEventDispatcher, onMount } from "svelte";
+    import { onMount } from "svelte";
     import Modal from "./Modal.svelte";
 
     import { infoCircle } from "$lib/components/icons";
@@ -19,114 +19,136 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Row from "./Row.svelte";
     import { type HelpItem, HelpItemScheduler } from "./types";
 
-    export let title: string;
-    export let url: string;
-    export let linkLabel: string | undefined = undefined;
-    export let startIndex = 0;
-    export let helpSections: HelpItem[];
-    export let fsrs = false;
+    interface HelpModalProps {
+        title: string;
+        url: string;
+        linkLabel?: string;
+        startIndex?: number;
+        helpSections: HelpItem[];
+        fsrs?: boolean;
+        onMounted?: (modal: Modal, carousel: Carousel) => void;
+    }
+
+    let {
+        title,
+        url,
+        linkLabel = undefined,
+        startIndex = 0,
+        helpSections,
+        fsrs = false,
+        onMounted,
+    }: HelpModalProps = $props();
 
     let carousel: Carousel;
 
-    let modal: Modal;
-    let carouselRef: HTMLDivElement;
-
-    const dispatch = createEventDispatcher();
+    let modal: Modal | undefined = $state();
+    let carouselRef: HTMLDivElement | undefined = $state();
 
     onMount(() => {
-        carousel = new Carousel(carouselRef, { interval: false, ride: false });
+        carousel = new Carousel(carouselRef!, { interval: false, ride: false });
         /* Bootstrap's Carousel.Event interface doesn't seem to work as a type here */
-        carouselRef.addEventListener("slide.bs.carousel", (e: any) => {
+        carouselRef!.addEventListener("slide.bs.carousel", (e: any) => {
             activeIndex = e.to;
         });
-        dispatch("mount", { modal: modal, carousel: carousel });
+        onMounted?.(modal!, carousel);
     });
 
-    let activeIndex = startIndex;
+    // svelte-ignore state_referenced_locally
+    let activeIndex = $state(startIndex);
 </script>
 
-<Badge on:click={() => modal.show()} iconSize={125}>
+<Badge on:click={() => modal!.show()} iconSize={125}>
     <Icon icon={infoCircle} />
 </Badge>
 
 <Modal bind:this={modal} dialogClass="modal-lg">
-    <div slot="header" class="modal-header">
-        <div style="display: flex;">
-            <h1 class="modal-title" id="modalLabel">
-                {title}
-            </h1>
+    {#snippet header()}
+        <div class="modal-header">
+            <div style="display: flex;">
+                <h1 class="modal-title" id="modalLabel">
+                    {title}
+                </h1>
+                <button
+                    type="button"
+                    class="btn-close"
+                    class:invert={$pageTheme.isDark}
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+            </div>
+            {#if url}
+                <div class="chapter-redirect">
+                    {@html renderMarkdown(
+                        tr.helpForMoreInfo({
+                            link: `<a href="${url}" title="${tr.helpOpenManualChapter({ name: linkLabel ?? title })}">${linkLabel ?? title}</a>`,
+                        }),
+                    )}
+                </div>
+            {/if}
+        </div>
+    {/snippet}
+    {#snippet body()}
+        <div class="modal-body">
+            <Row --cols={4}>
+                <Col --col-size={1}>
+                    <nav>
+                        <div id="nav">
+                            <ul>
+                                {#each helpSections as item, i}
+                                    <li>
+                                        <button
+                                            onclick={() => {
+                                                activeIndex = i;
+                                                carousel.to(activeIndex);
+                                            }}
+                                            class:active={i == activeIndex}
+                                            class:d-none={fsrs
+                                                ? item.sched === HelpItemScheduler.SM2
+                                                : item.sched == HelpItemScheduler.FSRS}
+                                        >
+                                            {item.title}
+                                        </button>
+                                    </li>
+                                {/each}
+                            </ul>
+                        </div>
+                    </nav>
+                </Col>
+                <Col --col-size={3}>
+                    <div
+                        id="helpSectionIndicators"
+                        class="carousel slide"
+                        bind:this={carouselRef}
+                    >
+                        <div class="carousel-inner">
+                            {#each helpSections as item, i}
+                                <div
+                                    class="carousel-item"
+                                    class:active={i == startIndex}
+                                    class:d-none={fsrs
+                                        ? item.sched === HelpItemScheduler.SM2
+                                        : item.sched == HelpItemScheduler.FSRS}
+                                >
+                                    <HelpSection {item} />
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
+                </Col>
+            </Row>
+        </div>
+    {/snippet}
+    {#snippet footer()}
+        <div class="modal-footer">
             <button
                 type="button"
-                class="btn-close"
-                class:invert={$pageTheme.isDark}
-                data-bs-dismiss="modal"
-                aria-label="Close"
-            ></button>
+                class="btn btn-primary"
+                onclick={modal!.acceptHandler}
+            >
+                {tr.helpOk()}
+            </button>
         </div>
-        {#if url}
-            <div class="chapter-redirect">
-                {@html renderMarkdown(
-                    tr.helpForMoreInfo({
-                        link: `<a href="${url}" title="${tr.helpOpenManualChapter({ name: linkLabel ?? title })}">${linkLabel ?? title}</a>`,
-                    }),
-                )}
-            </div>
-        {/if}
-    </div>
-    <div slot="body" class="modal-body">
-        <Row --cols={4}>
-            <Col --col-size={1}>
-                <nav>
-                    <div id="nav">
-                        <ul>
-                            {#each helpSections as item, i}
-                                <li>
-                                    <button
-                                        on:click={() => {
-                                            activeIndex = i;
-                                            carousel.to(activeIndex);
-                                        }}
-                                        class:active={i == activeIndex}
-                                        class:d-none={fsrs
-                                            ? item.sched === HelpItemScheduler.SM2
-                                            : item.sched == HelpItemScheduler.FSRS}
-                                    >
-                                        {item.title}
-                                    </button>
-                                </li>
-                            {/each}
-                        </ul>
-                    </div>
-                </nav>
-            </Col>
-            <Col --col-size={3}>
-                <div
-                    id="helpSectionIndicators"
-                    class="carousel slide"
-                    bind:this={carouselRef}
-                >
-                    <div class="carousel-inner">
-                        {#each helpSections as item, i}
-                            <div
-                                class="carousel-item"
-                                class:active={i == startIndex}
-                                class:d-none={fsrs
-                                    ? item.sched === HelpItemScheduler.SM2
-                                    : item.sched == HelpItemScheduler.FSRS}
-                            >
-                                <HelpSection {item} />
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-            </Col>
-        </Row>
-    </div>
-    <div slot="footer" class="modal-footer">
-        <button type="button" class="btn btn-primary" on:click={modal.onOkClicked}>
-            {tr.helpOk()}
-        </button>
-    </div>
+    {/snippet}
 </Modal>
 
 <style lang="scss">

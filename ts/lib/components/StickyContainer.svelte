@@ -3,20 +3,31 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
+    import type { Snippet } from "svelte";
+
     import Container from "./Container.svelte";
     import type { Breakpoint } from "./types";
 
-    export let id: string | undefined = undefined;
-    let className: string = "";
-    export { className as class };
+    interface StickyContainerProps {
+        id?: string;
+        class?: string;
+        height?: number;
+        breakpoint?: Breakpoint | "fluid";
+        children?: Snippet;
+    }
 
-    export let height: number = 0;
-    export let breakpoint: Breakpoint | "fluid" = "fluid";
+    let {
+        id = undefined,
+        class: className = "",
+        height = $bindable(0),
+        breakpoint = "fluid",
+        children,
+    }: StickyContainerProps = $props();
 </script>
 
 <div {id} bind:offsetHeight={height} class="sticky-container {className}">
     <Container {breakpoint}>
-        <slot />
+        {@render children?.()}
     </Container>
 </div>
 

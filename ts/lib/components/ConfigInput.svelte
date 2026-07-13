@@ -3,9 +3,17 @@
     License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
+    import type { Snippet } from "svelte";
+
     const rtl: boolean = window.getComputedStyle(document.body).direction == "rtl";
 
-    export let grow = true;
+    interface ConfigInputProps {
+        grow?: boolean;
+        revert?: Snippet;
+        children?: Snippet;
+    }
+
+    let { grow = true, revert, children }: ConfigInputProps = $props();
 </script>
 
 <div
@@ -13,9 +21,9 @@
     class:flex-grow-1={grow}
 >
     <div class="revert" class:rtl>
-        <slot name="revert" />
+        {@render revert?.()}
     </div>
-    <slot />
+    {@render children?.()}
 </div>
 
 <style lang="scss">

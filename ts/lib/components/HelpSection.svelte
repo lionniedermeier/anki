@@ -11,7 +11,11 @@
     import { mdiEarth } from "./icons";
     import Icon from "./Icon.svelte";
 
-    export let item: HelpItem;
+    interface HelpSectionProps {
+        item: HelpItem;
+    }
+
+    let { item }: HelpSectionProps = $props();
 </script>
 
 <Row>

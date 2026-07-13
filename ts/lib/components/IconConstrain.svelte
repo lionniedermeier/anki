@@ -3,16 +3,28 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    export let iconSize: number = 100;
-    export let widthMultiplier: number = 1;
-    export let flipX: boolean = false;
+    import type { Snippet } from "svelte";
+
+    interface IconConstrainProps {
+        iconSize?: number;
+        widthMultiplier?: number;
+        flipX?: boolean;
+        children?: Snippet;
+    }
+
+    let {
+        iconSize = 100,
+        widthMultiplier = 1,
+        flipX = false,
+        children,
+    }: IconConstrainProps = $props();
 </script>
 
 <span
     class:flip-x={flipX}
     style="--width-multiplier: {widthMultiplier}; --icon-size: {iconSize}%;"
 >
-    <slot />
+    {@render children?.()}
 </span>
 
 <style lang="scss">

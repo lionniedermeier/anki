@@ -5,17 +5,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import type { IconData } from "./types";
 
-    export let icon: IconData;
-
-    let component: any = null;
-    if (import.meta.env) {
-        // @ts-expect-error internal property
-        component = icon.component;
+    interface IconProps {
+        icon: IconData;
     }
+
+    let { icon }: IconProps = $props();
+
+    // @ts-expect-error internal property
+    const Component = $derived(import.meta.env ? (icon.component as any) : null);
 </script>
 
-{#if component}
-    <svelte:component this={component} />
+{#if Component}
+    <Component />
 {:else}
     {@html icon.url}
 {/if}

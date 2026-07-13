@@ -5,7 +5,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import type { Snippet } from "svelte";
 
-    interface Props {
+    interface ActivityBarProps {
         id?: string;
         class?: string;
         /** Lay items out in a column rather than a row. */
@@ -13,7 +13,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         children?: Snippet;
     }
 
-    let { id, class: className = "", vertical = true, children }: Props = $props();
+    let {
+        id,
+        class: className = "",
+        vertical = true,
+        children,
+    }: ActivityBarProps = $props();
 </script>
 
 <div

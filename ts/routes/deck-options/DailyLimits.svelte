@@ -6,7 +6,7 @@
     import * as tr from "@generated/ftl";
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
-    import type Modal from "bootstrap/js/dist/modal";
+    import type Modal from "$lib/components/Modal.svelte";
 
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import HelpModal from "$lib/components/HelpModal.svelte";
@@ -156,16 +156,17 @@
 </script>
 
 <TitledContainer title={tr.deckConfigDailyLimits()}>
-    <HelpModal
-        title={tr.deckConfigDailyLimits()}
-        url={HelpPage.DeckOptions.dailyLimits}
-        slot="tooltip"
-        {helpSections}
-        on:mount={(e) => {
-            modal = e.detail.modal;
-            carousel = e.detail.carousel;
-        }}
-    />
+    {#snippet tooltip()}
+        <HelpModal
+            title={tr.deckConfigDailyLimits()}
+            url={HelpPage.DeckOptions.dailyLimits}
+            {helpSections}
+            onMounted={(m, c) => {
+                modal = m;
+                carousel = c;
+            }}
+        />
+    {/snippet}
     <DynamicallySlottable slotHost={Item} {api}>
         <Item>
             <SpinBoxRow bind:value={newValue} defaultValue={defaults.newPerDay}>

@@ -8,7 +8,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { HelpPage } from "@tslib/help-page";
     import HelpModal from "$lib/components/HelpModal.svelte";
     import type Carousel from "bootstrap/js/dist/carousel";
-    import type Modal from "bootstrap/js/dist/modal";
+    import type Modal from "$lib/components/Modal.svelte";
     import type { HelpItem } from "$lib/components/types";
 
     import { type RevlogRange } from "./graph-helpers";
@@ -63,24 +63,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </script>
 
 <Graph {title} {subtitle}>
-    <div
-        slot="tooltip"
-        onclick={onHelpClick}
-        onkeydown={onHelpClick}
-        role="button"
-        tabindex="-1"
-    >
-        <HelpModal
-            title={tr.statisticsTrueRetentionTitle()}
-            url={HelpPage.DeckOptions.desiredRetention}
-            linkLabel={tr.deckConfigDesiredRetention()}
-            {helpSections}
-            on:mount={(e) => {
-                modal = e.detail.modal;
-                carousel = e.detail.carousel;
-            }}
-        />
-    </div>
+    {#snippet tooltip()}
+        <div onclick={onHelpClick} onkeydown={onHelpClick} role="button" tabindex="-1">
+            <HelpModal
+                title={tr.statisticsTrueRetentionTitle()}
+                url={HelpPage.DeckOptions.desiredRetention}
+                linkLabel={tr.deckConfigDesiredRetention()}
+                {helpSections}
+                onMounted={(m, c) => {
+                    modal = m;
+                    carousel = c;
+                }}
+            />
+        </div>
+    {/snippet}
     <InputBox>
         <label>
             <input type="radio" bind:group={mode} value={DisplayMode.Young} />

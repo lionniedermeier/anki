@@ -5,9 +5,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import { pageTheme } from "$lib/sveltelib/theme";
 
-    export let id: string | undefined;
-    export let value: boolean;
-    export let disabled = false;
+    interface SwitchProps {
+        id: string | undefined;
+        value: boolean;
+        disabled?: boolean;
+        onchange?: (event: Event) => void;
+    }
+
+    let { id, value = $bindable(), disabled = false, onchange }: SwitchProps = $props();
 
     const rtl: boolean = window.getComputedStyle(document.body).direction == "rtl";
 </script>
@@ -20,6 +25,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         class:nightMode={$pageTheme.isDark}
         bind:checked={value}
         {disabled}
+        {onchange}
     />
 </div>
 

@@ -2,29 +2,36 @@
 Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
-<script context="module" lang="ts">
+<script module lang="ts">
     export interface Choice<T> {
         label: string;
         value: T;
     }
 </script>
 
-<script lang="ts">
+<script lang="ts" generics="T">
     import Select from "./Select.svelte";
 
-    type T = $$Generic;
+    interface EnumSelectorProps {
+        value: T;
+        choices?: Choice<T>[];
+        disabled?: boolean;
+        disabledChoices?: T[];
+    }
 
-    export let value: T;
-    export let choices: Choice<T>[] = [];
-    export let disabled: boolean = false;
-    export let disabledChoices: T[] = [];
+    let {
+        value = $bindable(),
+        choices = [],
+        disabled = false,
+        disabledChoices = [],
+    }: EnumSelectorProps = $props();
 
-    $: label = choices.find((c) => c.value === value)?.label;
-    $: parser = (item) => ({
+    const label = $derived(choices.find((c) => c.value === value)?.label);
+    const parser = $derived((item: Choice<T>) => ({
         content: item.label,
         value: item.value,
         disabled: disabledChoices.includes(item.value),
-    });
+    }));
 </script>
 
 <Select bind:value {label} {disabled} list={choices} {parser} />

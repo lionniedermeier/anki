@@ -3,11 +3,19 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
+    import type { Snippet } from "svelte";
+
     import TitledContainer from "$lib/components/TitledContainer.svelte";
 
-    // When title is null (default), the graph is inlined, not having TitledContainer wrapper.
-    export let title: string | null = null;
-    export let subtitle: string | null = null;
+    interface GraphProps {
+        // When title is null (default), the graph is inlined, not having TitledContainer wrapper.
+        title?: string | null;
+        subtitle?: string | null;
+        tooltip?: Snippet;
+        children?: Snippet;
+    }
+
+    let { title = null, subtitle = null, tooltip, children }: GraphProps = $props();
 </script>
 
 {#if title == null}
@@ -15,16 +23,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         {#if subtitle}
             <div class="subtitle">{subtitle}</div>
         {/if}
-        <slot />
+        {@render children?.()}
     </div>
 {:else}
-    <TitledContainer class="d-flex flex-column" {title}>
-        <slot name="tooltip" slot="tooltip"></slot>
+    <TitledContainer class="d-flex flex-column" {title} {tooltip}>
         <div class="graph d-flex flex-grow-1 flex-column justify-content-center">
             {#if subtitle}
                 <div class="subtitle">{subtitle}</div>
             {/if}
-            <slot />
+            {@render children?.()}
         </div>
     </TitledContainer>
 {/if}

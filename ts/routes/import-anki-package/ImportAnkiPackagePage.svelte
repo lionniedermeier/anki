@@ -8,7 +8,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import * as tr from "@generated/ftl";
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
-    import type Modal from "bootstrap/js/dist/modal";
+    import type Modal from "$lib/components/Modal.svelte";
 
     import EnumSelectorRow from "$lib/components/EnumSelectorRow.svelte";
     import HelpModal from "$lib/components/HelpModal.svelte";
@@ -70,16 +70,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 >
     <Row class="d-block">
         <TitledContainer title={tr.importingImportOptions()}>
-            <HelpModal
-                title={tr.importingImportOptions()}
-                url={HelpPage.PackageImporting.root}
-                slot="tooltip"
-                {helpSections}
-                on:mount={(e) => {
-                    modal = e.detail.modal;
-                    carousel = e.detail.carousel;
-                }}
-            />
+            {#snippet tooltip()}
+                <HelpModal
+                    title={tr.importingImportOptions()}
+                    url={HelpPage.PackageImporting.root}
+                    {helpSections}
+                    onMounted={(m, c) => {
+                        modal = m;
+                        carousel = c;
+                    }}
+                />
+            {/snippet}
 
             <SwitchRow bind:value={options.withScheduling} defaultValue={false}>
                 <SettingTitle

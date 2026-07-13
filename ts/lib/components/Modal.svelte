@@ -4,23 +4,41 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
     import Modal from "bootstrap/js/dist/modal";
+    import type { Snippet } from "svelte";
     import { getContext, onDestroy, onMount } from "svelte";
 
     import { registerModalClosingHandler } from "$lib/sveltelib/modal-closing";
 
     import { modalsKey } from "./context-keys";
 
-    export let modalKey: string = Math.random().toString(36).substring(2);
-    export let dialogClass: string = "";
-    export let onOkClicked: (() => void) | undefined = undefined;
-    export let onCancelClicked: (() => void) | undefined = undefined;
-    export let onShown: (() => void) | undefined = undefined;
-    export let onHidden: (() => void) | undefined = undefined;
+    interface ModalProps {
+        modalKey?: string;
+        dialogClass?: string;
+        onOkClicked?: () => void;
+        onCancelClicked?: () => void;
+        onShown?: () => void;
+        onHidden?: () => void;
+        header?: Snippet;
+        body?: Snippet;
+        footer?: Snippet;
+    }
+
+    let {
+        modalKey = Math.random().toString(36).substring(2),
+        dialogClass = "",
+        onOkClicked = undefined,
+        onCancelClicked = undefined,
+        onShown = undefined,
+        onHidden = undefined,
+        header,
+        body,
+        footer,
+    }: ModalProps = $props();
 
     const modals = getContext<Map<string, Modal>>(modalsKey);
 
     let modal: Modal;
-    let modalRef: HTMLDivElement;
+    let modalRef: HTMLDivElement | undefined = $state();
 
     function onOkClicked_(): void {
         modal.hide();
@@ -60,16 +78,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     onMount(() => {
-        modalRef.addEventListener("shown.bs.modal", onShown_);
-        modalRef.addEventListener("hidden.bs.modal", onHidden_);
-        modal = new Modal(modalRef, { keyboard: false });
+        modalRef!.addEventListener("shown.bs.modal", onShown_);
+        modalRef!.addEventListener("hidden.bs.modal", onHidden_);
+        modal = new Modal(modalRef!, { keyboard: false });
         modals.set(modalKey, modal);
     });
 
     onDestroy(() => {
         removeModalClosingHandler();
-        modalRef.removeEventListener("shown.bs.modal", onShown_);
-        modalRef.removeEventListener("hidden.bs.modal", onHidden_);
+        modalRef?.removeEventListener("shown.bs.modal", onShown_);
+        modalRef?.removeEventListener("hidden.bs.modal", onHidden_);
     });
 </script>
 
@@ -82,9 +100,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 >
     <div class="modal-dialog {dialogClass}">
         <div class="modal-content">
-            <slot name="header" />
-            <slot name="body" />
-            <slot name="footer" />
+            {@render header?.()}
+            {@render body?.()}
+            {@render footer?.()}
         </div>
     </div>
 </div>

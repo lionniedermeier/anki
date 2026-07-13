@@ -10,10 +10,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     type ResultWithChanges = OpChanges | { changes?: OpChanges };
 
-    export let task: () => Promise<ResultWithChanges | undefined>;
-    export let result: ResultWithChanges | undefined;
-    export let error: Error | undefined;
-    let label: string = "";
+    interface BackendProgressIndicatorProps {
+        task: () => Promise<ResultWithChanges | undefined>;
+        result: ResultWithChanges | undefined;
+        error: Error | undefined;
+    }
+
+    let {
+        task,
+        result = $bindable(),
+        error = $bindable(),
+    }: BackendProgressIndicatorProps = $props();
+
+    let label: string = $state("");
 
     function onUpdate(progress: Progress) {
         if (
@@ -24,8 +33,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             label = progress.value.value.toString();
         }
     }
-    $: (async () => {
-        if (!result && !error) {
+
+    $effect(() => {
+        if (result || error) {
+            return;
+        }
+        void (async () => {
             try {
                 result = await runWithBackendProgress(task, onUpdate);
             } catch (err) {
@@ -35,8 +48,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     throw err;
                 }
             }
-        }
-    })();
+        })();
+    });
 </script>
 
 <!-- spinner taken from https://loading.io/css/; CC0 -->

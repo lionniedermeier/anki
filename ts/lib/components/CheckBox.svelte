@@ -3,12 +3,19 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    export let value: boolean;
+    import type { Snippet } from "svelte";
+
+    interface CheckBoxProps {
+        value: boolean;
+        children?: Snippet;
+    }
+
+    let { value = $bindable(), children }: CheckBoxProps = $props();
 </script>
 
 <label>
     <input type="checkbox" bind:checked={value} />
-    <slot />
+    {@render children?.()}
 </label>
 
 <style lang="scss">

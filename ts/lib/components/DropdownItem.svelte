@@ -5,7 +5,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import type { Snippet } from "svelte";
 
-    interface Props {
+    interface DropdownItemProps {
         id?: string;
         role?: string;
         selected?: boolean;
@@ -39,7 +39,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         onkeydown,
         onclick,
         onmousedown,
-    }: Props = $props();
+    }: DropdownItemProps = $props();
 
     const rtl: boolean = window.getComputedStyle(document.body).direction == "rtl";
 

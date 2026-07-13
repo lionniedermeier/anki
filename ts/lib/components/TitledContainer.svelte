@@ -3,15 +3,27 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
+    import type { Snippet } from "svelte";
+
     import { pageTheme } from "$lib/sveltelib/theme";
 
     const rtl: boolean = window.getComputedStyle(document.body).direction == "rtl";
 
-    export let id: string | undefined = undefined;
-    let className: string = "";
-    export { className as class };
+    interface TitledContainerProps {
+        id?: string;
+        class?: string;
+        title: string;
+        tooltip?: Snippet;
+        children?: Snippet;
+    }
 
-    export let title: string;
+    let {
+        id = undefined,
+        class: className = "",
+        title,
+        tooltip,
+        children,
+    }: TitledContainerProps = $props();
 </script>
 
 <div
@@ -28,10 +40,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             {title}
         </h4>
         <div class="help-badge position-absolute" class:rtl>
-            <slot name="tooltip" />
+            {@render tooltip?.()}
         </div>
     </div>
-    <slot />
+    {@render children?.()}
 </div>
 
 <style lang="scss">

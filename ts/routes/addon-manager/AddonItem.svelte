@@ -75,7 +75,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <Switch
             id={addon.dirName + "-toggle"}
             value={addon.enabled}
-            on:change={onToggle}
+            onchange={onToggle}
         />
 
         {#if addon.hasConfig}

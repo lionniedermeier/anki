@@ -3,12 +3,18 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    let className: string = "";
-    export { className as class };
+    import type { Snippet } from "svelte";
+
+    interface RowProps {
+        class?: string;
+        children?: Snippet;
+    }
+
+    let { class: className = "", children }: RowProps = $props();
 </script>
 
 <div class="row {className}">
-    <slot />
+    {@render children?.()}
 </div>
 
 <style lang="scss">

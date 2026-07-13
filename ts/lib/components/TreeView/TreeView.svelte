@@ -11,7 +11,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import IconConstrain from "../IconConstrain.svelte";
     import { collectSubtreeIds, flattenVisible, type TreeViewNode } from "./TreeView";
 
-    interface Props {
+    interface TreeViewProps {
         nodes: T[];
         /** Indentation per depth level, in rem. */
         indent?: number;
@@ -40,7 +40,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         onDragdrop,
         row,
         topLevel,
-    }: Props = $props();
+    }: TreeViewProps = $props();
 
     const visibleRows = $derived(flattenVisible(nodes));
     const nodeById = $derived(new Map(visibleRows.map((r) => [r.node.id, r.node])));

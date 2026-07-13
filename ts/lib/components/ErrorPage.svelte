@@ -3,7 +3,11 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    export let error: Error;
+    interface ErrorPageProps {
+        error: Error;
+    }
+
+    let { error }: ErrorPageProps = $props();
 </script>
 
 <div class="message">

@@ -7,7 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     import { getToolbarContext } from "./Toolbar";
 
-    interface Props {
+    interface ToolbarGroupProps {
         /** When set, the whole group can be hidden via the controller
          * (`controller.hide(id)`) or the declarative `hidden` prop. */
         id?: string;
@@ -16,7 +16,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         children?: Snippet;
     }
 
-    let { id, hidden = false, class: className = "", children }: Props = $props();
+    let {
+        id,
+        hidden = false,
+        class: className = "",
+        children,
+    }: ToolbarGroupProps = $props();
 
     // Throws if not rendered inside a <Toolbar>.
     const { hidden: hiddenIds } = getToolbarContext().controller;

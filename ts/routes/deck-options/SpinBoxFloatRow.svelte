@@ -27,7 +27,9 @@
             <slot name="tabs" />
             <ConfigInput>
                 <SpinBox bind:value {min} {max} {step} {percentage} bind:focused />
-                <RevertButton slot="revert" bind:value {defaultValue} />
+                {#snippet revert()}
+                    <RevertButton bind:value {defaultValue} />
+                {/snippet}
             </ConfigInput>
         </Row>
     </Col>

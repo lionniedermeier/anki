@@ -21,7 +21,9 @@
     <Col --col-size={6} breakpoint="xs">
         <ConfigInput>
             <StepsInput bind:value />
-            <RevertButton slot="revert" bind:value {defaultValue} />
+            {#snippet revert()}
+                <RevertButton bind:value {defaultValue} />
+            {/snippet}
         </ConfigInput>
     </Col>
 </Row>

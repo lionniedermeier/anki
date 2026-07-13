@@ -12,20 +12,30 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Icon from "./Icon.svelte";
     import IconConstrain from "./IconConstrain.svelte";
 
-    export let value: number;
-    export let step = 1;
-    export let min = 1;
-    export let max = 9999;
-    /**
-     * Whether the value is shown as a percentage to the user.
-     * It's saved as a proportion.
-     */
-    export let percentage = false;
+    interface SpinBoxProps {
+        value: number;
+        step?: number;
+        min?: number;
+        max?: number;
+        /**
+         * Whether the value is shown as a percentage to the user.
+         * It's saved as a proportion.
+         */
+        percentage?: boolean;
+        focused?: boolean;
+    }
 
-    let input: HTMLInputElement;
-    export let focused = false;
-    let multiplier: number;
-    $: multiplier = percentage ? 100 : 1;
+    let {
+        value = $bindable(),
+        step = 1,
+        min = 1,
+        max = 9999,
+        percentage = false,
+        focused = $bindable(false),
+    }: SpinBoxProps = $props();
+
+    let input: HTMLInputElement | undefined = $state();
+    const multiplier = $derived(percentage ? 100 : 1);
 
     /** Set value to a new number, clamping it to a valid range, and
         leaving it unchanged if `newValue` is NaN. */
@@ -41,8 +51,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         // changed, and will skip the UI update. So we manually update the DOM to ensure it stays
         // in sync.
         tick().then(() => {
-            input.value = stringValue;
-            updatePercentageText(stringValue);
+            if (input) {
+                input.value = stringValue;
+            }
+            percentageText = splitPercentage(stringValue);
         });
     }
 
@@ -60,11 +72,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         return Math.max(0, displayedPlace);
     }
 
-    let stringValue: string;
-    $: stringValue = (value * multiplier).toFixed(decimalPlaces(step));
+    const stringValue = $derived((value * multiplier).toFixed(decimalPlaces(step)));
 
-    function update(this: HTMLInputElement): void {
-        updateValue(parseFloat(this.value) / multiplier);
+    function update(): void {
+        updateValue(parseFloat(input!.value) / multiplier);
     }
 
     function handleWheel(event: WheelEvent) {
@@ -95,30 +106,37 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    function updatePercentageText(value: string) {
+    function splitPercentage(value: string): string[] {
         // Separate the % from the padding text.
-        percentage_text = tr
+        return tr
             .deckConfigPercentInput({ pct: value })
             .replaceAll("%", "-%-")
             .split("-");
     }
 
     function onInput() {
-        updatePercentageText(input.value);
+        percentageText = splitPercentage(input!.value);
     }
 
     // Invisible, used to shift the % sign the correct amount.
-    let percentage_text: string[];
-    $: updatePercentageText(stringValue);
+    // svelte-ignore state_referenced_locally
+    let percentageText: string[] = $state(splitPercentage(stringValue));
+
+    $effect(() => {
+        percentageText = splitPercentage(stringValue);
+    });
+
     // If the input box should be moved right for leading percentage symbol.
-    $: percentage_padding = percentage && !percentage_text[0] ? "2.2ch" : undefined;
+    const percentagePadding = $derived(
+        percentage && !percentageText[0] ? "2.2ch" : undefined,
+    );
 
     let pressed = false;
     let timeout: number;
     let pressTimer: any;
 </script>
 
-<div class="spin-box" on:wheel={handleWheel}>
+<div class="spin-box" onwheel={handleWheel}>
     <input
         type="number"
         pattern="[0-9]*"
@@ -128,16 +146,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         step={step * multiplier}
         value={stringValue}
         bind:this={input}
-        on:blur={update}
-        on:change={update}
-        on:input={onInput}
-        on:focusin={() => (focused = true)}
-        on:focusout={() => (focused = false)}
-        style:padding-left={percentage_padding}
+        onblur={update}
+        onchange={update}
+        oninput={onInput}
+        onfocusin={() => (focused = true)}
+        onfocusout={() => (focused = false)}
+        style:padding-left={percentagePadding}
     />
     {#if percentage}
         <span class="suffix">
-            {#each percentage_text as str}
+            {#each percentageText as str}
                 {#if str == "%"}
                     %
                 {:else}
@@ -147,26 +165,26 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </span>
     {/if}
     {#if isDesktop()}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
             class="spinner decrement"
             class:active={value > min}
             tabindex="-1"
             title={tr.actionsDecrementValue()}
             role="button"
-            on:click={() => {
-                input.focus();
+            onclick={() => {
+                input?.focus();
                 if (value > min) {
                     change(-step);
                 }
             }}
-            on:mousedown={() =>
+            onmousedown={() =>
                 longPress(() => {
                     if (value > min) {
                         change(-step);
                     }
                 })}
-            on:mouseup={() => {
+            onmouseup={() => {
                 clearTimeout(pressTimer);
                 pressed = false;
             }}
@@ -175,26 +193,26 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <Icon icon={chevronDown} />
             </IconConstrain>
         </div>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
             class="spinner increment"
             class:active={value < max}
             tabindex="-1"
             title={tr.actionsIncrementValue()}
             role="button"
-            on:click={() => {
-                input.focus();
+            onclick={() => {
+                input?.focus();
                 if (value < max) {
                     change(step);
                 }
             }}
-            on:mousedown={() =>
+            onmousedown={() =>
                 longPress(() => {
                     if (value < max) {
                         change(step);
                     }
                 })}
-            on:mouseup={() => {
+            onmouseup={() => {
                 clearTimeout(pressTimer);
                 pressed = false;
             }}

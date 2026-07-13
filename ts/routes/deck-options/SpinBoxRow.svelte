@@ -24,7 +24,9 @@
             <slot name="tabs" />
             <ConfigInput>
                 <SpinBox bind:value {min} {max} />
-                <RevertButton slot="revert" bind:value {defaultValue} />
+                {#snippet revert()}
+                    <RevertButton bind:value {defaultValue} />
+                {/snippet}
             </ConfigInput>
         </Row>
     </Col>

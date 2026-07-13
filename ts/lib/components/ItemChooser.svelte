@@ -12,7 +12,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import * as tr from "@generated/ftl";
     import Shortcut from "./Shortcut.svelte";
 
-    interface Props {
+    interface ItemChooserProps {
         title: string;
         selectedItem?: Item | null;
         items: Item[];
@@ -30,7 +30,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         selectedItem = $bindable(null),
         keyCombination,
         tooltip,
-    }: Props = $props();
+    }: ItemChooserProps = $props();
     let modal: Modal | null = $state(null);
     let searchQuery = $state("");
     let searchInput: HTMLInputElement | null = $state(null);
@@ -92,62 +92,66 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 <Shortcut {keyCombination} on:action={toggleModal} />
 <Modal bind:this={modal} {onShown} dialogClass="modal-lg">
-    <div slot="header" class="modal-header">
-        <IconConstrain iconSize={90}>
-            <Icon {icon} />
-        </IconConstrain>
-        <h5 class="modal-title">{title}</h5>
-        <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-        ></button>
-    </div>
+    {#snippet header()}
+        <div class="modal-header">
+            <IconConstrain iconSize={90}>
+                <Icon {icon} />
+            </IconConstrain>
+            <h5 class="modal-title">{title}</h5>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+            ></button>
+        </div>
+    {/snippet}
 
-    <div slot="body" class="modal-body">
-        <div class="search-container">
-            <div class="search-input-wrapper">
-                <div class="search-icon">
-                    <IconConstrain iconSize={70}>
-                        <Icon icon={magnifyIcon} />
-                    </IconConstrain>
-                </div>
-                <input
-                    type="text"
-                    class="search-input"
-                    placeholder={tr.actionsSearch()}
-                    bind:value={searchQuery}
-                    bind:this={searchInput}
-                />
-                {#if searchQuery}
-                    <button
-                        type="button"
-                        class="clear-search"
-                        onclick={() => (searchQuery = "")}
-                        aria-label="Clear search"
-                    >
-                        <IconConstrain iconSize={60}>
-                            <Icon icon={mdiClose} />
+    {#snippet body()}
+        <div class="modal-body">
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <div class="search-icon">
+                        <IconConstrain iconSize={70}>
+                            <Icon icon={magnifyIcon} />
                         </IconConstrain>
+                    </div>
+                    <input
+                        type="text"
+                        class="search-input"
+                        placeholder={tr.actionsSearch()}
+                        bind:value={searchQuery}
+                        bind:this={searchInput}
+                    />
+                    {#if searchQuery}
+                        <button
+                            type="button"
+                            class="clear-search"
+                            onclick={() => (searchQuery = "")}
+                            aria-label="Clear search"
+                        >
+                            <IconConstrain iconSize={60}>
+                                <Icon icon={mdiClose} />
+                            </IconConstrain>
+                        </button>
+                    {/if}
+                </div>
+            </div>
+            <div class="item-grid">
+                {#each filteredItems as item, i (item.id)}
+                    <button
+                        bind:this={filteredElements[i]}
+                        class="item-card"
+                        class:selected={selectedItem?.id === item.id}
+                        onclick={() => onSelect(item)}
+                        aria-label="Select {item.name}"
+                    >
+                        <h6 class="item-title">{item.name}</h6>
                     </button>
-                {/if}
+                {/each}
             </div>
         </div>
-        <div class="item-grid">
-            {#each filteredItems as item, i (item.id)}
-                <button
-                    bind:this={filteredElements[i]}
-                    class="item-card"
-                    class:selected={selectedItem?.id === item.id}
-                    onclick={() => onSelect(item)}
-                    aria-label="Select {item.name}"
-                >
-                    <h6 class="item-title">{item.name}</h6>
-                </button>
-            {/each}
-        </div>
-    </div>
+    {/snippet}
 </Modal>
 
 <style lang="scss">

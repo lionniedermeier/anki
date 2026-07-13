@@ -14,7 +14,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 <div class="m-2">
     <ConfigInput>
-        <RevertButton slot="revert" bind:value defaultValue="" />
+        {#snippet revert()}
+            <RevertButton bind:value defaultValue="" />
+        {/snippet}
         <details>
             <summary><GlobalLabel {title} /></summary>
             <div class="text">

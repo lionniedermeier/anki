@@ -7,7 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     import { computeVisibleRange } from "./VirtualTable";
 
-    interface Props {
+    interface VirtualTableProps {
         class?: string;
         itemsCount?: number;
         itemHeight: number;
@@ -43,7 +43,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         onvisible,
         headers,
         row,
-    }: Props = $props();
+    }: VirtualTableProps = $props();
 
     let container: HTMLElement | undefined = $state();
     let scrollTop = $state(0);

@@ -3,19 +3,31 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    let className: string = "";
-    export { className as class };
-    export let scrollX = false;
-    export let scrollY = false;
-    let scrollBarHeight = 0;
-    let measuring = true;
+    import type { Snippet } from "svelte";
 
-    const scrollStates = {
+    interface ScrollAreaProps {
+        class?: string;
+        scrollX?: boolean;
+        scrollY?: boolean;
+        children?: Snippet;
+    }
+
+    let {
+        class: className = "",
+        scrollX = false,
+        scrollY = false,
+        children,
+    }: ScrollAreaProps = $props();
+
+    let scrollBarHeight = $state(0);
+    let measuring = $state(true);
+
+    const scrollStates = $state({
         top: false,
         right: false,
         bottom: false,
         left: false,
-    };
+    });
 
     function measureScrollbar(el: HTMLDivElement) {
         scrollBarHeight = el.offsetHeight - el.clientHeight;
@@ -54,7 +66,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <div class="d-flex flex-row flex-grow-1">
                     <div class="scroll-edge" data-edge="left"></div>
                     <div class="scroll-content flex-grow-1">
-                        <slot />
+                        {@render children?.()}
                     </div>
                     <div class="scroll-edge" data-edge="right"></div>
                 </div>

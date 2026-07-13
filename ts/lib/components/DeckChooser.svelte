@@ -11,10 +11,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { registerOperationHandler } from "@tslib/operations";
     import { onMount } from "svelte";
 
-    interface Props {
+    interface DeckChooserProps {
         onChange?: (deck: DeckNameId) => void;
     }
-    let { onChange }: Props = $props();
+    let { onChange }: DeckChooserProps = $props();
     let selectedDeck: DeckNameId | null = $state(null);
     let decks: DeckNameId[] = $state([]);
     let itemChooser: ItemChooser<DeckNameId> | null = $state(null);

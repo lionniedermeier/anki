@@ -31,7 +31,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             {:else}
                 <input {id} class="text-input" type="text" bind:value />
             {/if}
-            <RevertButton slot="revert" bind:value {defaultValue} />
+            {#snippet revert()}
+                <RevertButton bind:value {defaultValue} />
+            {/snippet}
         </ConfigInput>
     </div>
 </Row>

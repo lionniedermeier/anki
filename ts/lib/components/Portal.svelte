@@ -9,13 +9,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { mount, unmount, type Snippet } from "svelte";
     import RenderChildren from "./RenderChildren.svelte";
 
-    const {
-        children,
-        target,
-    }: {
+    interface PortalProps {
         children: Snippet;
         target: HTMLElement | null;
-    } = $props();
+    }
+
+    const { children, target }: PortalProps = $props();
 
     $effect(() => {
         let app: Record<string, unknown>;
@@ -23,10 +22,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         if (target) {
             app = mount(RenderChildren, {
                 target: target,
-                props: {
-                    children,
-                    $$slots: { default: children },
-                },
+                props: { children },
             });
         }
 
@@ -39,7 +35,5 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </script>
 
 {#if !target}
-    <!-- eslint-disable -->
-    <!-- svelte-ignore slot_element_deprecated -->
-    <slot />
+    {@render children?.()}
 {/if}

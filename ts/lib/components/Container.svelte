@@ -3,14 +3,24 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
+    import type { Snippet } from "svelte";
+
     import type { Breakpoint } from "./types";
 
-    export let id: string | undefined = undefined;
-    let className: string = "";
-    export { className as class };
+    interface ContainerProps {
+        id?: string;
+        class?: string;
+        /* width: 100% if viewport < breakpoint otherwise with gutters */
+        breakpoint?: Breakpoint | "fluid";
+        children?: Snippet;
+    }
 
-    /* width: 100% if viewport < breakpoint otherwise with gutters */
-    export let breakpoint: Breakpoint | "fluid" = "fluid";
+    let {
+        id = undefined,
+        class: className = "",
+        breakpoint = "fluid",
+        children,
+    }: ContainerProps = $props();
 </script>
 
 <div
@@ -24,7 +34,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     class:container-xxl={breakpoint === "xxl"}
     class:container-fluid={breakpoint === "fluid"}
 >
-    <slot />
+    {@render children?.()}
 </div>
 
 <style lang="scss">

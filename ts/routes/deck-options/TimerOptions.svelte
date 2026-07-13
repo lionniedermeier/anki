@@ -6,7 +6,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import * as tr from "@generated/ftl";
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
-    import type Modal from "bootstrap/js/dist/modal";
+    import type Modal from "$lib/components/Modal.svelte";
 
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import HelpModal from "$lib/components/HelpModal.svelte";
@@ -57,16 +57,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </script>
 
 <TitledContainer title={tr.deckConfigTimerTitle()}>
-    <HelpModal
-        title={tr.deckConfigTimerTitle()}
-        url={HelpPage.DeckOptions.timer}
-        slot="tooltip"
-        {helpSections}
-        on:mount={(e) => {
-            modal = e.detail.modal;
-            carousel = e.detail.carousel;
-        }}
-    />
+    {#snippet tooltip()}
+        <HelpModal
+            title={tr.deckConfigTimerTitle()}
+            url={HelpPage.DeckOptions.timer}
+            {helpSections}
+            onMounted={(m, c) => {
+                modal = m;
+                carousel = c;
+            }}
+        />
+    {/snippet}
     <DynamicallySlottable slotHost={Item} {api}>
         <Item>
             <SpinBoxRow

@@ -56,7 +56,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     const modals = getContext<Map<string, Modal>>(modalsKey);
 
-    let modalKey: string;
+    const modalKey = Math.random().toString(36).substring(2);
     let modalStartingValue = "";
     let modalTitle = "";
     let modalSuccess: (text: string) => void = noop;
@@ -88,7 +88,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     prompt={tr.deckConfigNamePrompt()}
     initialValue={modalStartingValue}
     onOk={modalSuccess}
-    bind:modalKey
+    {modalKey}
 />
 
 <StickyContainer --gutter-block="0.5rem" --sticky-borders="0 0 1px" breakpoint="sm">

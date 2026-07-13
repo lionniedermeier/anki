@@ -20,7 +20,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         setupCodeMirror,
     } from "../../../routes/editor/code-mirror";
 
-    interface Props {
+    interface CodeMirrorEditorProps {
         /** Two-way bound editor contents. Kept as a store so the existing
          * `setupCodeMirror` contract works and edits survive the editor being
          * torn down and recreated (e.g. when its tab is switched away). */
@@ -30,7 +30,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         class?: string;
     }
 
-    let { code, mode, class: className = "" }: Props = $props();
+    let { code, mode, class: className = "" }: CodeMirrorEditorProps = $props();
 
     const [editorPromise, resolve] = promiseWithResolver<CodeMirrorLib.Editor>();
 

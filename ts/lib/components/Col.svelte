@@ -3,14 +3,19 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
+    import type { Snippet } from "svelte";
+
     import type { Breakpoint } from "./types";
 
-    let className: string = "";
-    export { className as class };
+    interface ColProps {
+        class?: string;
+        /* flex-basis: 100% if viewport < breakpoint otherwise
+         * as specified by --cols and --col-size */
+        breakpoint?: Breakpoint;
+        children?: Snippet;
+    }
 
-    /* flex-basis: 100% if viewport < breakpoint otherwise
-     * as specified by --cols and --col-size */
-    export let breakpoint: Breakpoint = "xs";
+    let { class: className = "", breakpoint = "xs", children }: ColProps = $props();
 </script>
 
 <div
@@ -22,7 +27,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     class:col-xl={breakpoint === "xl"}
     class:col-xxl={breakpoint === "xxl"}
 >
-    <slot />
+    {@render children?.()}
 </div>
 
 <style lang="scss">

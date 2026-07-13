@@ -6,6 +6,7 @@ import "./import-csv-base.scss";
 import { getCsvMetadata, getDeckNames, getNotetypeNames } from "@generated/backend";
 import { ModuleName, setupI18n } from "@tslib/i18n";
 import { checkNightMode } from "@tslib/nightmode";
+import { mount } from "svelte";
 
 import { modalsKey } from "$lib/components/context-keys";
 import ErrorPage from "$lib/components/ErrorPage.svelte";
@@ -29,7 +30,7 @@ const i18n = setupI18n({
     ],
 });
 
-export async function setupImportCsvPage(path: string): Promise<ImportCsvPage | ErrorPage> {
+export async function setupImportCsvPage(path: string): Promise<Record<string, unknown>> {
     const context = new Map();
     context.set(modalsKey, new Map());
     checkNightMode();
@@ -43,7 +44,7 @@ export async function setupImportCsvPage(path: string): Promise<ImportCsvPage | 
         getCsvMetadata({ path }, { alertOnError: false }),
         i18n,
     ]).then(([notetypes, decks, metadata]) => {
-        return new ImportCsvPage({
+        return mount(ImportCsvPage, {
             target: document.body,
             props: {
                 state: new ImportCsvState(path, notetypes, decks, metadata),
@@ -51,7 +52,7 @@ export async function setupImportCsvPage(path: string): Promise<ImportCsvPage | 
             context,
         });
     }).catch((error) => {
-        return new ErrorPage({ target: document.body, props: { error } });
+        return mount(ErrorPage, { target: document.body, props: { error } });
     });
 }
 
