@@ -13,12 +13,12 @@
     import Item from "$lib/components/Item.svelte";
     import SettingTitle from "$lib/components/SettingTitle.svelte";
     import SwitchRow from "$lib/components/SwitchRow.svelte";
-    import TitledContainer from "$lib/components/TitledContainer.svelte";
     import type { HelpItem } from "$lib/components/types";
 
     import GlobalLabel from "./GlobalLabel.svelte";
     import type { DeckOptionsState } from "./lib";
     import { ValueTab } from "./lib";
+    import SettingsSection from "./SettingsSection.svelte";
     import SpinBoxRow from "./SpinBoxRow.svelte";
     import TabbedValue from "./TabbedValue.svelte";
     import Warning from "./Warning.svelte";
@@ -155,7 +155,7 @@
     }
 </script>
 
-<TitledContainer title={tr.deckConfigDailyLimits()}>
+<SettingsSection title={tr.deckConfigDailyLimits()}>
     {#snippet tooltip()}
         <HelpModal
             title={tr.deckConfigDailyLimits()}
@@ -222,4 +222,4 @@
             </SwitchRow>
         </Item>
     </DynamicallySlottable>
-</TitledContainer>
+</SettingsSection>

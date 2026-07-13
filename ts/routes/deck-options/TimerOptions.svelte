@@ -13,10 +13,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Item from "$lib/components/Item.svelte";
     import SettingTitle from "$lib/components/SettingTitle.svelte";
     import SwitchRow from "$lib/components/SwitchRow.svelte";
-    import TitledContainer from "$lib/components/TitledContainer.svelte";
     import type { HelpItem } from "$lib/components/types";
 
     import type { DeckOptionsState } from "./lib";
+    import SettingsSection from "./SettingsSection.svelte";
     import SpinBoxRow from "./SpinBoxRow.svelte";
     import Warning from "./Warning.svelte";
 
@@ -56,7 +56,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 </script>
 
-<TitledContainer title={tr.deckConfigTimerTitle()}>
+<SettingsSection title={tr.deckConfigTimerTitle()}>
     {#snippet tooltip()}
         <HelpModal
             title={tr.deckConfigTimerTitle()}
@@ -128,4 +128,4 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             </div>
         </Item>
     </DynamicallySlottable>
-</TitledContainer>
+</SettingsSection>

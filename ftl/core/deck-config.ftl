@@ -11,6 +11,12 @@ deck-config-used-by-decks =
     }
 deck-config-default-name = Default
 deck-config-title = Deck Options
+# Placeholder of the box used to search the deck options for a particular setting
+deck-config-search-settings = Search settings
+# Sidebar group containing the Daily Limits, New Cards, Lapses, FSRS and Easy Days sections
+deck-config-group-scheduling = Scheduling
+# Sidebar group containing the Display Order, Burying, Timers, Audio and Auto Advance sections
+deck-config-group-reviewing = Reviewing
 
 ## Daily limits section
 

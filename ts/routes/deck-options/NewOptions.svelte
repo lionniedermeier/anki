@@ -14,11 +14,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import HelpModal from "$lib/components/HelpModal.svelte";
     import Item from "$lib/components/Item.svelte";
     import SettingTitle from "$lib/components/SettingTitle.svelte";
-    import TitledContainer from "$lib/components/TitledContainer.svelte";
     import { type HelpItem, HelpItemScheduler } from "$lib/components/types";
 
     import { newInsertOrderChoices } from "./choices";
     import type { DeckOptionsState } from "./lib";
+    import SettingsSection from "./SettingsSection.svelte";
     import SpinBoxRow from "./SpinBoxRow.svelte";
     import StepsInputRow from "./StepsInputRow.svelte";
     import Warning from "./Warning.svelte";
@@ -91,7 +91,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 </script>
 
-<TitledContainer title={tr.schedulingNewCards()}>
+<SettingsSection title={tr.schedulingNewCards()}>
     {#snippet tooltip()}
         <HelpModal
             title={tr.schedulingNewCards()}
@@ -185,4 +185,4 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <Warning warning={insertionOrderRandom} />
         </Item>
     </DynamicallySlottable>
-</TitledContainer>
+</SettingsSection>

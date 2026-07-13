@@ -14,11 +14,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Item from "$lib/components/Item.svelte";
     import SettingTitle from "$lib/components/SettingTitle.svelte";
     import SwitchRow from "$lib/components/SwitchRow.svelte";
-    import TitledContainer from "$lib/components/TitledContainer.svelte";
     import type { HelpItem } from "$lib/components/types";
 
     import { answerChoices, questionActionChoices } from "./choices";
     import type { DeckOptionsState } from "./lib";
+    import SettingsSection from "./SettingsSection.svelte";
     import SpinBoxFloatRow from "./SpinBoxFloatRow.svelte";
 
     export let state: DeckOptionsState;
@@ -60,7 +60,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 </script>
 
-<TitledContainer title={tr.actionsAutoAdvance()}>
+<SettingsSection title={tr.actionsAutoAdvance()}>
     {#snippet tooltip()}
         <HelpModal
             title={tr.actionsAutoAdvance()}
@@ -150,4 +150,4 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             </EnumSelectorRow>
         </Item>
     </DynamicallySlottable>
-</TitledContainer>
+</SettingsSection>

@@ -13,12 +13,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Item from "$lib/components/Item.svelte";
     import SettingTitle from "$lib/components/SettingTitle.svelte";
     import SwitchRow from "$lib/components/SwitchRow.svelte";
-    import TitledContainer from "$lib/components/TitledContainer.svelte";
     import { type HelpItem, HelpItemScheduler } from "$lib/components/types";
 
     import FsrsOptions from "./FsrsOptions.svelte";
     import GlobalLabel from "./GlobalLabel.svelte";
     import type { DeckOptionsState } from "./lib";
+    import SettingsSection from "./SettingsSection.svelte";
 
     export let state: DeckOptionsState;
     export let api: Record<string, never>;
@@ -88,7 +88,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 </script>
 
-<TitledContainer title={"FSRS"}>
+<SettingsSection title={"FSRS"}>
     {#snippet tooltip()}
         <HelpModal
             title={"FSRS"}
@@ -124,4 +124,4 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             />
         {/if}
     </DynamicallySlottable>
-</TitledContainer>
+</SettingsSection>

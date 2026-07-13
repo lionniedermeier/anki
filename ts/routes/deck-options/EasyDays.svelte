@@ -6,8 +6,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import * as tr from "@generated/ftl";
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import Item from "$lib/components/Item.svelte";
-    import TitledContainer from "$lib/components/TitledContainer.svelte";
     import type { DeckOptionsState } from "./lib";
+    import SettingsSection from "./SettingsSection.svelte";
     import Warning from "./Warning.svelte";
     import EasyDaysInput from "./EasyDaysInput.svelte";
 
@@ -42,7 +42,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     <option>0.5</option>
 </datalist>
 
-<TitledContainer title={tr.deckConfigEasyDaysTitle()}>
+<SettingsSection title={tr.deckConfigEasyDaysTitle()}>
     <DynamicallySlottable slotHost={Item} {api}>
         <EasyDaysInput bind:values={$config.easyDaysPercentages} />
         <Item>
@@ -52,4 +52,4 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <Warning warning={rescheduleWarning} />
         </Item>
     </DynamicallySlottable>
-</TitledContainer>
+</SettingsSection>
