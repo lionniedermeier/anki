@@ -124,14 +124,8 @@ fix-fmt:
     {{ ninja }} format
 
 # Run linting and type checking (requires build outputs)
-lint:
-    {{ ninja }} \
-        check:clippy \
-        check:mypy \
-        check:ruff \
-        check:eslint \
-        check:svelte \
-        check:typescript
+lint *targets='check:clippy check:mypy check:ruff check:eslint check:svelte check:typescript':
+    {{ninja}} {{targets}}
 
 # Fix auto-fixable lint issues (ruff + eslint)
 fix-lint:
