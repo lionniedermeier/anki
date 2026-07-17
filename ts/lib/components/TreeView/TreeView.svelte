@@ -9,7 +9,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { chevronDown } from "../icons";
     import Icon from "../Icon.svelte";
     import IconConstrain from "../IconConstrain.svelte";
-    import { collectSubtreeIds, flattenVisible, type TreeViewNode } from "./TreeView";
+    import {
+        collectSubtreeIds,
+        flattenVisible,
+        parentIndex,
+        type TreeViewNode,
+    } from "./TreeView";
 
     interface TreeViewProps {
         nodes: T[];
@@ -23,8 +28,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         onToggle?: (id: string) => void;
         /** When provided, rows become the clickable and focusable surface, and
          * paint hover/selected states. Omit for a presentational tree whose
-         * rows carry their own controls. */
-        onSelect?: (id: string) => void;
+         * rows carry their own controls.
+         * `source` distinguishes a direct pointer click from the cursor
+         * landing on a row as a side effect of arrow-key traversal (e.g.
+         * moving to a parent), so callers whose ids don't all map to
+         * independently-selectable content (like a group heading) can treat
+         * the two differently. */
+        onSelect?: (id: string, source: "pointer" | "keyboard") => void;
         onDragdrop?: (sourceId: string, targetId: string | null) => void;
         row: Snippet<[T, number]>;
         topLevel?: Snippet;
@@ -44,7 +54,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     const visibleRows = $derived(flattenVisible(nodes));
     const nodeById = $derived(new Map(visibleRows.map((r) => [r.node.id, r.node])));
+    const rowIndexById = $derived(new Map(visibleRows.map((r, i) => [r.node.id, i])));
     const selectable = $derived(onSelect !== undefined);
+
+    let containerEl: HTMLElement | undefined = $state();
 
     const TOP_LEVEL = "__top_level__";
     // Pointer movement (px) required before a press becomes a drag rather than
@@ -160,10 +173,89 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    function onRowKeyDown(event: KeyboardEvent, id: string): void {
-        if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onSelect?.(id);
+    // Keyboard navigation tracks the "current" row via `selectedId` rather
+    // than native per-row DOM focus: rows are removed/recreated whenever the
+    // tree data changes, and in Anki's embedded webview, focus placed on a
+    // row via a plain `element.focus()` call is not reliably retained. Real
+    // browser focus instead stays on this stable container div for the
+    // lifetime of the component (see Select.svelte for the same pattern),
+    // and the currently-selected row doubles as the visual keyboard cursor.
+    function focusContainer(): void {
+        containerEl?.focus();
+    }
+
+    function scrollRowIntoView(id: string): void {
+        containerEl
+            ?.querySelector<HTMLElement>(`[data-tree-row-id="${CSS.escape(id)}"]`)
+            ?.scrollIntoView({ block: "nearest" });
+    }
+
+    function selectRow(id: string, source: "pointer" | "keyboard"): void {
+        onSelect?.(id, source);
+        scrollRowIntoView(id);
+        // Re-assert container focus on every selection path (not just
+        // clicks), so a keyboard-driven selection that triggers a focus
+        // steal elsewhere on the page (e.g. an async search re-render) is
+        // self-healed the same way clicks already are - otherwise all
+        // subsequent key presses would silently go nowhere.
+        focusContainer();
+    }
+
+    function moveTo(targetIndex: number, event: KeyboardEvent): void {
+        if (targetIndex < 0 || targetIndex >= visibleRows.length) {
+            return;
+        }
+        event.preventDefault();
+        selectRow(visibleRows[targetIndex].node.id, "keyboard");
+    }
+
+    function onTreeKeyDown(event: KeyboardEvent): void {
+        if (!selectable || visibleRows.length === 0) {
+            return;
+        }
+
+        const index = selectedId !== null ? rowIndexById.get(selectedId) : undefined;
+
+        switch (event.key) {
+            case "ArrowDown":
+                moveTo(index === undefined ? 0 : index + 1, event);
+                break;
+            case "ArrowUp":
+                if (index === undefined) {
+                    moveTo(visibleRows.length - 1, event);
+                } else {
+                    moveTo(index - 1, event);
+                }
+                break;
+            case "ArrowRight": {
+                if (index === undefined) {
+                    break;
+                }
+                const node = visibleRows[index].node;
+                event.preventDefault();
+                if (node.children.length > 0 && node.collapsed) {
+                    onToggle?.(node.id);
+                } else if (node.children.length > 0) {
+                    moveTo(index + 1, event);
+                }
+                break;
+            }
+            case "ArrowLeft": {
+                if (index === undefined) {
+                    break;
+                }
+                const node = visibleRows[index].node;
+                event.preventDefault();
+                if (node.children.length > 0 && !node.collapsed) {
+                    onToggle?.(node.id);
+                } else {
+                    const p = parentIndex(visibleRows, index);
+                    if (p !== null) {
+                        selectRow(visibleRows[p].node.id, "keyboard");
+                    }
+                }
+                break;
+            }
         }
     }
 
@@ -175,7 +267,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     function onChevronKeyDown(event: KeyboardEvent, id: string): void {
         if (event.key === "Enter" || event.key === " ") {
-            // Toggle on the chevron, and stop the row from also handling it.
             event.preventDefault();
             event.stopPropagation();
             onToggle?.(id);
@@ -192,24 +283,31 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     });
 </script>
 
-<div class="tree-view" class:drag-over-top-level={dragOverId === TOP_LEVEL}>
+<!-- The container is the sole focusable/keyboard-handled surface; rows are
+selected by id rather than individually focused (see the comment above
+onTreeKeyDown), so the compiler can't infer their interactivity relationship. -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<div
+    class="tree-view"
+    class:drag-over-top-level={dragOverId === TOP_LEVEL}
+    bind:this={containerEl}
+    tabindex={selectable ? 0 : undefined}
+    onkeydown={onTreeKeyDown}
+>
     {#each visibleRows as { node, depth } (node.id)}
-        <!-- The role and tabindex are only set when the tree is selectable,
-        which the compiler can't see through. -->
-        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
             class="tree-row"
             class:selectable
             class:selected={selectable && node.id === selectedId}
             class:drag-over={dragOverId === node.id}
             class:dragged={dragging && draggedNode?.id === node.id}
-            style="padding-inline-start: {depth * indent}rem"
+            style="padding-inline-start: calc(8px + {depth * indent}rem)"
             data-tree-row-id={node.id}
-            role={selectable ? "button" : undefined}
-            tabindex={selectable ? 0 : undefined}
             onpointerdown={(event) => onPointerDown(event, node)}
-            onclick={() => onSelect?.(node.id)}
-            onkeydown={(event) => onRowKeyDown(event, node.id)}
+            onclick={() => selectRow(node.id, "pointer")}
         >
             {#if node.children.length > 0}
                 <div
@@ -264,7 +362,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         align-items: center;
         width: 100%;
         min-height: var(--tree-row-height, 40px);
-        padding-inline-end: 0.25rem;
+        padding-inline-end: 8px;
         border-radius: var(--border-radius, 5px);
 
         &.selectable {

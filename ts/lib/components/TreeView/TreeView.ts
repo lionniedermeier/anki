@@ -45,3 +45,20 @@ export function collectSubtreeIds(node: TreeViewNode): Set<string> {
     }
     return ids;
 }
+
+/** Finds the index, within `rows`, of the row at `index`'s nearest ancestor
+ * - the closest preceding row with a smaller depth - skipping over any
+ * earlier siblings (which share the same depth). Returns null if `index` is
+ * already at the top level. */
+export function parentIndex<T extends TreeViewNode>(
+    rows: VisibleRow<T>[],
+    index: number,
+): number | null {
+    const depth = rows[index].depth;
+    for (let i = index - 1; i >= 0; i--) {
+        if (rows[i].depth < depth) {
+            return i;
+        }
+    }
+    return null;
+}

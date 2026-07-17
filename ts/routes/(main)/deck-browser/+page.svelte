@@ -27,6 +27,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     let rows = deckTreeToRows(data.tree);
     let currentDeckId = data.currentDeckId;
     let studiedToday = data.studiedToday;
+    let selectedId: string | null = null;
 
     async function refresh(): Promise<void> {
         const content = await getDeckBrowserContent({});
@@ -50,6 +51,26 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             open(deckId);
+        }
+    }
+
+    function select(id: string): void {
+        selectedId = id;
+    }
+
+    // Arrow-key navigation moves the tree's cursor without moving DOM focus
+    // onto individual rows (see TreeView's own comment on why), so Enter/Space
+    // pressed while the container itself is focused won't reach `openKeydown`
+    // on the row. `defaultPrevented` guards against double-handling when the
+    // deck-name row *is* focused directly, since that already handled the key.
+    function onTreeKeydown(event: KeyboardEvent): void {
+        if (event.defaultPrevented || (event.key !== "Enter" && event.key !== " ")) {
+            return;
+        }
+        const row = selectedId ? findRow(rows, selectedId) : undefined;
+        if (row) {
+            event.preventDefault();
+            open(row.deckId);
         }
     }
 
@@ -98,7 +119,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </script>
 
 <div class="deck-browser">
-    <div class="tree-scroll">
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="tree-scroll" on:keydown={onTreeKeydown}>
         <div class="tree-header">
             <span class="col-name">{tr.decksDeck()}</span>
             <span class="col-count">{tr.actionsNew()}</span>
@@ -110,6 +132,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <TreeView
             nodes={rows}
             topLevelDroppable
+            {selectedId}
+            onSelect={select}
             onToggle={toggle}
             onDragdrop={dragdrop}
         >
@@ -203,12 +227,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
-    }
-
-    // The rows carry their own controls, so TreeView leaves them without a
-    // hover state; give the whole tree item a subtle highlight on hover.
-    .tree-scroll :global(.tree-row:hover) {
-        background: var(--border-subtle);
     }
 
     .col-count {

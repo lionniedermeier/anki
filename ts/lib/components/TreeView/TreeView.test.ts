@@ -3,7 +3,12 @@
 
 import { describe, expect, test } from "vitest";
 
-import { collectSubtreeIds, flattenVisible, type TreeViewNode } from "./TreeView";
+import {
+    collectSubtreeIds,
+    flattenVisible,
+    parentIndex,
+    type TreeViewNode,
+} from "./TreeView";
 
 function node(
     id: string,
@@ -69,5 +74,31 @@ describe("collectSubtreeIds", () => {
         expect(collectSubtreeIds(tree)).toEqual(
             new Set(["a", "a1", "a1-1", "a2"]),
         );
+    });
+});
+
+describe("parentIndex", () => {
+    test("a first child resolves to the parent", () => {
+        const rows = flattenVisible([node("a", [node("a1"), node("a2")])]);
+        expect(parentIndex(rows, 1)).toBe(0);
+    });
+
+    test("a later child also resolves to the parent, not a sibling", () => {
+        const rows = flattenVisible([node("a", [node("a1"), node("a2")])]);
+        expect(parentIndex(rows, 2)).toBe(0);
+    });
+
+    test("three levels deep resolves to the immediate parent, not the grandparent", () => {
+        const rows = flattenVisible([
+            node("a", [node("a1", [node("a11"), node("a12")])]),
+        ]);
+        expect(parentIndex(rows, 2)).toBe(1); // a11 -> a1
+        expect(parentIndex(rows, 3)).toBe(1); // a12 -> a1, skipping a11
+    });
+
+    test("a top-level node has no parent", () => {
+        const rows = flattenVisible([node("a"), node("b")]);
+        expect(parentIndex(rows, 0)).toBeNull();
+        expect(parentIndex(rows, 1)).toBeNull();
     });
 });

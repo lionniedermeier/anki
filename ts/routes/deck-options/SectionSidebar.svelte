@@ -23,6 +23,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     let { nodes, selectedId, onSelect }: SectionSidebarProps = $props();
 
     let collapsedIds: string[] = $state([]);
+    // The tree's own cursor: unlike `selectedId` (the section actually shown
+    // in the settings pane, which only ever names a leaf), this is allowed to
+    // rest on a group heading while the user is navigating with the keyboard.
+    let cursorId: string | null = $state(null);
+
+    $effect(() => {
+        cursorId = selectedId;
+    });
 
     const rows = $derived(toRows(nodes));
 
@@ -41,7 +49,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             : [...collapsedIds, id];
     }
 
-    /** Groups have no counterpart in the settings list, so selecting one takes
+    /** Groups have no counterpart in the settings list, so clicking one takes
      * you to the first section below it. */
     function firstSectionId(rows: SectionRow[], id: string): string | null {
         for (const row of rows) {
@@ -58,9 +66,34 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         return null;
     }
 
-    function select(id: string): void {
+    function findRow(rows: SectionRow[], id: string): SectionRow | null {
+        for (const row of rows) {
+            if (row.id === id) {
+                return row;
+            }
+            const found = findRow(row.children, id);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    function select(id: string, source: "pointer" | "keyboard"): void {
+        if (source === "keyboard") {
+            // Let the keyboard cursor rest on a group heading (e.g. after
+            // navigating to a parent) instead of bouncing straight back into
+            // its first child - only jump the settings pane when the cursor
+            // actually lands on a real section.
+            cursorId = id;
+            if (findRow(rows, id)?.children.length === 0) {
+                onSelect(id);
+            }
+            return;
+        }
         const sectionId = firstSectionId(rows, id);
         if (sectionId) {
+            cursorId = sectionId;
             onSelect(sectionId);
         }
     }
@@ -68,7 +101,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 <div class="section-sidebar">
     <div class="tree-scroll">
-        <TreeView nodes={rows} {selectedId} onToggle={toggle} onSelect={select}>
+        <TreeView nodes={rows} selectedId={cursorId} onToggle={toggle} onSelect={select}>
             {#snippet row(node)}
                 <span class="section-row">{node.title}</span>
             {/snippet}
