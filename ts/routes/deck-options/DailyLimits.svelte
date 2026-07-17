@@ -6,6 +6,7 @@
     import * as tr from "@generated/ftl";
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
+    import { untrack } from "svelte";
     import type Modal from "$lib/components/Modal.svelte";
 
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
@@ -23,8 +24,12 @@
     import TabbedValue from "./TabbedValue.svelte";
     import Warning from "./Warning.svelte";
 
-    export let state: DeckOptionsState;
-    export let api: Record<string, never>;
+    interface Props {
+        state: DeckOptionsState;
+        api: Record<string, never>;
+    }
+
+    let { state: deckState, api }: Props = $props();
 
     export function onPresetChange() {
         newTabs[0] = new ValueTab(
@@ -43,11 +48,13 @@
         );
     }
 
-    const config = state.currentConfig;
-    const limits = state.deckLimits;
-    const defaults = state.defaults;
-    const newCardsIgnoreReviewLimit = state.newCardsIgnoreReviewLimit;
-    const applyAllParentLimits = state.applyAllParentLimits;
+    const config = untrack(() => deckState.currentConfig);
+    const limits = untrack(() => deckState.deckLimits);
+    const defaults = untrack(() => deckState.defaults);
+    const newCardsIgnoreReviewLimit = untrack(
+        () => deckState.newCardsIgnoreReviewLimit,
+    );
+    const applyAllParentLimits = untrack(() => deckState.applyAllParentLimits);
 
     const v3Extra =
         "\n\n" + tr.deckConfigLimitDeckV3() + "\n\n" + tr.deckConfigTabDescription();
@@ -61,15 +68,21 @@
         "\n\n" +
         tr.deckConfigApplyAllParentLimitsTooltip();
 
-    $: reviewsTooLow =
+    let newValue = $state(0);
+    let reviewsValue = $state(0);
+
+    const reviewsTooLow = $derived(
         Math.min(9999, newValue * 10) > reviewsValue
             ? tr.deckConfigReviewsTooLow({
                   cards: newValue,
                   expected: Math.min(9999, newValue * 10),
               })
-            : "";
+            : "",
+    );
 
-    const newTabs: ValueTab[] = [
+    // Mutated by index in onPresetChange, so needs deep reactivity for
+    // TabbedValue's effects to notice the swap.
+    const newTabs: ValueTab[] = $state([
         new ValueTab(
             tr.deckConfigSharedPreset(),
             $config.newPerDay,
@@ -91,9 +104,9 @@
             null,
             $limits.newToday ?? null,
         ),
-    ];
+    ]);
 
-    const reviewTabs: ValueTab[] = [
+    const reviewTabs: ValueTab[] = $state([
         new ValueTab(
             tr.deckConfigSharedPreset(),
             $config.reviewsPerDay,
@@ -115,10 +128,7 @@
             null,
             $limits.reviewToday ?? null,
         ),
-    ];
-
-    let newValue = 0;
-    let reviewsValue = 0;
+    ]);
 
     const settings = {
         newLimit: {
@@ -170,7 +180,9 @@
     <DynamicallySlottable slotHost={Item} {api}>
         <Item>
             <SpinBoxRow bind:value={newValue} defaultValue={defaults.newPerDay}>
-                <TabbedValue slot="tabs" tabs={newTabs} bind:value={newValue} />
+                {#snippet tabs()}
+                    <TabbedValue tabs={newTabs} bind:value={newValue} />
+                {/snippet}
                 <SettingTitle
                     on:click={() =>
                         openHelpModal(Object.keys(settings).indexOf("newLimit"))}
@@ -182,7 +194,9 @@
 
         <Item>
             <SpinBoxRow bind:value={reviewsValue} defaultValue={defaults.reviewsPerDay}>
-                <TabbedValue slot="tabs" tabs={reviewTabs} bind:value={reviewsValue} />
+                {#snippet tabs()}
+                    <TabbedValue tabs={reviewTabs} bind:value={reviewsValue} />
+                {/snippet}
                 <SettingTitle
                     on:click={() =>
                         openHelpModal(Object.keys(settings).indexOf("reviewLimit"))}

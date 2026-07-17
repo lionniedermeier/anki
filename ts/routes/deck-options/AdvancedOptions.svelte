@@ -7,6 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
     import type Modal from "$lib/components/Modal.svelte";
+    import { untrack } from "svelte";
 
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import HelpModal from "$lib/components/HelpModal.svelte";
@@ -24,13 +25,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { getIgnoredBeforeCount } from "@generated/backend";
     import type { GetIgnoredBeforeCountResponse } from "@generated/anki/deck_config_pb";
 
-    export let state: DeckOptionsState;
-    export let api: Record<string, never>;
+    interface Props {
+        state: DeckOptionsState;
+        api: Record<string, never>;
+    }
 
-    const config = state.currentConfig;
-    const defaults = state.defaults;
-    const cardStateCustomizer = state.cardStateCustomizer;
-    const fsrs = state.fsrs;
+    let { state: deckState, api }: Props = $props();
+
+    const config = untrack(() => deckState.currentConfig);
+    const defaults = untrack(() => deckState.defaults);
+    const cardStateCustomizer = untrack(() => deckState.cardStateCustomizer);
+    const fsrs = untrack(() => deckState.fsrs);
 
     const settings = {
         maximumInterval: {
@@ -87,14 +92,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     };
     const helpSections: HelpItem[] = Object.values(settings);
 
-    $: maxIntervalWarningClass =
-        $config.maximumReviewInterval < 50 ? "alert-danger" : "alert-warning";
-    $: maxIntervalWarning =
+    const maxIntervalWarningClass = $derived(
+        $config.maximumReviewInterval < 50 ? "alert-danger" : "alert-warning",
+    );
+    const maxIntervalWarning = $derived(
         $config.maximumReviewInterval < 180
             ? tr.deckConfigTooShortMaximumInterval()
-            : "";
+            : "",
+    );
 
-    let ignoreRevlogsBeforeCount: GetIgnoredBeforeCountResponse | null = null;
+    let ignoreRevlogsBeforeCount = $state<GetIgnoredBeforeCountResponse | null>(null);
     let lastIgnoreRevlogsBeforeDate = "";
     function updateIgnoreRevlogsBeforeCount(ignoreRevlogsBeforeDate: string) {
         if (lastIgnoreRevlogsBeforeDate == ignoreRevlogsBeforeDate) {
@@ -109,7 +116,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             getIgnoredBeforeCount({
                 search:
                     $config.paramSearch ||
-                    `preset:"${state.getCurrentNameForSearch()}" -is:suspended`,
+                    `preset:"${deckState.getCurrentNameForSearch()}" -is:suspended`,
                 ignoreRevlogsBeforeDate,
             }).then((resp) => {
                 ignoreRevlogsBeforeCount = resp;
@@ -126,35 +133,39 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     let cutoffUpdatedSinceLoad = true;
     const IGNORE_REVLOG_COUNT_DELAY_MS = 1000;
 
-    $: {
+    $effect(() => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
             updateIgnoreRevlogsBeforeCount($config.ignoreRevlogsBeforeDate);
         }, IGNORE_REVLOG_COUNT_DELAY_MS);
-    }
-    let ignoreRevlogsBeforeWarningClass = "alert-warning";
-    $: if (ignoreRevlogsBeforeCount) {
-        // If there is less than a tenth of reviews included
-        if (
-            Number(ignoreRevlogsBeforeCount.included) /
-                Number(ignoreRevlogsBeforeCount.total) <
-            0.1
-        ) {
-            ignoreRevlogsBeforeWarningClass = "alert-danger";
-        } else if (
-            ignoreRevlogsBeforeCount.included != ignoreRevlogsBeforeCount.total
-        ) {
-            ignoreRevlogsBeforeWarningClass = "alert-warning";
-        } else {
-            ignoreRevlogsBeforeWarningClass = "alert-info";
+    });
+    let ignoreRevlogsBeforeWarningClass = $state("alert-warning");
+    $effect(() => {
+        if (ignoreRevlogsBeforeCount) {
+            // If there is less than a tenth of reviews included
+            if (
+                Number(ignoreRevlogsBeforeCount.included) /
+                    Number(ignoreRevlogsBeforeCount.total) <
+                0.1
+            ) {
+                ignoreRevlogsBeforeWarningClass = "alert-danger";
+            } else if (
+                ignoreRevlogsBeforeCount.included != ignoreRevlogsBeforeCount.total
+            ) {
+                ignoreRevlogsBeforeWarningClass = "alert-warning";
+            } else {
+                ignoreRevlogsBeforeWarningClass = "alert-info";
+            }
         }
-    }
-    $: ignoreRevlogsBeforeWarning = ignoreRevlogsBeforeCount
-        ? tr.deckConfigIgnoreBeforeInfo({
-              included: ignoreRevlogsBeforeCount.included.toString(),
-              totalCards: ignoreRevlogsBeforeCount.total.toString(),
-          })
-        : "";
+    });
+    const ignoreRevlogsBeforeWarning = $derived(
+        ignoreRevlogsBeforeCount
+            ? tr.deckConfigIgnoreBeforeInfo({
+                  included: ignoreRevlogsBeforeCount.included.toString(),
+                  totalCards: ignoreRevlogsBeforeCount.total.toString(),
+              })
+            : "",
+    );
 
     let modal: Modal;
     let carousel: Carousel;
@@ -327,8 +338,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <Item>
             <CardStateCustomizer
                 title={settings.customScheduling.title}
-                on:click={() =>
-                    openHelpModal(Object.keys(settings).indexOf("customScheduling"))}
                 bind:value={$cardStateCustomizer}
             />
         </Item>

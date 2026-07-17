@@ -4,7 +4,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
     import * as tr from "@generated/ftl";
-    import { onDestroy, onMount } from "svelte";
+    import { onDestroy, onMount, untrack } from "svelte";
     import type { Writable } from "svelte/store";
 
     import "$lib/sveltelib/export-runtime";
@@ -34,11 +34,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { filterSections, sectionIds, sectionNodes } from "./sections";
     import TimerOptions from "./TimerOptions.svelte";
 
-    export let state: DeckOptionsState;
-    const addons = state.addonComponents;
+    interface Props {
+        state: DeckOptionsState;
+    }
+
+    let { state: deckState }: Props = $props();
+    const addons = untrack(() => deckState.addonComponents);
 
     export function auxData(): Writable<Record<string, unknown>> {
-        return state.currentAuxData;
+        return deckState.currentAuxData;
     }
 
     export function addSvelteAddon(component: DynamicSvelteComponent): void {
@@ -85,15 +89,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     // Long enough for a smooth scroll to settle.
     const SCROLL_SETTLE_MS = 600;
 
-    let innerWidth = 0;
-    let query = "";
-    let selectedId: string | null = null;
+    let innerWidth = $state(0);
+    let query = $state("");
+    let selectedId: string | null = $state(null);
     let scrollArea: HTMLElement;
 
-    $: narrow = innerWidth > 0 && innerWidth < SIDEBAR_BREAKPOINT;
-    $: nodes = sectionNodes($addons.length > 0);
-    $: matchingNodes = filterSections(nodes, query);
-    $: visibleIds = new Set(sectionIds(matchingNodes));
+    const narrow = $derived(innerWidth > 0 && innerWidth < SIDEBAR_BREAKPOINT);
+    const nodes = $derived(sectionNodes($addons.length > 0));
+    const matchingNodes = $derived(filterSections(nodes, query));
+    const visibleIds = $derived(new Set(sectionIds(matchingNodes)));
 
     let observer: IntersectionObserver | undefined;
     let observerPaused = false;
@@ -169,7 +173,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <svelte:window bind:innerWidth />
 
 <div class="deck-options-page">
-    <ConfigSelector {state} on:presetchange={onPresetChange} />
+    <ConfigSelector state={deckState} onpresetchange={onPresetChange} />
 
     <div class="search-bar">
         <IconConstrain>
@@ -201,7 +205,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     use:spy
                 >
                     <DailyLimits
-                        {state}
+                        state={deckState}
                         api={dailyLimits}
                         bind:this={dailyLimitsComponent}
                     />
@@ -213,7 +217,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="new-cards"
                     use:spy
                 >
-                    <NewOptions {state} api={newOptions} />
+                    <NewOptions state={deckState} api={newOptions} />
                 </div>
 
                 <div
@@ -222,7 +226,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="lapses"
                     use:spy
                 >
-                    <LapseOptions {state} api={lapseOptions} />
+                    <LapseOptions state={deckState} api={lapseOptions} />
                 </div>
 
                 <div
@@ -232,7 +236,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     use:spy
                 >
                     <FsrsOptionsOuter
-                        {state}
+                        state={deckState}
                         api={{}}
                         bind:this={fsrsOptionsOuterComponent}
                     />
@@ -244,7 +248,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="easy-days"
                     use:spy
                 >
-                    <EasyDays {state} api={easyDays} />
+                    <EasyDays state={deckState} api={easyDays} />
                 </div>
 
                 <div
@@ -253,7 +257,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="display-order"
                     use:spy
                 >
-                    <DisplayOrder {state} api={displayOrder} />
+                    <DisplayOrder state={deckState} api={displayOrder} />
                 </div>
 
                 <div
@@ -262,7 +266,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="burying"
                     use:spy
                 >
-                    <BuryOptions {state} api={buryOptions} />
+                    <BuryOptions state={deckState} api={buryOptions} />
                 </div>
 
                 <div
@@ -271,7 +275,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="timers"
                     use:spy
                 >
-                    <TimerOptions {state} api={timerOptions} />
+                    <TimerOptions state={deckState} api={timerOptions} />
                 </div>
 
                 <div
@@ -280,7 +284,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="audio"
                     use:spy
                 >
-                    <AudioOptions {state} api={audioOptions} />
+                    <AudioOptions state={deckState} api={audioOptions} />
                 </div>
 
                 <div
@@ -289,7 +293,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="auto-advance"
                     use:spy
                 >
-                    <AutoAdvance {state} api={timerOptions} />
+                    <AutoAdvance state={deckState} api={timerOptions} />
                 </div>
 
                 <div
@@ -298,7 +302,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     data-section-id="advanced"
                     use:spy
                 >
-                    <AdvancedOptions {state} api={advancedOptions} />
+                    <AdvancedOptions state={deckState} api={advancedOptions} />
                 </div>
 
                 {#if $addons.length}
@@ -308,7 +312,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         data-section-id="addons"
                         use:spy
                     >
-                        <Addons {state} />
+                        <Addons state={deckState} />
                     </div>
                 {/if}
             </div>

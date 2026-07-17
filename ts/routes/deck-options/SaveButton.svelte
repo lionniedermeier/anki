@@ -7,7 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import * as tr from "@generated/ftl";
     import { withCollapsedWhitespace } from "@tslib/i18n";
     import { getPlatformString } from "@tslib/shortcuts";
-    import { createEventDispatcher, tick } from "svelte";
+    import { tick } from "svelte";
 
     import DropdownDivider from "$lib/components/DropdownDivider.svelte";
     import DropdownItem from "$lib/components/DropdownItem.svelte";
@@ -24,29 +24,35 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     const rtl: boolean = window.getComputedStyle(document.body).direction == "rtl";
 
-    const dispatch = createEventDispatcher();
+    interface Props {
+        state: DeckOptionsState;
+        onadd?: () => void;
+        onclone?: () => void;
+        onrename?: () => void;
+        onremove?: () => void;
+    }
 
-    export let state: DeckOptionsState;
+    let { state: deckState, onadd, onclone, onrename, onremove }: Props = $props();
 
     async function removeConfig(): Promise<void> {
         // show pop-up after dropdown has gone away
         await tick();
 
-        if (state.defaultConfigSelected()) {
+        if (deckState.defaultConfigSelected()) {
             alert(tr.schedulingTheDefaultConfigurationCantBeRemoved());
             return;
         }
 
         const msg =
-            (state.removalWilLForceFullSync()
+            (deckState.removalWilLForceFullSync()
                 ? tr.deckConfigWillRequireFullSync() + " "
                 : "") +
-            tr.deckConfigConfirmRemoveName({ name: state.getCurrentName() });
+            tr.deckConfigConfirmRemoveName({ name: deckState.getCurrentName() });
 
         if (confirm(withCollapsedWhitespace(msg))) {
             try {
-                state.removeCurrentConfig();
-                dispatch("remove");
+                deckState.removeCurrentConfig();
+                onremove?.();
             } catch (err) {
                 alert(err);
             }
@@ -55,12 +61,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     async function save(mode: UpdateDeckConfigsMode): Promise<void> {
         await commitEditing();
-        state.save(mode);
+        deckState.save(mode);
     }
 
     const saveKeyCombination = "Control+Enter";
 
-    let showFloating = false;
+    let showFloating = $state(false);
 </script>
 
 <div class="d-flex">
@@ -95,13 +101,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <Icon icon={chevronDown} />
         </IconButton>
         <Popover slot="floating">
-            <DropdownItem onclick={() => dispatch("add")}>
+            <DropdownItem onclick={() => onadd?.()}>
                 {tr.deckConfigAddGroup()}
             </DropdownItem>
-            <DropdownItem onclick={() => dispatch("clone")}>
+            <DropdownItem onclick={() => onclone?.()}>
                 {tr.deckConfigCloneGroup()}
             </DropdownItem>
-            <DropdownItem onclick={() => dispatch("rename")}>
+            <DropdownItem onclick={() => onrename?.()}>
                 {tr.deckConfigRenameGroup()}
             </DropdownItem>
             <DropdownItem onclick={removeConfig}>

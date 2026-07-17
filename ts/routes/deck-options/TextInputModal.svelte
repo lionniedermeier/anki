@@ -6,15 +6,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Modal from "$lib/components/Modal.svelte";
     import { pageTheme } from "$lib/sveltelib/theme";
 
-    export let title: string;
-    export let prompt: string;
-    export let initialValue = "";
-    export let onOk: (text: string) => void;
-    $: value = initialValue;
+    interface Props {
+        title: string;
+        prompt: string;
+        initialValue?: string;
+        onOk: (text: string) => void;
+        modalKey: string;
+    }
+
+    let { title, prompt, initialValue = "", onOk, modalKey }: Props = $props();
+
+    let value = $state("");
+    $effect(() => {
+        value = initialValue;
+    });
 
     let inputRef: HTMLInputElement;
-    let modal: Modal;
-    export let modalKey: string;
+    let modal: Modal | undefined = $state();
 
     function onOkClicked(): void {
         onOk(inputRef.value);
@@ -44,7 +52,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     {/snippet}
     {#snippet body()}
         <div class="modal-body">
-            <form on:submit|preventDefault={modal.acceptHandler}>
+            <form
+                onsubmit={(event) => {
+                    event.preventDefault();
+                    modal!.acceptHandler();
+                }}
+            >
                 <div class="mb-3">
                     <label for="prompt-input" class="col-form-label">
                         {prompt}:
@@ -66,14 +79,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <button
                 type="button"
                 class="btn btn-secondary"
-                on:click={modal.cancelHandler}
+                onclick={modal!.cancelHandler}
             >
                 Cancel
             </button>
             <button
                 type="button"
                 class="btn btn-primary"
-                on:click={modal.acceptHandler}
+                onclick={modal!.acceptHandler}
             >
                 OK
             </button>

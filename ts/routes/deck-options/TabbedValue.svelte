@@ -7,15 +7,16 @@
     activated, its last used value is applied to its provided setter and the
     component's value. Whenever it's deactivated, its setter is called with its
     disabledValue. */
+    import { untrack } from "svelte";
+
     import type { ValueTab } from "./lib";
 
-    export let tabs: ValueTab[];
-    export let value: number;
+    interface Props {
+        tabs: ValueTab[];
+        value: number;
+    }
 
-    let activeTab = lastSetTab();
-    $: onTabChanged(activeTab);
-    $: value = tabs[activeTab].value ?? 0;
-    $: tabs[activeTab].setValue(value);
+    let { tabs, value = $bindable() }: Props = $props();
 
     function lastSetTab(): number {
         const revIdx = tabs
@@ -24,6 +25,26 @@
             .findIndex((tab) => tab.value !== null);
         return revIdx === -1 ? 0 : tabs.length - revIdx - 1;
     }
+
+    let activeTab = $state(lastSetTab());
+
+    // The tabs are deeply reactive, so every read/write of tab.value is tracked.
+    // Untracking the tab internals keeps these effects depending on tabs,
+    // activeTab and value alone, and stops them from re-triggering each other on
+    // every keystroke into the spinbox.
+    $effect(() => {
+        const currentTab = activeTab;
+        untrack(() => onTabChanged(currentTab));
+    });
+    $effect(() => {
+        const tab = tabs[activeTab];
+        value = untrack(() => tab.value) ?? 0;
+    });
+    $effect(() => {
+        const tab = tabs[activeTab];
+        const newValue = value;
+        untrack(() => tab.setValue(newValue));
+    });
 
     function onTabChanged(newTab: number) {
         for (const [idx, tab] of tabs.entries()) {
@@ -45,7 +66,7 @@
 <ul>
     {#each tabs as tab, idx}
         <li class:active={activeTab === idx}>
-            <button on:click={handleClick(idx)}>{tab.title}</button>
+            <button onclick={handleClick(idx)}>{tab.title}</button>
         </li>
     {/each}
 </ul>

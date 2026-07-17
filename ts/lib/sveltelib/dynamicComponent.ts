@@ -5,21 +5,13 @@
 @typescript-eslint/no-explicit-any: "off",
  */
 
-import type { SvelteComponent } from "svelte";
+import type { Component, SvelteComponent } from "svelte";
 
-export interface DynamicSvelteComponent<
-    T extends typeof SvelteComponent<any> = typeof SvelteComponent<any>,
-> {
+/** Add-ons may supply either a legacy class-style component or a Svelte 5
+ * (runes) one, so both are accepted here. */
+type AnyComponent = typeof SvelteComponent<any> | Component<any, any, any>;
+
+export interface DynamicSvelteComponent<T extends AnyComponent = AnyComponent> {
     component: T;
     [k: string]: unknown;
 }
-
-export const dynamicComponent = <
-    Comp extends typeof SvelteComponent<any>,
-    DefaultProps = NonNullable<ConstructorParameters<Comp>[0]["props"]>,
->(
-    component: Comp,
-) =>
-<Props = DefaultProps>(props: Props): DynamicSvelteComponent<Comp> & Props => {
-    return { component, ...props };
-};

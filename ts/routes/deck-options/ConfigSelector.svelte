@@ -6,7 +6,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import * as tr from "@generated/ftl";
     import { noop } from "@tslib/functional";
     import type Modal from "bootstrap/js/dist/modal";
-    import { createEventDispatcher, getContext } from "svelte";
+    import { getContext, untrack } from "svelte";
 
     import { modalsKey } from "$lib/components/context-keys";
     import Select from "$lib/components/Select.svelte";
@@ -16,13 +16,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import SaveButton from "./SaveButton.svelte";
     import TextInputModal from "./TextInputModal.svelte";
 
-    export let state: DeckOptionsState;
-    const configList = state.configList;
-    const dispatch = createEventDispatcher();
-    const dispatchPresetChange = () => dispatch("presetchange");
+    interface Props {
+        state: DeckOptionsState;
+        onpresetchange?: () => void;
+    }
 
-    $: value = $configList.findIndex((entry) => entry.current);
-    $: label = configLabel($configList[value]);
+    let { state: deckState, onpresetchange }: Props = $props();
+
+    const configList = untrack(() => deckState.configList);
+
+    let value = $state($configList.findIndex((entry) => entry.current));
+    $effect(() => {
+        value = $configList.findIndex((entry) => entry.current);
+    });
+    const label = $derived(configLabel($configList[value]));
 
     function configLabel(entry: ConfigListEntry): string {
         const count = tr.deckConfigUsedByDecks({ decks: entry.useCount });
@@ -30,36 +37,36 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     function blur(e: CustomEvent): void {
-        state.setCurrentIndex(e.detail.value);
-        dispatchPresetChange();
+        deckState.setCurrentIndex(e.detail.value);
+        onpresetchange?.();
     }
 
     function onAddConfig(text: string): void {
         const trimmed = text.trim();
         if (trimmed.length) {
-            state.addConfig(trimmed);
-            dispatchPresetChange();
+            deckState.addConfig(trimmed);
+            onpresetchange?.();
         }
     }
 
     function onCloneConfig(text: string): void {
         const trimmed = text.trim();
         if (trimmed.length) {
-            state.cloneConfig(trimmed);
-            dispatchPresetChange();
+            deckState.cloneConfig(trimmed);
+            onpresetchange?.();
         }
     }
 
     function onRenameConfig(text: string): void {
-        state.setCurrentName(text);
+        deckState.setCurrentName(text);
     }
 
     const modals = getContext<Map<string, Modal>>(modalsKey);
 
     const modalKey = Math.random().toString(36).substring(2);
-    let modalStartingValue = "";
-    let modalTitle = "";
-    let modalSuccess: (text: string) => void = noop;
+    let modalStartingValue = $state("");
+    let modalTitle = $state("");
+    let modalSuccess: (text: string) => void = $state(noop);
 
     function promptToAdd() {
         modalTitle = tr.deckConfigAddGroup();
@@ -71,14 +78,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     function promptToClone() {
         modalTitle = tr.deckConfigCloneGroup();
         modalSuccess = onCloneConfig;
-        modalStartingValue = state.getCurrentName();
+        modalStartingValue = deckState.getCurrentName();
         modals.get(modalKey)!.show();
     }
 
     function promptToRename() {
         modalTitle = tr.deckConfigRenameGroup();
         modalSuccess = onRenameConfig;
-        modalStartingValue = state.getCurrentName();
+        modalStartingValue = deckState.getCurrentName();
         modals.get(modalKey)!.show();
     }
 </script>
@@ -106,11 +113,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         />
 
         <SaveButton
-            {state}
-            on:add={promptToAdd}
-            on:clone={promptToClone}
-            on:rename={promptToRename}
-            on:remove={dispatchPresetChange}
+            state={deckState}
+            onadd={promptToAdd}
+            onclone={promptToClone}
+            onrename={promptToRename}
+            onremove={onpresetchange}
         />
     </div>
 </StickyContainer>

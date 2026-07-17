@@ -7,6 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
     import type Modal from "$lib/components/Modal.svelte";
+    import { untrack } from "svelte";
 
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import HelpModal from "$lib/components/HelpModal.svelte";
@@ -20,21 +21,27 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import type { DeckOptionsState } from "./lib";
     import SettingsSection from "./SettingsSection.svelte";
 
-    export let state: DeckOptionsState;
-    export let api: Record<string, never>;
+    interface Props {
+        state: DeckOptionsState;
+        api: Record<string, never>;
+    }
 
-    let fsrsOptionsComponent: FsrsOptions | undefined;
+    let { state: deckState, api }: Props = $props();
+
+    let fsrsOptionsComponent: FsrsOptions | undefined = $state();
     export function onPresetChange() {
         if (fsrsOptionsComponent) {
             fsrsOptionsComponent.onPresetChange();
         }
     }
 
-    const fsrs = state.fsrs;
-    let newlyEnabled = false;
-    $: if (!$fsrs) {
-        newlyEnabled = true;
-    }
+    const fsrs = untrack(() => deckState.fsrs);
+    let newlyEnabled = $state(false);
+    $effect(() => {
+        if (!$fsrs) {
+            newlyEnabled = true;
+        }
+    });
 
     const settings = {
         fsrs: {
@@ -116,11 +123,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         {#if $fsrs}
             <FsrsOptions
                 bind:this={fsrsOptionsComponent}
-                {state}
+                state={deckState}
                 {newlyEnabled}
                 openHelpModal={(key) =>
                     openHelpModal(Object.keys(settings).indexOf(key))}
-                {onPresetChange}
             />
         {/if}
     </DynamicallySlottable>

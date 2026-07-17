@@ -7,6 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
     import type Modal from "$lib/components/Modal.svelte";
+    import { untrack } from "svelte";
 
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import EnumSelectorRow from "$lib/components/EnumSelectorRow.svelte";
@@ -21,11 +22,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import SettingsSection from "./SettingsSection.svelte";
     import SpinBoxFloatRow from "./SpinBoxFloatRow.svelte";
 
-    export let state: DeckOptionsState;
-    export let api: Record<string, never>;
+    interface Props {
+        state: DeckOptionsState;
+        api: Record<string, never>;
+    }
 
-    const config = state.currentConfig;
-    const defaults = state.defaults;
+    let { state: deckState, api }: Props = $props();
+
+    const config = untrack(() => deckState.currentConfig);
+    const defaults = untrack(() => deckState.defaults);
 
     const settings = {
         secondsToShowQuestion: {

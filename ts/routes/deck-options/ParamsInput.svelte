@@ -7,9 +7,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import * as tr from "@generated/ftl";
     import Warning from "./Warning.svelte";
 
-    export let value: number[];
+    interface Props {
+        value: number[];
+    }
 
-    let stringValue: string;
+    let { value = $bindable() }: Props = $props();
+
+    let stringValue = $state("");
     let taRef: HTMLTextAreaElement;
 
     function updateHeight() {
@@ -20,10 +24,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    $: {
+    $effect(() => {
         stringValue = render(value);
         tick().then(updateHeight);
-    }
+    });
 
     function render(params: number[]): string {
         return params.map((v) => v.toFixed(4)).join(", ");
@@ -57,7 +61,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     globalThis.anki ||= {};
     globalThis.anki.setParameterUnlockClickTimeoutMs = setParameterUnlockClickTimeoutMs;
     globalThis.anki.defaultParameterUnlockClickTimeoutMs = unlock_click_timeout_ms;
-    let clickCount = 0;
+    let clickCount = $state(0);
 
     let clickTimeout: ReturnType<typeof setTimeout>;
 
@@ -73,15 +77,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    $: unlocked = clickCount >= UNLOCK_EDIT_COUNT;
-    $: unlockEditWarning = unlocked ? tr.deckConfigManualParameterEditWarning() : "";
+    const unlocked = $derived(clickCount >= UNLOCK_EDIT_COUNT);
+    const unlockEditWarning = $derived(
+        unlocked ? tr.deckConfigManualParameterEditWarning() : "",
+    );
 </script>
 
 <svelte:window onresize={updateHeight} />
 
 <div
-    on:click={onClick}
-    on:keypress={onClick}
+    onclick={onClick}
+    onkeypress={onClick}
     role="button"
     aria-label={"FSRS Parameters"}
     tabindex={unlocked ? -1 : 0}
@@ -89,7 +95,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     <textarea
         bind:this={taRef}
         value={stringValue}
-        on:blur={update}
+        onblur={update}
         class="w-100"
         placeholder={tr.deckConfigPlaceholderParameters()}
         disabled={!unlocked}

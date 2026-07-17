@@ -7,6 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
     import type Modal from "$lib/components/Modal.svelte";
+    import { untrack } from "svelte";
 
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import EnumSelectorRow from "$lib/components/EnumSelectorRow.svelte";
@@ -22,28 +23,32 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import StepsInputRow from "./StepsInputRow.svelte";
     import Warning from "./Warning.svelte";
 
-    export let state: DeckOptionsState;
-    export let api = {};
+    interface Props {
+        state: DeckOptionsState;
+        api?: Record<string, never>;
+    }
 
-    const config = state.currentConfig;
-    const defaults = state.defaults;
-    const fsrs = state.fsrs;
+    let { state: deckState, api = {} }: Props = $props();
 
-    let stepsExceedMinimumInterval: string;
-    let stepsTooLargeForFsrs: string;
-    $: {
+    const config = untrack(() => deckState.currentConfig);
+    const defaults = untrack(() => deckState.defaults);
+    const fsrs = untrack(() => deckState.fsrs);
+
+    const relearnStepWarnings = $derived.by(() => {
         const lastRelearnStepInDays = $config.relearnSteps.length
             ? $config.relearnSteps[$config.relearnSteps.length - 1] / 60 / 24
             : 0;
-        stepsExceedMinimumInterval =
-            !$fsrs && lastRelearnStepInDays > $config.minimumLapseInterval
-                ? tr.deckConfigRelearningStepsAboveMinimumInterval()
-                : "";
-        stepsTooLargeForFsrs =
-            $fsrs && lastRelearnStepInDays >= 1
-                ? tr.deckConfigStepsTooLargeForFsrs()
-                : "";
-    }
+        return {
+            stepsExceedMinimumInterval:
+                !$fsrs && lastRelearnStepInDays > $config.minimumLapseInterval
+                    ? tr.deckConfigRelearningStepsAboveMinimumInterval()
+                    : "",
+            stepsTooLargeForFsrs:
+                $fsrs && lastRelearnStepInDays >= 1
+                    ? tr.deckConfigStepsTooLargeForFsrs()
+                    : "",
+        };
+    });
 
     const settings = {
         relearningSteps: {
@@ -108,7 +113,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </Item>
 
         <Item>
-            <Warning warning={stepsTooLargeForFsrs} />
+            <Warning warning={relearnStepWarnings.stepsTooLargeForFsrs} />
         </Item>
 
         {#if !$fsrs}
@@ -131,7 +136,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         {/if}
 
         <Item>
-            <Warning warning={stepsExceedMinimumInterval} />
+            <Warning warning={relearnStepWarnings.stepsExceedMinimumInterval} />
         </Item>
 
         <Item>

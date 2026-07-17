@@ -4,6 +4,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
     import * as tr from "@generated/ftl";
+    import { untrack } from "svelte";
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import Item from "$lib/components/Item.svelte";
     import type { DeckOptionsState } from "./lib";
@@ -11,31 +12,42 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Warning from "./Warning.svelte";
     import EasyDaysInput from "./EasyDaysInput.svelte";
 
-    export let state: DeckOptionsState;
-    export let api: Record<string, never>;
-
-    const fsrsEnabled = state.fsrs;
-    const reschedule = state.fsrsReschedule;
-    const config = state.currentConfig;
-    const defaults = state.defaults;
-    const prevEasyDaysPercentages = $config.easyDaysPercentages.slice();
-
-    $: if ($config.easyDaysPercentages.length !== 7) {
-        $config.easyDaysPercentages = defaults.easyDaysPercentages.slice();
+    interface Props {
+        state: DeckOptionsState;
+        api: Record<string, never>;
     }
 
-    $: easyDaysChanged = $config.easyDaysPercentages.some(
-        (value, index) => value !== prevEasyDaysPercentages[index],
+    let { state: deckState, api }: Props = $props();
+
+    const fsrsEnabled = untrack(() => deckState.fsrs);
+    const reschedule = untrack(() => deckState.fsrsReschedule);
+    const config = untrack(() => deckState.currentConfig);
+    const defaults = untrack(() => deckState.defaults);
+    const prevEasyDaysPercentages = $config.easyDaysPercentages.slice();
+
+    $effect(() => {
+        if ($config.easyDaysPercentages.length !== 7) {
+            $config.easyDaysPercentages = defaults.easyDaysPercentages.slice();
+        }
+    });
+
+    const easyDaysChanged = $derived(
+        $config.easyDaysPercentages.some(
+            (value, index) => value !== prevEasyDaysPercentages[index],
+        ),
     );
 
-    $: noNormalDay = $config.easyDaysPercentages.some((p) => p === 1.0)
-        ? ""
-        : tr.deckConfigEasyDaysNoNormalDays();
+    const noNormalDay = $derived(
+        $config.easyDaysPercentages.some((p) => p === 1.0)
+            ? ""
+            : tr.deckConfigEasyDaysNoNormalDays(),
+    );
 
-    $: rescheduleWarning =
+    const rescheduleWarning = $derived(
         easyDaysChanged && !($fsrsEnabled && $reschedule)
             ? tr.deckConfigEasyDaysChange()
-            : "";
+            : "",
+    );
 </script>
 
 <datalist id="easy_day_steplist">

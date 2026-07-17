@@ -12,6 +12,8 @@ import { getDeckConfigsForUpdate } from "@generated/backend";
 import { ModuleName, setupI18n } from "@tslib/i18n";
 import { checkNightMode } from "@tslib/nightmode";
 
+import { mount } from "svelte";
+
 import { modalsKey, touchDeviceKey } from "$lib/components/context-keys";
 import EnumSelectorRow from "$lib/components/EnumSelectorRow.svelte";
 import SwitchRow from "$lib/components/SwitchRow.svelte";
@@ -34,7 +36,7 @@ const i18n = setupI18n({
     ],
 });
 
-export async function setupDeckOptions(did_: number): Promise<DeckOptionsPage> {
+export async function setupDeckOptions(did_: number): Promise<Record<string, any>> {
     const did = BigInt(did_);
     const [info] = await Promise.all([getDeckConfigsForUpdate({ did }), i18n]);
 
@@ -45,7 +47,7 @@ export async function setupDeckOptions(did_: number): Promise<DeckOptionsPage> {
     context.set(touchDeviceKey, "ontouchstart" in document.documentElement);
 
     const state = new DeckOptionsState(BigInt(did), info);
-    return new DeckOptionsPage({
+    return mount(DeckOptionsPage, {
         target: document.body,
         props: { state },
         context,

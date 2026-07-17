@@ -50,40 +50,62 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Warning from "./Warning.svelte";
     import type { ComputeRetentionProgress } from "@generated/anki/collection_pb";
     import Modal from "bootstrap/js/dist/modal";
+    import { untrack } from "svelte";
 
-    export let state: DeckOptionsState;
-    export let simulateFsrsRequest: SimulateFsrsReviewRequest;
-    export let computing: boolean;
-    export let openHelpModal: (key: string) => void;
-    export let onPresetChange: () => void;
-    /** Do not modify this once set */
-    export let workload: boolean = false;
+    interface Props {
+        state: DeckOptionsState;
+        simulateFsrsRequest: SimulateFsrsReviewRequest;
+        computing: boolean;
+        openHelpModal: (key: string) => void;
+        onPresetChange: () => void;
+        /** Do not modify this once set */
+        workload?: boolean;
+        modal?: Modal | null;
+    }
 
-    const config = state.currentConfig;
-    let simulateSubgraph: SimulateSubgraph = SimulateSubgraph.count;
-    let simulateWorkloadSubgraph: SimulateWorkloadSubgraph =
-        SimulateWorkloadSubgraph.ratio;
-    let tableData: TableDatum[] = [];
-    let simulating: boolean = false;
-    const fsrs = state.fsrs;
+    let {
+        state: deckState,
+        simulateFsrsRequest,
+        computing,
+        openHelpModal,
+        onPresetChange,
+        workload = false,
+        modal = $bindable(null),
+    }: Props = $props();
+
+    // state never changes for the page's lifetime, so a one-time untracked
+    // read matches the original behavior without an unnecessary dependency.
+    const config = untrack(() => deckState.currentConfig);
+    let simulateSubgraph: SimulateSubgraph = $state(SimulateSubgraph.count);
+    let simulateWorkloadSubgraph: SimulateWorkloadSubgraph = $state(
+        SimulateWorkloadSubgraph.ratio,
+    );
+    let tableData: TableDatum[] = $state([]);
+    let simulating: boolean = $state(false);
+    const fsrs = untrack(() => deckState.fsrs);
     const bounds = defaultGraphBounds();
 
-    let svg: HTMLElement | SVGElement | null = null;
-    let simulationNumber = 0;
-    let points: (WorkloadPoint | Point)[] = [];
-    const newCardsIgnoreReviewLimit = state.newCardsIgnoreReviewLimit;
-    let smooth = true;
-    let suspendLeeches = $config.leechAction == DeckConfig_Config_LeechAction.SUSPEND;
-    let leechThreshold = $config.leechThreshold;
+    let svg: HTMLElement | SVGElement | null = $state(null);
+    let simulationNumber = $state(0);
+    let points: (WorkloadPoint | Point)[] = $state([]);
+    const newCardsIgnoreReviewLimit = untrack(
+        () => deckState.newCardsIgnoreReviewLimit,
+    );
+    let smooth = $state(true);
+    let suspendLeeches = $state(
+        $config.leechAction == DeckConfig_Config_LeechAction.SUSPEND,
+    );
+    let leechThreshold = $state($config.leechThreshold);
 
-    let optimalRetention: null | number = null;
-    let computingRetention = false;
-    let computeRetentionProgress: ComputeRetentionProgress | undefined = undefined;
+    let optimalRetention: null | number = $state(null);
+    let computingRetention = $state(false);
+    let computeRetentionProgress: ComputeRetentionProgress | undefined =
+        $state(undefined);
 
-    $: daysToSimulate = 365;
-    $: deckSize = 0;
-    $: windowSize = Math.ceil(daysToSimulate / 365);
-    $: processing = simulating || computingRetention;
+    let daysToSimulate = $state(365);
+    let deckSize = $state(0);
+    const windowSize = $derived(Math.ceil(daysToSimulate / 365));
+    const processing = $derived(simulating || computingRetention);
 
     function movingAverage(y: number[], windowSize: number): number[] {
         const result: number[] = [];
@@ -128,8 +150,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         return tr.deckConfigIterations({ count: val.current });
     }
 
-    $: computeRetentionProgressString = renderRetentionProgress(
-        computeRetentionProgress,
+    const computeRetentionProgressString = $derived(
+        renderRetentionProgress(computeRetentionProgress),
     );
 
     async function computeRetention() {
@@ -265,7 +287,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    $: if (svg) {
+    $effect(() => {
+        if (!svg) {
+            return;
+        }
         let pointsToRender = points;
         if (smooth) {
             // Group points by label (simulation number)
@@ -311,11 +336,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             pointsToRender as WorkloadPoint[],
             (workload ? simulateWorkloadSubgraph : simulateSubgraph) as any as never,
         );
-    }
+    });
 
-    $: easyDayPercentages = [...$config.easyDaysPercentages];
-
-    export let modal: Modal | null = null;
+    let easyDayPercentages = $state([...$config.easyDaysPercentages]);
+    $effect(() => {
+        easyDayPercentages = [...$config.easyDaysPercentages];
+    });
 
     function setupModal(node: Element) {
         modal = new Modal(node);
@@ -343,7 +369,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     type="button"
                     class="btn-close"
                     aria-label="Close"
-                    on:click={() => modal?.hide()}
+                    onclick={() => modal?.hide()}
                 ></button>
             </div>
             <div class="modal-body">
@@ -487,7 +513,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                 ? 'btn-warning'
                                 : 'btn-primary'}"
                             disabled={!computingRetention && computing}
-                            on:click={() => computeRetention()}
+                            onclick={() => computeRetention()}
                         >
                             {#if computingRetention}
                                 {tr.actionsCancel()}
@@ -516,7 +542,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     <button
                         class="btn {computing ? 'btn-warning' : 'btn-primary'}"
                         disabled={computing}
-                        on:click={workload ? simulateWorkload : simulateFsrs}
+                        onclick={workload ? simulateWorkload : simulateFsrs}
                     >
                         {tr.deckConfigSimulate()}
                     </button>
@@ -524,7 +550,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     <button
                         class="btn {computing ? 'btn-warning' : 'btn-primary'}"
                         disabled={computing}
-                        on:click={clearSimulation}
+                        onclick={clearSimulation}
                     >
                         {tr.deckConfigClearLastSimulate()}
                     </button>
@@ -532,7 +558,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     <button
                         class="btn {computing ? 'btn-warning' : 'btn-primary'}"
                         disabled={computing}
-                        on:click={saveConfigToPreset}
+                        onclick={saveConfigToPreset}
                     >
                         {tr.deckConfigSaveOptionsToPreset()}
                     </button>

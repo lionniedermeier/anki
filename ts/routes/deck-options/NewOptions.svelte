@@ -8,6 +8,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { HelpPage } from "@tslib/help-page";
     import type Carousel from "bootstrap/js/dist/carousel";
     import type Modal from "$lib/components/Modal.svelte";
+    import { untrack } from "svelte";
 
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
     import EnumSelectorRow from "$lib/components/EnumSelectorRow.svelte";
@@ -23,38 +24,44 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import StepsInputRow from "./StepsInputRow.svelte";
     import Warning from "./Warning.svelte";
 
-    export let state: DeckOptionsState;
-    export let api = {};
+    interface Props {
+        state: DeckOptionsState;
+        api?: Record<string, never>;
+    }
 
-    const config = state.currentConfig;
-    const defaults = state.defaults;
-    const fsrs = state.fsrs;
+    let { state: deckState, api = {} }: Props = $props();
 
-    let stepsExceedGraduatingInterval: string;
-    let stepsTooLargeForFsrs: string;
-    $: {
+    const config = untrack(() => deckState.currentConfig);
+    const defaults = untrack(() => deckState.defaults);
+    const fsrs = untrack(() => deckState.fsrs);
+
+    const learningStepWarnings = $derived.by(() => {
         const lastLearnStepInDays = $config.learnSteps.length
             ? $config.learnSteps[$config.learnSteps.length - 1] / 60 / 24
             : 0;
-        stepsExceedGraduatingInterval =
-            lastLearnStepInDays > $config.graduatingIntervalGood
-                ? tr.deckConfigLearningStepAboveGraduatingInterval()
-                : "";
-        stepsTooLargeForFsrs =
-            $fsrs && lastLearnStepInDays >= 1
-                ? tr.deckConfigStepsTooLargeForFsrs()
-                : "";
-    }
+        return {
+            stepsExceedGraduatingInterval:
+                lastLearnStepInDays > $config.graduatingIntervalGood
+                    ? tr.deckConfigLearningStepAboveGraduatingInterval()
+                    : "",
+            stepsTooLargeForFsrs:
+                $fsrs && lastLearnStepInDays >= 1
+                    ? tr.deckConfigStepsTooLargeForFsrs()
+                    : "",
+        };
+    });
 
-    $: goodExceedsEasy =
+    const goodExceedsEasy = $derived(
         $config.graduatingIntervalGood > $config.graduatingIntervalEasy
             ? tr.deckConfigGoodAboveEasy()
-            : "";
+            : "",
+    );
 
-    $: insertionOrderRandom =
+    const insertionOrderRandom = $derived(
         $config.newCardInsertOrder == DeckConfig_Config_NewCardInsertOrder.RANDOM
             ? tr.deckConfigNewInsertionOrderRandomWithV3()
-            : "";
+            : "",
+    );
 
     const settings = {
         learningSteps: {
@@ -120,7 +127,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </Item>
 
         <Item>
-            <Warning warning={stepsTooLargeForFsrs} />
+            <Warning warning={learningStepWarnings.stepsTooLargeForFsrs} />
         </Item>
 
         {#if !$fsrs}
@@ -141,7 +148,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             </Item>
 
             <Item>
-                <Warning warning={stepsExceedGraduatingInterval} />
+                <Warning warning={learningStepWarnings.stepsExceedGraduatingInterval} />
             </Item>
 
             <Item>

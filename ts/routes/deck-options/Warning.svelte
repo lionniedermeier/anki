@@ -8,8 +8,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     import Row from "$lib/components/Row.svelte";
 
-    export let warning: string;
-    export let className = "alert-warning";
+    interface Props {
+        warning: string;
+        className?: string;
+    }
+
+    let { warning, className = "alert-warning" }: Props = $props();
 </script>
 
 {#if warning}

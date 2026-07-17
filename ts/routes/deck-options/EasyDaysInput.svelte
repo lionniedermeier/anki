@@ -2,7 +2,7 @@
 Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
-<script>
+<script lang="ts">
     import * as tr from "@generated/ftl";
     import Item from "$lib/components/Item.svelte";
 
@@ -16,7 +16,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         tr.deckConfigEasyDaysSunday(),
     ];
 
-    export let values = [0, 0, 0, 0, 0, 0, 0];
+    interface Props {
+        values?: number[];
+    }
+
+    let { values = $bindable([0, 0, 0, 0, 0, 0, 0]) }: Props = $props();
 </script>
 
 <Item>

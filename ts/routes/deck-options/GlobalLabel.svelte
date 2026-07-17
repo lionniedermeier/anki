@@ -7,7 +7,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { mdiEarth } from "$lib/components/icons";
     import Icon from "$lib/components/Icon.svelte";
 
-    export let title: string;
+    interface Props {
+        title: string;
+    }
+
+    let { title }: Props = $props();
 </script>
 
 {title}

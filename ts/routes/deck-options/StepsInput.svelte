@@ -5,17 +5,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import { stepsToString, stringToSteps } from "./steps";
 
-    export let value: number[];
+    interface Props {
+        value: number[];
+    }
 
-    let stringValue: string;
-    $: stringValue = stepsToString(value);
+    let { value = $bindable() }: Props = $props();
+
+    const stringValue = $derived(stepsToString(value));
 
     function update(this: HTMLInputElement): void {
         value = stringToSteps(this.value);
     }
 </script>
 
-<input type="text" value={stringValue} on:blur={update} />
+<input type="text" value={stringValue} onblur={update} />
 
 <style lang="scss">
     input {

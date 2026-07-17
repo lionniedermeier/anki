@@ -11,7 +11,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import type { PageData } from "./$types";
     import { deckOptionsRequireClose, deckOptionsReady } from "@generated/backend";
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
+
+    let { data }: Props = $props();
     let page: DeckOptionsPage;
 
     globalThis.anki ||= {};

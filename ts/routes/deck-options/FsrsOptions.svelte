@@ -16,6 +16,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     } from "@generated/backend";
     import * as tr from "@generated/ftl";
     import { runWithBackendProgress } from "@tslib/progress";
+    import { untrack } from "svelte";
 
     import SettingTitle from "$lib/components/SettingTitle.svelte";
     import SwitchRow from "$lib/components/SwitchRow.svelte";
@@ -37,9 +38,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Item from "$lib/components/Item.svelte";
     import DynamicallySlottable from "$lib/components/DynamicallySlottable.svelte";
 
-    export let state: DeckOptionsState;
-    export let openHelpModal: (String) => void;
-    export let newlyEnabled = false;
+    interface Props {
+        state: DeckOptionsState;
+        openHelpModal: (key: string) => void;
+        newlyEnabled?: boolean;
+    }
+
+    let { state: deckState, openHelpModal, newlyEnabled = false }: Props = $props();
 
     export function onPresetChange() {
         desiredRetentionTabs[0] = new ValueTab(
@@ -53,46 +58,68 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             $limits.desiredRetention ?? $config.desiredRetention;
     }
 
-    const config = state.currentConfig;
-    const defaults = state.defaults;
-    const fsrsReschedule = state.fsrsReschedule;
-    const daysSinceLastOptimization = state.daysSinceLastOptimization;
-    const limits = state.deckLimits;
+    const config = untrack(() => deckState.currentConfig);
+    const defaults = untrack(() => deckState.defaults);
+    const fsrsReschedule = untrack(() => deckState.fsrsReschedule);
+    const daysSinceLastOptimization = untrack(
+        () => deckState.daysSinceLastOptimization,
+    );
+    const limits = untrack(() => deckState.deckLimits);
 
-    $: lastOptimizationWarning =
-        $daysSinceLastOptimization > 30 ? tr.deckConfigTimeToOptimize() : "";
-    let desiredRetentionFocused = false;
-    let desiredRetentionEverFocused = false;
-    let optimized = false;
+    const lastOptimizationWarning = $derived(
+        $daysSinceLastOptimization > 30 ? tr.deckConfigTimeToOptimize() : "",
+    );
+    let desiredRetentionFocused = $state(false);
+    let desiredRetentionEverFocused = $state(false);
+    let optimized = $state(false);
     const initialParams = [...fsrsParams($config)];
-    $: if (desiredRetentionFocused) {
-        desiredRetentionEverFocused = true;
-    }
-    $: showDesiredRetentionTooltip =
-        newlyEnabled || desiredRetentionEverFocused || optimized;
+    $effect(() => {
+        if (desiredRetentionFocused) {
+            desiredRetentionEverFocused = true;
+        }
+    });
+    const showDesiredRetentionTooltip = $derived(
+        newlyEnabled || desiredRetentionEverFocused || optimized,
+    );
 
-    let computeParamsProgress: ComputeParamsProgress | undefined;
-    let computingParams = false;
-    let checkingParams = false;
+    let computeParamsProgress = $state<ComputeParamsProgress | undefined>(undefined);
+    let computingParams = $state(false);
+    let checkingParams = $state(false);
 
-    const healthCheck = state.fsrsHealthCheck;
+    const healthCheck = untrack(() => deckState.fsrsHealthCheck);
 
-    $: computing = computingParams || checkingParams;
-    $: defaultparamSearch = `preset:"${state.getCurrentNameForSearch()}" -is:suspended`;
-    $: roundedRetention = Number(effectiveDesiredRetention.toFixed(2));
-    $: desiredRetentionWarning = getRetentionLongShortWarning(roundedRetention);
+    const computing = $derived(computingParams || checkingParams);
+    const defaultparamSearch = untrack(
+        () => `preset:"${deckState.getCurrentNameForSearch()}" -is:suspended`,
+    );
+    // Get the effective desired retention value (deck-specific if set, otherwise config default)
+    let effectiveDesiredRetention = $state(
+        $limits.desiredRetention ?? $config.desiredRetention,
+    );
+    const startingDesiredRetention = untrack(() =>
+        effectiveDesiredRetention.toFixed(2),
+    );
 
-    let desiredRetentionChangeInfo = "";
-    $: if (showDesiredRetentionTooltip) {
-        getRetentionChangeInfo(roundedRetention, fsrsParams($config));
-    }
+    const roundedRetention = $derived(Number(effectiveDesiredRetention.toFixed(2)));
+    const desiredRetentionWarning = $derived(
+        getRetentionLongShortWarning(roundedRetention),
+    );
 
-    $: retentionWarningClass = getRetentionWarningClass(roundedRetention);
+    let desiredRetentionChangeInfo = $state("");
+    $effect(() => {
+        if (showDesiredRetentionTooltip) {
+            getRetentionChangeInfo(roundedRetention, fsrsParams($config));
+        }
+    });
 
-    $: newCardsIgnoreReviewLimit = state.newCardsIgnoreReviewLimit;
+    const retentionWarningClass = $derived(getRetentionWarningClass(roundedRetention));
+
+    const newCardsIgnoreReviewLimit = untrack(
+        () => deckState.newCardsIgnoreReviewLimit,
+    );
 
     // Create tabs for desired retention
-    const desiredRetentionTabs: ValueTab[] = [
+    const desiredRetentionTabs: ValueTab[] = $state([
         new ValueTab(
             tr.deckConfigSharedPreset(),
             $config.desiredRetention,
@@ -107,27 +134,24 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             null,
             null,
         ),
-    ];
+    ]);
 
-    // Get the effective desired retention value (deck-specific if set, otherwise config default)
-    let effectiveDesiredRetention =
-        $limits.desiredRetention ?? $config.desiredRetention;
-    const startingDesiredRetention = effectiveDesiredRetention.toFixed(2);
-
-    $: simulateFsrsRequest = new SimulateFsrsReviewRequest({
-        params: fsrsParams($config),
-        desiredRetention: $config.desiredRetention,
-        newLimit: $config.newPerDay,
-        reviewLimit: $config.reviewsPerDay,
-        maxInterval: $config.maximumReviewInterval,
-        search: `preset:"${state.getCurrentNameForSearch()}" -is:suspended`,
-        newCardsIgnoreReviewLimit: $newCardsIgnoreReviewLimit,
-        easyDaysPercentages: $config.easyDaysPercentages,
-        reviewOrder: $config.reviewOrder,
-        historicalRetention: $config.historicalRetention,
-        learningStepCount: $config.learnSteps.length,
-        relearningStepCount: $config.relearnSteps.length,
-    });
+    const simulateFsrsRequest = $derived(
+        new SimulateFsrsReviewRequest({
+            params: fsrsParams($config),
+            desiredRetention: $config.desiredRetention,
+            newLimit: $config.newPerDay,
+            reviewLimit: $config.reviewsPerDay,
+            maxInterval: $config.maximumReviewInterval,
+            search: `preset:"${deckState.getCurrentNameForSearch()}" -is:suspended`,
+            newCardsIgnoreReviewLimit: $newCardsIgnoreReviewLimit,
+            easyDaysPercentages: $config.easyDaysPercentages,
+            reviewOrder: $config.reviewOrder,
+            historicalRetention: $config.historicalRetention,
+            learningStepCount: $config.learnSteps.length,
+            relearningStepCount: $config.relearnSteps.length,
+        }),
+    );
 
     const DESIRED_RETENTION_LOW_THRESHOLD = 0.8;
     const DESIRED_RETENTION_HIGH_THRESHOLD = 0.95;
@@ -202,7 +226,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             await setWantsAbort({});
             return;
         }
-        if (state.presetAssignmentsChanged()) {
+        if (deckState.presetAssignmentsChanged()) {
             alert(tr.deckConfigPleaseSaveYourChangesFirst());
             return;
         }
@@ -285,7 +309,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             await setWantsAbort({});
             return;
         }
-        if (state.presetAssignmentsChanged()) {
+        if (deckState.presetAssignmentsChanged()) {
             alert(tr.deckConfigPleaseSaveYourChangesFirst());
             return;
         }
@@ -326,8 +350,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    $: computeParamsProgressString = renderWeightProgress(computeParamsProgress);
-    $: totalReviews = computeParamsProgress?.reviews ?? undefined;
+    const computeParamsProgressString = $derived(
+        renderWeightProgress(computeParamsProgress),
+    );
+    const totalReviews = $derived(computeParamsProgress?.reviews ?? undefined);
 
     function renderWeightProgress(val: ComputeParamsProgress | undefined): String {
         if (!val || !val.total) {
@@ -349,12 +375,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         await commitEditing();
 
         if (confirm(tr.deckConfigFsrsConfirmSaveAndOptimize())) {
-            state.save(UpdateDeckConfigsMode.COMPUTE_ALL_PARAMS);
+            deckState.save(UpdateDeckConfigsMode.COMPUTE_ALL_PARAMS);
             window.location.reload();
         }
     }
 
-    function showSimulatorModal(modal: Modal) {
+    function showSimulatorModal(modal: Modal | null) {
         if (fsrsParams($config).toString() === initialParams.toString()) {
             modal?.show();
         } else {
@@ -362,8 +388,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    let simulatorModal: Modal;
-    let workloadModal: Modal;
+    let simulatorModal: Modal | null = $state(null);
+    let workloadModal: Modal | null = $state(null);
 </script>
 
 <DynamicallySlottable slotHost={Item} api={{}}>
@@ -376,11 +402,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             percentage={true}
             bind:focused={desiredRetentionFocused}
         >
-            <TabbedValue
-                slot="tabs"
-                tabs={desiredRetentionTabs}
-                bind:value={effectiveDesiredRetention}
-            />
+            {#snippet tabs()}
+                <TabbedValue
+                    tabs={desiredRetentionTabs}
+                    bind:value={effectiveDesiredRetention}
+                />
+            {/snippet}
             <SettingTitle on:click={() => openHelpModal("desiredRetention")}>
                 {tr.deckConfigDesiredRetention()}
             </SettingTitle>
@@ -390,7 +417,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 <button
     class="btn btn-primary"
-    on:click={() => {
+    onclick={() => {
         simulateFsrsRequest.reviewLimit = 9999;
         showSimulatorModal(workloadModal);
     }}
@@ -434,7 +461,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     <button
         class="btn {computingParams ? 'btn-warning' : 'btn-primary'}"
         disabled={!computingParams && computing}
-        on:click={() => computeParams()}
+        onclick={() => computeParams()}
     >
         {#if computingParams}
             {tr.actionsCancel()}
@@ -442,11 +469,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             {tr.deckConfigOptimizeButton()}
         {/if}
     </button>
-    {#if state.legacyEvaluate}
+    {#if deckState.legacyEvaluate}
         <button
             class="btn {checkingParams ? 'btn-warning' : 'btn-primary'}"
             disabled={!checkingParams && computing}
-            on:click={() => checkParams()}
+            onclick={() => checkParams()}
         >
             {#if checkingParams}
                 {tr.actionsCancel()}
@@ -467,7 +494,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <div class="m-1">
     <Warning warning={lastOptimizationWarning} className="alert-warning" />
 
-    <button class="btn btn-primary" on:click={() => computeAllParams()}>
+    <button class="btn btn-primary" onclick={() => computeAllParams()}>
         {tr.deckConfigSaveAndOptimize()}
     </button>
 </div>
@@ -475,14 +502,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <hr />
 
 <div class="m-1">
-    <button class="btn btn-primary" on:click={() => showSimulatorModal(simulatorModal)}>
+    <button class="btn btn-primary" onclick={() => showSimulatorModal(simulatorModal)}>
         {tr.deckConfigFsrsSimulatorExperimental()}
     </button>
 </div>
 
 <SimulatorModal
     bind:modal={simulatorModal}
-    {state}
+    state={deckState}
     {simulateFsrsRequest}
     {computing}
     {openHelpModal}
@@ -492,7 +519,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <SimulatorModal
     bind:modal={workloadModal}
     workload
-    {state}
+    state={deckState}
     {simulateFsrsRequest}
     {computing}
     {openHelpModal}

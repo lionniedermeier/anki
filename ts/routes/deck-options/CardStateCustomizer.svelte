@@ -8,8 +8,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     import GlobalLabel from "./GlobalLabel.svelte";
 
-    export let value: string;
-    export let title: string;
+    interface Props {
+        value: string;
+        title: string;
+    }
+
+    let { value = $bindable(), title }: Props = $props();
 </script>
 
 <div class="m-2">
