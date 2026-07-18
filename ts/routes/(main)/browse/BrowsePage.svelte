@@ -86,11 +86,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         runSearch(event.detail.search);
     }
 
-    function onSort(event: CustomEvent<{ column: string }>): void {
-        if (sortColumn === event.detail.column) {
+    function onSort(detail: { column: string }): void {
+        if (sortColumn === detail.column) {
             sortReverse = !sortReverse;
         } else {
-            sortColumn = event.detail.column;
+            sortColumn = detail.column;
             sortReverse = false;
         }
         runSearch(searchText);
@@ -131,12 +131,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         />
                     </div>
                     <div class="table-content">
-                        <BrowseTable
-                            {ids}
-                            {notesMode}
-                            bind:selectedIds
-                            on:sort={onSort}
-                        />
+                        <BrowseTable {ids} {notesMode} bind:selectedIds {onSort} />
                     </div>
                 </div>
             </SplitPane>

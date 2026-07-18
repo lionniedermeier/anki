@@ -12,6 +12,7 @@ import {
     circleIcon,
     circleOutlineIcon,
     clockOutlineIcon,
+    flagVariantIcon,
     flagVariantOffOutlineIcon,
     flagVariantOutlineIcon,
     formTextboxIcon,
@@ -29,6 +30,8 @@ export interface SidebarRowNode extends TreeViewNode {
     /** Parsable search string; empty for nodes that aren't directly
      * searchable (e.g. the synthetic root). */
     search: string;
+    /** Flag index (1-7), only set for NodeType.FLAG rows. */
+    flagIndex?: number;
     children: SidebarRowNode[];
 }
 
@@ -42,6 +45,7 @@ function toRow(node: BrowseSidebarNode, parentPath: string, index: number): Side
         name: node.name,
         nodeType: node.nodeType,
         search: node.search,
+        flagIndex: node.nodeType === NodeType.FLAG ? Number(node.id) : undefined,
         collapsed: !node.expanded,
         children: node.children.map((child, childIndex) => toRow(child, id, childIndex)),
     };
@@ -104,7 +108,7 @@ const sidebarIcons: Partial<Record<BrowseSidebarNode_NodeType, IconData>> = {
     [NodeType.TODAY_ROOT]: clockOutlineIcon,
     [NodeType.TODAY]: clockOutlineIcon,
     [NodeType.FLAG_ROOT]: flagVariantOutlineIcon,
-    [NodeType.FLAG]: flagVariantOutlineIcon,
+    [NodeType.FLAG]: flagVariantIcon,
     [NodeType.FLAG_NONE]: flagVariantOffOutlineIcon,
     [NodeType.CARD_STATE_ROOT]: circleOutlineIcon,
     [NodeType.CARD_STATE]: circleIcon,
@@ -122,6 +126,34 @@ const sidebarIcons: Partial<Record<BrowseSidebarNode_NodeType, IconData>> = {
 
 export function iconForNodeType(nodeType: BrowseSidebarNode_NodeType): IconData | null {
     return sidebarIcons[nodeType] ?? null;
+}
+
+/** CSS custom property backing a flag row's icon color, or null for
+ * non-flag rows (and the "Flags"/"No Flag" rows, which stay neutral). */
+export function flagColorVarForRow(row: SidebarRowNode): string | null {
+    return row.nodeType === NodeType.FLAG && row.flagIndex
+        ? `--flag-${row.flagIndex}`
+        : null;
+}
+
+/** Card state rows aren't tagged with which state they represent, so this
+ * keys off their search string, which the backend derives 1:1 from the
+ * state (see `write_state` in rslib/src/search/writer.rs). */
+const cardStateColorVars: Partial<Record<string, string>> = {
+    "is:new": "--state-new",
+    "is:learn": "--state-learn",
+    "is:review": "--state-review",
+    "is:suspended": "--state-suspended",
+    "is:buried": "--state-buried",
+};
+
+/** CSS custom property backing a card-state row's icon color, or null for
+ * non-card-state rows (and the "Card State" section root, which stays
+ * neutral). */
+export function cardStateColorVarForRow(row: SidebarRowNode): string | null {
+    return row.nodeType === NodeType.CARD_STATE
+        ? cardStateColorVars[row.search] ?? null
+        : null;
 }
 
 const colorVars: Partial<Record<BrowserRow_Color, string>> = {

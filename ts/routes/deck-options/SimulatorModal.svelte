@@ -527,7 +527,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                             {#if optimalRetention - $config.desiredRetention >= 0.01}
                                 <Warning
                                     warning={tr.deckConfigDesiredRetentionBelowOptimal()}
-                                    className="alert-warning"
+                                    variant="warning"
                                 />
                             {/if}
                         {/if}

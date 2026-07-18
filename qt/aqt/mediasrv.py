@@ -97,6 +97,10 @@ def _legacy_editor_content_security_policy(port: int) -> str:
 
 _SVELTEKIT_SCRIPT_HASH_RE = re.compile(rb"'sha256-[A-Za-z0-9+/=]+'")
 
+_SVELTEKIT_META_CSP_RE = re.compile(
+    rb'<meta http-equiv="content-security-policy"[^>]*>'
+)
+
 
 def _sveltekit_render_script_hash(html: bytes) -> str | None:
     """Extract the hash SvelteKit computed for its inline render script.
@@ -119,12 +123,25 @@ def _sveltekit_content_security_policy(port: int, script_hash: str | None) -> st
     return "; ".join((f"script-src {' '.join(csp_paths)}",))
 
 
+def _reviewer_content_security_policy(port: int) -> str:
+    csp_paths = [
+        f"http://127.0.0.1:{port}/_anki/",
+        f"http://127.0.0.1:{port}/_app/",
+        f"http://127.0.0.1:{port}/_addons/",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+    ]
+    return "; ".join((f"script-src {' '.join(csp_paths)}",))
+
+
 @dataclass
 class BundledFileRequest:
     # path relative to aqt data folder
     path: str
     # set for SvelteKit routes
     is_sveltekit: bool = False
+    # original SvelteKit page name, before fallback rewriting
+    sveltekit_page: str | None = None
 
 
 @dataclass
@@ -410,20 +427,27 @@ def _handle_builtin_file_request(request: BundledFileRequest) -> Response:
     data_path = f"data/web/{path}"
     try:
         data = _builtin_data(data_path)
+        is_reviewer = request.sveltekit_page == "reviewer"
+        if is_reviewer and path.endswith("index.html"):
+            data = _SVELTEKIT_META_CSP_RE.sub(b"", data)
         response = Response(data, mimetype=mimetype)
         if immutable:
             response.headers["Cache-Control"] = "max-age=31536000"
         if request.is_sveltekit:
-            script_hash = (
-                _sveltekit_render_script_hash(data)
-                if path.endswith("index.html")
-                else None
-            )
-            response.headers["Content-Security-Policy"] = (
-                _sveltekit_content_security_policy(
-                    aqt.mw.mediaServer.getPort(), script_hash
+            port = aqt.mw.mediaServer.getPort()
+            if is_reviewer:
+                response.headers["Content-Security-Policy"] = (
+                    _reviewer_content_security_policy(port)
                 )
-            )
+            else:
+                script_hash = (
+                    _sveltekit_render_script_hash(data)
+                    if path.endswith("index.html")
+                    else None
+                )
+                response.headers["Content-Security-Policy"] = (
+                    _sveltekit_content_security_policy(port, script_hash)
+                )
         return response
     except FileNotFoundError:
         if dev_mode:
@@ -494,12 +518,14 @@ def is_sveltekit_page(path: str) -> bool:
         "deck-overview",
         "browse",
         "card-editor",
+        "manage-notetypes",
         "export",
         "import-anki-package",
         "import-csv",
         "import-page",
         "image-occlusion",
         "editor",
+        "reviewer",
     ]
 
 
@@ -508,6 +534,7 @@ def _extract_internal_request(
 ) -> BundledFileRequest | DynamicRequest | NotFound | None:
     "Catch /_anki references and rewrite them to web export folder."
     is_sveltekit = is_sveltekit_page(path)
+    sveltekit_page = path.split("/")[0] if is_sveltekit else None
     if is_sveltekit:
         path = f"_anki/sveltekit/_app/{path}"
     if path.startswith("_app/"):
@@ -553,7 +580,11 @@ def _extract_internal_request(
         path = f"{prefix}{additional_prefix}{base}{ext}"
         print(f"legacy {oldpath} remapped to {path}")
 
-    return BundledFileRequest(path=path[len(prefix) :], is_sveltekit=is_sveltekit)
+    return BundledFileRequest(
+        path=path[len(prefix) :],
+        is_sveltekit=is_sveltekit,
+        sveltekit_page=sveltekit_page,
+    )
 
 
 def _extract_addon_request(path: str) -> LocalFileRequest | NotFound | None:
@@ -736,6 +767,7 @@ def get_deck_overview_content() -> bytes:
         buried_learn=buried_learn,
         buried_review=buried_review,
         have_buried=col.sched.have_buried(),
+        deck_id=int(did) if col.v3_scheduler() and not is_filtered else 0,
     ).SerializeToString()
 
 
@@ -1634,6 +1666,7 @@ exposed_backend_list = [
     # NotetypesService
     "get_notetype",
     "get_notetype_names",
+    "get_notetype_names_and_counts",
     "get_change_notetype_info",
     "get_cloze_field_ords",
     # StatsService
@@ -1762,6 +1795,7 @@ MAIN_WEBVIEW_API_WHITELIST = (
     "/_anki/setDeckCollapsed",
     "/_anki/reparentDecks",
     "/_anki/getNotetypeNames",
+    "/_anki/getNotetypeNamesAndCounts",
     "/_anki/getNotetype",
     "/_anki/updateNotetype",
     "/_anki/renderUncommittedCard",
@@ -1829,6 +1863,9 @@ MAIN_WEBVIEW_API_WHITELIST = (
     "/_anki/getImageOcclusionNote",
     "/_anki/updateImageOcclusionNote",
     "/_anki/getImageForOcclusion",
+    # Deck options rendered in-window under deck overview.
+    "/_anki/getDeckConfigsForUpdate",
+    "/_anki/updateDeckConfigs",
 )
 
 

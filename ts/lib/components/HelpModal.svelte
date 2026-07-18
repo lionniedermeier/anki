@@ -10,7 +10,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import Modal from "./Modal.svelte";
 
     import { infoCircle } from "$lib/components/icons";
-    import { pageTheme } from "$lib/sveltelib/theme";
 
     import Badge from "./Badge.svelte";
     import Col from "./Col.svelte";
@@ -71,7 +70,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <button
                     type="button"
                     class="btn-close"
-                    class:invert={$pageTheme.isDark}
                     data-bs-dismiss="modal"
                     aria-label="Close"
                 ></button>
@@ -164,8 +162,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         border-radius: var(--border-radius-medium, 10px);
     }
 
-    .invert {
-        filter: invert(1) grayscale(100%) brightness(200%);
+    .btn-close {
+        filter: light-dark(none, invert(1) grayscale(100%) brightness(200%));
     }
 
     ul {

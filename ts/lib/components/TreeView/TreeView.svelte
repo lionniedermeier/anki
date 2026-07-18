@@ -412,10 +412,10 @@ onTreeKeyDown), so the compiler can't infer their interactivity relationship. --
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        // Fill the full row height and stay square, so the toggle target
-        // scales with the parent-controlled row height.
-        align-self: stretch;
-        aspect-ratio: 1;
+        // Explicit size (not align-self: stretch + aspect-ratio) so the
+        // empty spacer used for childless rows doesn't collapse to 0 width.
+        width: var(--tree-row-height, 40px);
+        height: var(--tree-row-height, 40px);
 
         &.interactive {
             cursor: pointer;
@@ -445,6 +445,6 @@ onTreeKeyDown), so the compiler can't infer their interactivity relationship. --
         padding: 0 0.5rem;
         border-radius: var(--border-radius, 5px);
         background: var(--canvas-elevated, var(--canvas));
-        box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+        box-shadow: 0 2px 8px var(--shadow-subtle);
     }
 </style>

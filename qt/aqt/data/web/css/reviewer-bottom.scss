@@ -2,7 +2,6 @@
  * License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html */
 
 @use "../../../../../ts/lib/sass/root-vars";
-@use "../../../../../ts/lib/sass/vars" as *;
 @use "../../../../../ts/lib/sass/card-counts";
 
 :root {
@@ -48,7 +47,7 @@ button {
 }
 
 :focus {
-    border-color: color(border-focus);
+    border-color: var(--border-focus);
 }
 
 .nobold,
@@ -72,13 +71,13 @@ button {
 }
 
 #outer {
-    border-top: 1px solid color(border);
+    border-top: 1px solid var(--border);
     /* Better compatibility with graphics pad/touchscreen */
     -webkit-user-select: none;
 }
 
 .nightMode {
     #outer {
-        border-top-color: color(border-subtle);
+        border-top-color: var(--border-subtle);
     }
 }

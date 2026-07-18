@@ -40,6 +40,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 <style>
     .badge {
+        display: inline-block;
+        line-height: 1;
+        vertical-align: baseline;
+        white-space: nowrap;
         color: var(--badge-color, inherit);
         border: none;
         background: transparent;

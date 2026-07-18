@@ -314,6 +314,9 @@ class ProfileManager:
     def addonFolder(self) -> str:
         return self._ensureExists(os.path.join(self.base, "addons21"))
 
+    def themesFolder(self) -> str:
+        return self._ensureExists(os.path.join(self.base, "themes"))
+
     def backupFolder(self) -> str:
         return self._ensureExists(os.path.join(self.profileFolder(), "backups"))
 
@@ -618,6 +621,20 @@ create table if not exists profiles
     def set_widget_style(self, style: WidgetStyle) -> None:
         self.meta["widget_style"] = style
         theme_manager.apply_style()
+
+    def light_theme_id(self) -> str | None:
+        return self.meta.get("light_theme_id")
+
+    def dark_theme_id(self) -> str | None:
+        return self.meta.get("dark_theme_id")
+
+    def set_light_theme_id(self, theme_id: str | None) -> None:
+        self.meta["light_theme_id"] = theme_id
+        theme_manager.apply_themes(theme_id, self.dark_theme_id())
+
+    def set_dark_theme_id(self, theme_id: str | None) -> None:
+        self.meta["dark_theme_id"] = theme_id
+        theme_manager.apply_themes(self.light_theme_id(), theme_id)
 
     def get_widget_style(self) -> WidgetStyle:
         return self.meta.get(

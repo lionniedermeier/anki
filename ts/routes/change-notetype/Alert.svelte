@@ -5,8 +5,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import * as tr from "@generated/ftl";
     import { onEnterOrSpace } from "@tslib/keys";
-    import { slide } from "svelte/transition";
 
+    import AlertBox from "$lib/components/Alert.svelte";
     import Badge from "$lib/components/Badge.svelte";
     import Icon from "$lib/components/Icon.svelte";
     import { minusIcon, plusIcon } from "$lib/components/icons";
@@ -30,7 +30,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     $: icon = collapsed ? plusIcon : minusIcon;
 </script>
 
-<div class="alert alert-warning" in:slide out:slide>
+<AlertBox variant="warning">
     {#if unused.length > maxItems}
         <div
             class="clickable"
@@ -61,7 +61,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             {/each}
         </ul>
     {/if}
-</div>
+</AlertBox>
 
 <style lang="scss">
     .clickable {

@@ -250,12 +250,37 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </WithFloating>
 
 <style lang="scss">
-    @use "../sass/button-mixins" as button;
-
     $padding-inline: 0.5rem;
 
     .select-container {
-        @include button.select($with-disabled: false);
+        width: 100%;
+        pointer-events: all;
+        -webkit-appearance: none;
+        appearance: none;
+        cursor: pointer;
+        border: 1px solid var(--border-subtle);
+        border-bottom-color: var(--shadow);
+        background: var(--button-bg);
+        &:hover {
+            background: linear-gradient(
+                180deg,
+                var(--button-gradient-start) 0%,
+                var(--button-gradient-end) 100%
+            );
+            /* Makes distinguishing hover state in light theme easier */
+            border: 1px solid var(--shadow);
+        }
+        color: var(--fg);
+        &:active {
+            box-shadow: inset 0 calc(var(--buttons-size, 10px) / 15)
+                calc(var(--buttons-size, 10px) / 5) rgba(0, 0, 0, 0.35);
+            border-color: var(--border-subtle);
+        }
+        border-radius: var(--border-radius);
+        &.rtl {
+            direction: rtl;
+        }
+
         line-height: 1.5;
         height: 100%;
         position: relative;

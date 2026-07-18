@@ -181,7 +181,5 @@ export function filterSections(nodes: SectionNode[], query: string): SectionNode
 
 /** The ids of the leaf sections in `nodes`, depth-first. */
 export function sectionIds(nodes: SectionNode[]): string[] {
-    return nodes.flatMap((node) =>
-        node.children ? sectionIds(node.children) : [node.id],
-    );
+    return nodes.flatMap((node) => node.children ? sectionIds(node.children) : [node.id]);
 }

@@ -170,7 +170,33 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="2">
+          <item row="3" column="0">
+           <widget class="QLabel" name="lightThemeLabel">
+            <property name="text">
+             <string>preferences_light_theme</string>
+            </property>
+            <property name="buddy">
+             <cstring>lightThemeComboBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QComboBox" name="lightThemeComboBox"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="darkThemeLabel">
+            <property name="text">
+             <string>preferences_dark_theme</string>
+            </property>
+            <property name="buddy">
+             <cstring>darkThemeComboBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QComboBox" name="darkThemeComboBox"/>
+          </item>
+          <item row="5" column="0" colspan="2">
            <widget class="QPushButton" name="resetWindowSizes">
             <property name="text">
              <string>preferences_reset_window_sizes</string>

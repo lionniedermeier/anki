@@ -19,9 +19,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     interface Props {
         state: DeckOptionsState;
         onpresetchange?: () => void;
+        onSaved?: () => void;
     }
 
-    let { state: deckState, onpresetchange }: Props = $props();
+    let { state: deckState, onpresetchange, onSaved }: Props = $props();
 
     const configList = untrack(() => deckState.configList);
 
@@ -118,6 +119,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             onclone={promptToClone}
             onrename={promptToRename}
             onremove={onpresetchange}
+            {onSaved}
         />
     </div>
 </StickyContainer>

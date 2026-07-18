@@ -5,8 +5,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
 
-    import { pageTheme } from "$lib/sveltelib/theme";
-
     export let offsetX = 0;
     export let offsetY = 0;
 
@@ -26,15 +24,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     class="handle-control"
     style="--offsetX: {offsetX}px; --offsetY: {offsetY}px; --activeSize: {activeSize}px;"
 >
+    <div class="bordered" on:mousedown|preventDefault tabindex="-1" role="button"></div>
     <div
-        class:nightMode={$pageTheme.isDark}
-        class="bordered"
-        on:mousedown|preventDefault
-        tabindex="-1"
-        role="button"
-    ></div>
-    <div
-        class:nightMode={$pageTheme.isDark}
         class:active
         class="control nw"
         on:mousedown|preventDefault
@@ -44,7 +35,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         role="button"
     ></div>
     <div
-        class:nightMode={$pageTheme.isDark}
         class:active
         class="control ne"
         on:mousedown|preventDefault
@@ -54,7 +44,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         role="button"
     ></div>
     <div
-        class:nightMode={$pageTheme.isDark}
         class:active
         class="control sw"
         on:mousedown|preventDefault
@@ -64,7 +53,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         role="button"
     ></div>
     <div
-        class:nightMode={$pageTheme.isDark}
         class:active
         class="control se"
         on:mousedown|preventDefault
@@ -89,11 +77,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         right: calc(0px - var(--activeSize) + var(--offsetX));
 
         pointer-events: none;
-        border: 2px dashed black;
-
-        &.nightMode {
-            border-color: white;
-        }
+        border: 2px dashed var(--fg);
     }
 
     .control {
@@ -103,15 +87,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         height: var(--activeSize);
 
         &.active {
-            background-color: black;
-        }
-
-        &.nightMode {
-            border-color: white;
-
-            &.active {
-                background-color: white;
-            }
+            background-color: var(--fg);
         }
 
         &.nw {

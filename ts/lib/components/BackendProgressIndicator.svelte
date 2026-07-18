@@ -6,8 +6,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import type { OpChanges, Progress } from "@generated/anki/collection_pb";
     import { runWithBackendProgress } from "@tslib/progress";
 
-    import { pageTheme } from "$lib/sveltelib/theme";
-
     type ResultWithChanges = OpChanges | { changes?: OpChanges };
 
     interface BackendProgressIndicatorProps {
@@ -55,7 +53,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <!-- spinner taken from https://loading.io/css/; CC0 -->
 {#if !result}
     <div class="progress">
-        <div class="spinner" class:nightMode={$pageTheme.isDark}>
+        <div class="spinner">
             <div></div>
             <div></div>
             <div></div>
@@ -86,13 +84,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             width: 64px;
             height: 64px;
             margin: 8px;
-            border: 8px solid #000;
+            border: 8px solid var(--fg);
             border-radius: 50%;
             animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-            border-color: #000 transparent transparent transparent;
-        }
-        &.nightMode div {
-            border-top-color: #fff;
+            border-color: var(--fg) transparent transparent transparent;
         }
         div:nth-child(1) {
             animation-delay: -0.45s;

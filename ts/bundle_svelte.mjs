@@ -23,6 +23,13 @@ const inlineCss = bundle_css == null;
 const sourcemap = env.SOURCEMAP && true;
 let sveltePlugins;
 
+// out/ts/lib/sass holds _tokens.scss, generated from tokens.json by
+// gen_theme_tokens.py; Svelte component <style lang="scss"> blocks are
+// compiled by svelte-preprocess, which needs its own includePaths entry to
+// resolve @use "tokens" (separate from the esbuild-sass-plugin loadPaths
+// below, which only cover .scss files imported directly by JS/TS).
+const scssOptions = { includePaths: ["out/ts/lib/sass"] };
+
 if (!sourcemap) {
     sveltePlugins = [
         // use esbuild for faster typescript transpilation
@@ -33,12 +40,12 @@ if (!sourcemap) {
             },
             tsconfig: "ts/tsconfig_legacy.json",
         }),
-        sveltePreprocess({ typescript: false }),
+        sveltePreprocess({ typescript: false, scss: scssOptions }),
     ];
 } else {
     sveltePlugins = [
         // use tsc for more accurate sourcemaps
-        sveltePreprocess({ typescript: true, sourceMap: true }),
+        sveltePreprocess({ typescript: true, sourceMap: true, scss: scssOptions }),
     ];
 }
 
@@ -63,7 +70,9 @@ build({
     sourcemap: sourcemap ? "inline" : false,
 
     plugins: [
-        sassPlugin({ loadPaths: ["node_modules"] }),
+        // out/ts/lib/sass holds _tokens.scss, generated from tokens.json by
+        // gen_theme_tokens.py
+        sassPlugin({ loadPaths: ["node_modules", "out/ts/lib/sass"] }),
         sveltePlugin({
             compilerOptions: { css: inlineCss ? "injected" : "external" },
             preprocess: sveltePlugins,

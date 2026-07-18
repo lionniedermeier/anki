@@ -155,8 +155,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </Modal>
 
 <style lang="scss">
-    @use "../sass/button-mixins" as button;
-
     :global(.label-button.chooser-button) {
         width: 100%;
     }
@@ -235,13 +233,31 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     :global(.item-card) {
-        @include button.base(
-            $border: true,
-            $with-hover: true,
-            $with-active: true,
-            $with-disabled: false
-        );
-        @include button.border-radius;
+        -webkit-appearance: none;
+        appearance: none;
+        cursor: pointer;
+        border: 1px solid var(--border-subtle);
+        border-bottom-color: var(--shadow);
+        background: var(--button-bg);
+        &:hover {
+            background: linear-gradient(
+                180deg,
+                var(--button-gradient-start) 0%,
+                var(--button-gradient-end) 100%
+            );
+            /* Makes distinguishing hover state in light theme easier */
+            border: 1px solid var(--shadow);
+        }
+        color: var(--fg);
+        &:active {
+            box-shadow: inset 0 calc(var(--buttons-size, 10px) / 15)
+                calc(var(--buttons-size, 10px) / 5) rgba(0, 0, 0, 0.35);
+            border-color: var(--border-subtle);
+        }
+        border-top-left-radius: var(--border-left-radius);
+        border-bottom-left-radius: var(--border-left-radius);
+        border-top-right-radius: var(--border-right-radius);
+        border-bottom-right-radius: var(--border-right-radius);
 
         padding: 1rem;
         text-align: start;
@@ -252,7 +268,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             background: var(--canvas-inset);
             border-color: var(--border);
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         &.selected {

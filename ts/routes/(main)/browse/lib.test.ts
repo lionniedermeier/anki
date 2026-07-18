@@ -6,6 +6,7 @@ import { BrowserRow_Color } from "@generated/anki/search_pb";
 import { describe, expect, test } from "vitest";
 
 import {
+    cardStateColorVarForRow,
     colorVarForRow,
     filterSidebarRows,
     findSidebarRow,
@@ -168,6 +169,55 @@ describe("iconForNodeType", () => {
 
     test("returns null for the synthetic root, which has no icon", () => {
         expect(iconForNodeType(BrowseSidebarNode_NodeType.ROOT)).toBeNull();
+    });
+});
+
+describe("cardStateColorVarForRow", () => {
+    function cardStateRow(search: string): SidebarRowNode {
+        return {
+            id: search,
+            name: search,
+            nodeType: BrowseSidebarNode_NodeType.CARD_STATE,
+            search,
+            collapsed: false,
+            children: [],
+        };
+    }
+
+    test("maps each card state's search string to its CSS custom property", () => {
+        expect(cardStateColorVarForRow(cardStateRow("is:new"))).toBe("--state-new");
+        expect(cardStateColorVarForRow(cardStateRow("is:learn"))).toBe("--state-learn");
+        expect(cardStateColorVarForRow(cardStateRow("is:review"))).toBe("--state-review");
+        expect(cardStateColorVarForRow(cardStateRow("is:suspended"))).toBe(
+            "--state-suspended",
+        );
+        expect(cardStateColorVarForRow(cardStateRow("is:buried"))).toBe(
+            "--state-buried",
+        );
+    });
+
+    test("returns null for non-card-state rows", () => {
+        const row: SidebarRowNode = {
+            id: "1",
+            name: "Default",
+            nodeType: BrowseSidebarNode_NodeType.DECK,
+            search: "is:new",
+            collapsed: false,
+            children: [],
+        };
+        expect(cardStateColorVarForRow(row)).toBeNull();
+    });
+
+    test("returns null for the card state section root", () => {
+        const row: SidebarRowNode = {
+            id: "1",
+            name: "Card State",
+            nodeType: BrowseSidebarNode_NodeType.CARD_STATE_ROOT,
+            search: "",
+            collapsed: false,
+            children: [],
+        };
+        expect(cardStateColorVarForRow(row)).toBeNull();
     });
 });
 

@@ -128,7 +128,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </EnumSelectorRow>
     {/if}
 
-    <Warning warning={newDeckCreationNotice} className="alert-info" />
+    <Warning warning={newDeckCreationNotice} variant="info" />
 
     <EnumSelectorRow
         bind:value={$metadata.dupeResolution}

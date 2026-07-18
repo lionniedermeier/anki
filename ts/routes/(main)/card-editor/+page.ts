@@ -5,7 +5,9 @@ import { getNotetypeNames } from "@generated/backend";
 
 import type { PageLoad } from "./$types";
 
-export const load = (async () => {
+export const load = (async ({ url }) => {
     const { entries } = await getNotetypeNames({});
-    return { notetypeNames: entries };
+    const ntidParam = url.searchParams.get("ntid");
+    const initialNotetypeId = ntidParam ? BigInt(ntidParam) : null;
+    return { notetypeNames: entries, initialNotetypeId };
 }) satisfies PageLoad;

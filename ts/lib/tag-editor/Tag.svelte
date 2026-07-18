@@ -41,8 +41,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </button>
 
 <style lang="scss">
-    @use "../sass/button-mixins" as button;
-
     @keyframes flash {
         0% {
             filter: invert(0);
@@ -56,7 +54,22 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     .tag {
-        @include button.base($with-active: false, $with-disabled: false);
+        -webkit-appearance: none;
+        appearance: none;
+        cursor: pointer;
+        border: 1px solid var(--border-subtle);
+        border-bottom-color: var(--shadow);
+        background: var(--button-bg);
+        &:hover {
+            background: linear-gradient(
+                180deg,
+                var(--button-gradient-start) 0%,
+                var(--button-gradient-end) 100%
+            );
+            /* Makes distinguishing hover state in light theme easier */
+            border: 1px solid var(--shadow);
+        }
+        color: var(--fg);
 
         vertical-align: middle;
         font-size: var(--font-size);

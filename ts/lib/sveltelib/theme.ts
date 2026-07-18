@@ -30,6 +30,57 @@ const observer = new MutationObserver((_mutationsList, _observer) => {
 });
 observer.observe(document.documentElement, { attributeFilter: ["class"] });
 
+export interface PrimitiveValues {
+    light: string;
+    dark: string;
+}
+
+const overriddenPrimitives = new Set<string>();
+
+function primitiveVarNames(token: string): [string, string] {
+    return [`--p-${token}-l`, `--p-${token}-d`];
+}
+
+function setPrimitive(token: string, values: PrimitiveValues): void {
+    const [lightVar, darkVar] = primitiveVarNames(token);
+    document.documentElement.style.setProperty(lightVar, values.light);
+    document.documentElement.style.setProperty(darkVar, values.dark);
+    overriddenPrimitives.add(token);
+}
+
+function setOverrides(overrides: Record<string, PrimitiveValues>): void {
+    for (const token in overrides) {
+        setPrimitive(token, overrides[token]);
+    }
+}
+
+function clearOverride(token: string): void {
+    const [lightVar, darkVar] = primitiveVarNames(token);
+    document.documentElement.style.removeProperty(lightVar);
+    document.documentElement.style.removeProperty(darkVar);
+    overriddenPrimitives.delete(token);
+}
+
+function resetOverrides(): void {
+    for (const token of [...overriddenPrimitives]) {
+        clearOverride(token);
+    }
+}
+
+function applyTheme(colors: Record<string, PrimitiveValues>): void {
+    resetOverrides();
+    setOverrides(colors);
+}
+
+export const ThemeManager = {
+    setPrimitive,
+    setOverrides,
+    clearOverride,
+    resetOverrides,
+    applyTheme,
+};
+
 registerPackage("anki/theme", {
     pageTheme,
+    ThemeManager,
 });

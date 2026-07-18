@@ -1,12 +1,6 @@
-@use "vars" as *;
 @use "root-vars";
-@use "button-mixins" as button;
 @use "./scrollbar";
 
-$body-color: palette(darkgray, 9);
-$body-color-dark: palette(lightgray, 0);
-$body-bg: palette(lightgray, 2);
-$body-bg-dark: palette(darkgray, 5);
 $link-hover-decoration: none;
 
 $utilities: (
@@ -55,15 +49,6 @@ body {
     }
 }
 
-button:not(.btn, .btn-close) {
-    /* override transition for instant hover response */
-    transition:
-        color var(--transition) ease-in-out,
-        box-shadow var(--transition) ease-in-out !important;
-    border-radius: prop(border-radius);
-    @include button.base;
-}
-
 pre,
 code,
 kbd,
@@ -80,10 +65,10 @@ input[type="checkbox"] {
 textarea,
 input[type="date"],
 input[type="text"] {
-    border-radius: prop(border-radius);
+    border-radius: var(--border-radius);
     outline: none;
-    border: 1px solid color(border);
+    border: 1px solid var(--border);
     &:focus {
-        border-color: color(border-focus);
+        border-color: var(--border-focus);
     }
 }

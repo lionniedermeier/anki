@@ -11,6 +11,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import type { GraphData } from "./calendar";
     import { gatherData, renderCalendar } from "./calendar";
     import Graph from "./Graph.svelte";
+    import IconButton from "$lib/components/IconButton.svelte";
     import type { GraphPrefs, SearchEventMap } from "./graph-helpers";
     import { defaultGraphBounds, RevlogRange } from "./graph-helpers";
     import InputBox from "./InputBox.svelte";
@@ -68,15 +69,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <Graph {title}>
     <InputBox>
         <span>
-            <button on:click={() => targetYear--} disabled={minYear >= targetYear}>
+            <IconButton
+                tabbable
+                disabled={minYear >= targetYear}
+                on:click={() => targetYear--}
+            >
                 ◄
-            </button>
+            </IconButton>
         </span>
         <span>{targetYear}</span>
         <span>
-            <button on:click={() => targetYear++} disabled={targetYear >= maxYear}>
+            <IconButton
+                tabbable
+                disabled={targetYear >= maxYear}
+                on:click={() => targetYear++}
+            >
                 ►
-            </button>
+            </IconButton>
         </span>
     </InputBox>
 

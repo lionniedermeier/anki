@@ -41,12 +41,13 @@ class DeckBrowser:
         self.web = mw.web
         self._refresh_needed = False
 
-    def show(self) -> None:
+    def show(self, skip_reload: bool = False) -> None:
         av_player.stop_and_clear_queue()
         self.web.set_bridge_command(self._on_bridge_cmd, self)
         # redraw top bar for theme change
         self.mw.toolbar.redraw()
-        self.web.load_sveltekit_page("deck-browser")
+        if not skip_reload:
+            self.web.load_sveltekit_page("deck-browser")
         # the deck browser page renders its own bottom bar
         self.mw.bottomWeb.hide()
         self._refresh_needed = False
@@ -92,13 +93,13 @@ class DeckBrowser:
         elif kind == "changed":
             self._on_changed()
         elif kind == "decks":
-            self.mw.moveToState("deckBrowser")
+            self.mw.moveToState("deckBrowser", skip_reload=True)
         elif kind == "add":
             self.mw.onAddCard()
         elif kind == "browse":
-            self.mw.browse.show()
+            self.mw.browse.show(skip_reload=True)
         elif kind == "stats":
-            self.mw.onStats()
+            self.mw.onStats(skip_reload=True)
         elif kind == "sync":
             self.mw.on_sync_button_clicked()
         elif kind == "create":

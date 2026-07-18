@@ -37,7 +37,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 {/if}
 
 <style lang="scss">
-    @use "$lib/sass/elevation" as *;
     .graph {
         /* See graph-styles.ts for constants referencing global styles */
         :global(.graph-element-clickable) {

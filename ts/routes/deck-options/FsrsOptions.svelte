@@ -112,7 +112,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     });
 
-    const retentionWarningClass = $derived(getRetentionWarningClass(roundedRetention));
+    const retentionWarningVariant = $derived(
+        getRetentionWarningVariant(roundedRetention),
+    );
 
     const newCardsIgnoreReviewLimit = untrack(
         () => deckState.newCardsIgnoreReviewLimit,
@@ -200,16 +202,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         });
     }
 
-    function getRetentionWarningClass(retention: number): string {
+    function getRetentionWarningVariant(
+        retention: number,
+    ): "warning" | "danger" | "info" {
         if (retention < 0.7 || retention > 0.97) {
-            return "alert-danger";
+            return "danger";
         } else if (
             retention < DESIRED_RETENTION_LOW_THRESHOLD ||
             retention > DESIRED_RETENTION_HIGH_THRESHOLD
         ) {
-            return "alert-warning";
+            return "warning";
         } else {
-            return "alert-info";
+            return "info";
         }
     }
 
@@ -425,8 +429,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     {tr.deckConfigFsrsDesiredRetentionHelpMeDecideExperimental()}
 </button>
 
-<Warning warning={desiredRetentionChangeInfo} className={"alert-info two-line"} />
-<Warning warning={desiredRetentionWarning} className={retentionWarningClass} />
+<Warning warning={desiredRetentionChangeInfo} variant="info" class="two-line" />
+<Warning warning={desiredRetentionWarning} variant={retentionWarningVariant} />
 
 <div class="ms-1 me-1">
     <ParamsInputRow bind:value={$config.fsrsParams6} defaultValue={[]}>
@@ -492,7 +496,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </div>
 
 <div class="m-1">
-    <Warning warning={lastOptimizationWarning} className="alert-warning" />
+    <Warning warning={lastOptimizationWarning} variant="warning" />
 
     <button class="btn btn-primary" onclick={() => computeAllParams()}>
         {tr.deckConfigSaveAndOptimize()}

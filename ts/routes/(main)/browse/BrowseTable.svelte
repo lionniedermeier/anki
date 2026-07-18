@@ -11,7 +11,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     } from "@generated/backend";
     import { ConfigKey_Bool } from "@generated/anki/config_pb";
     import type { BrowserColumns_Column, BrowserRow } from "@generated/anki/search_pb";
-    import { createEventDispatcher, onMount, untrack } from "svelte";
+    import { onMount, untrack } from "svelte";
 
     import ColumnResizeHandle from "$lib/components/VirtualTable/ColumnResizeHandle.svelte";
     import VirtualTable from "$lib/components/VirtualTable/VirtualTable.svelte";
@@ -38,8 +38,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         selectedIds = $bindable(new Set<string>()),
         onSort,
     }: Props = $props();
-
-    const dispatch = createEventDispatcher<{ sort: { column: string } }>();
 
     const ROW_HEIGHT = 30;
     const DEFAULT_COLUMN_WIDTH = 150;
@@ -194,7 +192,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     function sortBy(key: string): void {
-        dispatch("sort", { column: key });
+        onSort?.({ column: key });
     }
 
     function onHeaderKeydown(event: KeyboardEvent, key: string): void {

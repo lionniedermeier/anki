@@ -63,14 +63,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </div>
 
 <style lang="scss">
-    @use "../sass/elevation" as elevation;
-
     .popover-wrapper {
         min-height: var(--min-height, 0);
     }
 
     .popover {
-        @include elevation.elevation(8);
+        box-shadow: 0 4px 16px var(--shadow-subtle);
 
         align-self: flex-start;
         border-radius: var(--border-radius);

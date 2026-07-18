@@ -25,7 +25,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <summary><GlobalLabel {title} /></summary>
             <div class="text">
                 <textarea
-                    class="card-state-customizer form-control"
+                    class="card-state-customizer"
                     bind:value
                     spellcheck="false"
                     autocapitalize="none"

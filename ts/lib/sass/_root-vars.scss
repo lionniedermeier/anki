@@ -1,61 +1,96 @@
 /* Copyright: Ankitects Pty Ltd and contributors
  * License: GNU AGPL, version 3 or later, http://www.gnu.org/licenses/agpl.html */
 
-@use "sass:map";
-@use "sass:string";
-@use "vars" as *;
+@use "sass:list";
 @use "functions" as *;
+@use "tokens" as tok;
 @use "scrollbar";
 
 /*! colors */
 :root {
-    $colors: map.get($vars, colors);
+    @include emit-scheme-vars(tok.$token-colors);
 
-    @each $name, $val in create-vars-from-map($colors, light) {
-        @if string.index($name, "comment") == 1 {
-            /*! #{$val} */
-        } @else {
-            #{$name}: #{$val};
-        }
-    }
     color-scheme: light;
 
     &.night-mode {
-        @each $name, $val in create-vars-from-map($colors, dark) {
-            @if string.index($name, "comment") == 1 {
-                /*! #{$val} */
-            } @else {
-                #{$name}: #{$val};
-            }
-        }
         color-scheme: dark;
     }
 }
 
 /*! props */
 :root {
-    $props: map.get($vars, props);
-    @each $name, $val in create-vars-from-map($props, light) {
-        @if string.index($name, "comment") == 1 {
-            /*! #{$val} */
-        } @else {
-            #{$name}: #{$val};
+    @each $name, $entry in tok.$token-props {
+        $comment: list.nth($entry, 1);
+        $val: list.nth($entry, 2);
+
+        @if $comment != "" {
+            /*! #{$comment} */
         }
+        --#{$name}: #{$val};
     }
-    &.night-mode {
-        @each $name, $val in create-vars-from-map($props, dark) {
-            @if string.index($name, "comment") == 1 {
-                /*! #{$val} */
-            } @else {
-                #{$name}: #{$val};
-            }
-        }
-    }
+}
+
+/*! bootstrap bridge */
+/* Bootstrap 5's own --bs-* variables are generated from its stock palette and
+switched via the data-bs-theme attribute, entirely disconnected from our
+tokens. Re-point the ones components actually use at our tokens. The
+selectors are doubled to guarantee they win the cascade regardless of where
+each route's -base.scss happens to @import the matching bootstrap partial. */
+:root:root {
+    --bs-body-color: var(--fg);
+    --bs-body-bg: var(--canvas);
+    --bs-border-color: var(--border);
+    --bs-link-color: var(--fg-link);
+}
+
+.btn-primary.btn-primary {
+    --bs-btn-color: white;
+    --bs-btn-bg: var(--button-primary-bg);
+    --bs-btn-border-color: var(--button-primary-bg);
+    --bs-btn-hover-color: white;
+    --bs-btn-hover-bg: var(--button-primary-gradient-start);
+    --bs-btn-hover-border-color: var(--button-primary-gradient-start);
+    --bs-btn-active-color: white;
+    --bs-btn-active-bg: var(--button-primary-gradient-end);
+    --bs-btn-active-border-color: var(--button-primary-gradient-end);
+    --bs-btn-disabled-color: white;
+    --bs-btn-disabled-bg: var(--button-primary-disabled);
+    --bs-btn-disabled-border-color: var(--button-primary-disabled);
+}
+
+.btn-secondary.btn-secondary {
+    --bs-btn-color: var(--fg);
+    --bs-btn-bg: var(--button-bg);
+    --bs-btn-border-color: var(--border-subtle);
+    --bs-btn-hover-color: var(--fg);
+    --bs-btn-hover-bg: var(--button-gradient-start);
+    --bs-btn-hover-border-color: var(--border);
+    --bs-btn-active-color: var(--fg);
+    --bs-btn-active-bg: var(--button-gradient-end);
+    --bs-btn-active-border-color: var(--border);
+    --bs-btn-disabled-color: var(--fg-disabled);
+    --bs-btn-disabled-bg: var(--button-disabled);
+    --bs-btn-disabled-border-color: var(--border-subtle);
+}
+
+.btn-warning.btn-warning {
+    --bs-btn-color: var(--fg);
+    --bs-btn-bg: var(--flag-2);
+    --bs-btn-border-color: var(--flag-2);
+    --bs-btn-hover-color: var(--fg);
+    --bs-btn-hover-bg: var(--flag-2);
+    --bs-btn-hover-border-color: var(--flag-2);
+    --bs-btn-active-color: var(--fg);
+    --bs-btn-active-bg: var(--flag-2);
+    --bs-btn-active-border-color: var(--flag-2);
+    --bs-btn-disabled-color: var(--fg-disabled);
+    --bs-btn-disabled-bg: var(--flag-2);
+    --bs-btn-disabled-border-color: var(--flag-2);
 }
 
 /*! rest */
 html {
-    font-size: prop(font-size);
+    font-size: var(--font-size);
     body {
         overscroll-behavior: none;
         &:not(.isMac),
@@ -63,4 +98,12 @@ html {
             @include scrollbar.custom;
         }
     }
+}
+
+.scheme-light {
+    color-scheme: light;
+}
+
+.scheme-dark {
+    color-scheme: dark;
 }

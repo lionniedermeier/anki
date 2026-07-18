@@ -25,19 +25,36 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         children,
     }: ActivityBarItemProps = $props();
 
-    function onkeydown() {}
+    function handleClick(event: MouseEvent): void {
+        if (disabled) {
+            return;
+        }
+        onclick?.(event);
+    }
+
+    function handleKeydown(event: KeyboardEvent): void {
+        if (disabled) {
+            return;
+        }
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            (event.currentTarget as HTMLElement).click();
+        }
+    }
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
     {id}
     class="activity-bar-item {className}"
     class:active
+    class:disabled
     title={tooltip}
     role="tab"
-    tabindex="0"
+    tabindex={disabled ? -1 : 0}
     aria-selected={active}
-    {onclick}
+    aria-disabled={disabled}
+    onclick={handleClick}
+    onkeydown={handleKeydown}
 >
     {@render children?.()}
 </div>
@@ -74,7 +91,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             }
         }
 
-        &:disabled {
+        &.disabled {
             cursor: default;
             opacity: 0.5;
         }

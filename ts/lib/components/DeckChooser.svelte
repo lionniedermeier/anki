@@ -32,7 +32,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         await fetchDecks(false);
         try {
             await getDeck({ did: selectedDeck!.id }, { alertOnError: false });
-        } catch (error) {
+        } catch (_error) {
             select(1n);
         }
         return selectedDeck!;

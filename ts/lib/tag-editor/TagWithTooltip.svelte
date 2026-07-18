@@ -7,7 +7,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { createEventDispatcher } from "svelte";
 
     import WithTooltip from "$lib/components/WithTooltip.svelte";
-    import { pageTheme } from "$lib/sveltelib/theme";
 
     import Tag from "./Tag.svelte";
     import { delimChar } from "./tags";
@@ -64,11 +63,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 <svelte:body on:keydown={setControlShift} on:keyup={setControlShift} />
 
-<div
-    class:select-mode={selectMode}
-    class:night-mode={$pageTheme.isDark}
-    class:empty={name === ""}
->
+<div class:select-mode={selectMode} class:empty={name === ""}>
     {#if active}
         <Tag
             class={className}
@@ -121,15 +116,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     :global(.tag-icon-hover svg:hover) {
         border-radius: 5px;
-
-        $white-translucent: rgb(255 255 255 / 0.35);
-        $dark-translucent: rgb(0 0 0 / 0.1);
-
-        background-color: $dark-translucent;
-
-        .night-mode & {
-            background-color: $white-translucent;
-        }
+        background-color: light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.35));
     }
 
     .empty {

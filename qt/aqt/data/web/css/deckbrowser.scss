@@ -1,9 +1,7 @@
 /* Copyright: Ankitects Pty Ltd and contributors
  * License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html */
 @use "../../../../../ts/lib/sass/root-vars";
-@use "../../../../../ts/lib/sass/vars" as *;
 @use "../../../../../ts/lib/sass/card-counts";
-@use "../../../../../ts/lib/sass/elevation" as *;
 
 table {
     padding: 1rem;
@@ -12,16 +10,22 @@ table {
         border: 1px solid var(--border-subtle);
         border-radius: var(--border-radius-medium);
 
-        @include elevation(1, $opacity-boost: -0.08);
+        box-shadow:
+            0px 2px 1px -1px rgba(20, 20, 20, 0.12),
+            0px 1px 1px 0px rgba(20, 20, 20, 0.06),
+            0px 1px 3px 0px rgba(20, 20, 20, 0.04);
         &:hover {
-            @include elevation(2);
+            box-shadow:
+                0px 3px 1px -2px rgba(20, 20, 20, 0.2),
+                0px 2px 2px 0px rgba(20, 20, 20, 0.14),
+                0px 1px 5px 0px rgba(20, 20, 20, 0.12);
         }
         background: var(--canvas-glass);
     }
 }
 
 a.deck {
-    color: color(fg);
+    color: var(--fg);
     text-decoration: none;
     min-width: 5em;
     display: inline-block;
@@ -32,7 +36,7 @@ a.deck:hover {
 }
 
 th {
-    border-bottom: 1px solid color(border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
     padding-bottom: 5px;
 }
 
@@ -55,7 +59,7 @@ td {
 }
 
 tr.drag-hover td {
-    border-bottom: 1px solid color(border);
+    border-bottom: 1px solid var(--border);
 }
 
 body {
@@ -66,14 +70,14 @@ body {
 .current,
 tr:hover:not(.top-level-drag-row) {
     td {
-        background: color(border-subtle);
+        background: var(--border-subtle);
         &:first-child {
-            border-top-left-radius: prop(border-radius-medium);
-            border-bottom-left-radius: prop(border-radius-medium);
+            border-top-left-radius: var(--border-radius-medium);
+            border-bottom-left-radius: var(--border-radius-medium);
         }
         &:last-child {
-            border-top-right-radius: prop(border-radius-medium);
-            border-bottom-right-radius: prop(border-radius-medium);
+            border-top-right-radius: var(--border-radius-medium);
+            border-bottom-right-radius: var(--border-radius-medium);
         }
         .gears {
             visibility: visible;
@@ -84,18 +88,18 @@ tr:hover:not(.top-level-drag-row) {
     .current,
     tr:hover:not(.top-level-drag-row) {
         td {
-            background: color(canvas-inset);
+            background: var(--canvas-inset);
             &:first-child {
                 border-top-left-radius: 0;
                 border-bottom-left-radius: 0;
-                border-top-right-radius: prop(border-radius-medium);
-                border-bottom-right-radius: prop(border-radius-medium);
+                border-top-right-radius: var(--border-radius-medium);
+                border-bottom-right-radius: var(--border-radius-medium);
             }
             &:last-child {
                 border-top-right-radius: 0;
                 border-bottom-right-radius: 0;
-                border-top-left-radius: prop(border-radius-medium);
-                border-bottom-left-radius: prop(border-radius-medium);
+                border-top-left-radius: var(--border-radius-medium);
+                border-bottom-left-radius: var(--border-radius-medium);
             }
         }
     }
@@ -117,14 +121,14 @@ tr:hover:not(.top-level-drag-row) {
 }
 
 .collapse {
-    color: color(fg);
+    color: var(--fg);
     text-decoration: none;
     display: inline-block;
     width: 1em;
 }
 
 .filtered {
-    color: color(fg-link) !important;
+    color: var(--fg-link) !important;
 }
 
 .gears {
@@ -143,7 +147,7 @@ tr:hover:not(.top-level-drag-row) {
 }
 
 .callout {
-    background: color(border);
+    background: var(--border);
     padding: 1em;
     margin: 1em;
 

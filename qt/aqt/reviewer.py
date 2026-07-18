@@ -691,6 +691,16 @@ class Reviewer:
             self.web.update()
         elif url == "statesMutated":
             self._states_mutated = True
+        elif url == "decks":
+            self.mw.moveToState("deckBrowser", skip_reload=True)
+        elif url == "add":
+            self.mw.onAddCard()
+        elif url == "browse":
+            self.mw.browse.show(skip_reload=True)
+        elif url == "stats":
+            self.mw.onStats(skip_reload=True)
+        elif url == "sync":
+            self.mw.on_sync_button_clicked()
         else:
             print("unrecognized anki link:", url)
 

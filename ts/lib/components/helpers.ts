@@ -15,27 +15,23 @@ export function mergeTooltipAndShortcut(
     return buf;
 }
 
-export const withButton =
-    (f: (button: HTMLButtonElement) => void) =>
-    ({ detail }: CustomEvent): void => {
-        f(detail.button);
-    };
+export const withButton = (f: (button: HTMLButtonElement) => void) => ({ detail }: CustomEvent): void => {
+    f(detail.button);
+};
 
-export const withSpan =
-    (f: (span: HTMLSpanElement) => void) =>
-    ({ detail }: CustomEvent): void => {
-        f(detail.span);
-    };
+export const withSpan = (f: (span: HTMLSpanElement) => void) => ({ detail }: CustomEvent): void => {
+    f(detail.span);
+};
 
 export function stopPropagation<E extends Event>(fn: (event: E) => void) {
-    return function (this: HTMLElement, event: E) {
+    return function(this: HTMLElement, event: E) {
         event.stopPropagation();
         fn.call(this, event);
     };
 }
 
 export function preventDefault<E extends Event>(fn: (event: E) => void) {
-    return function (this: HTMLElement, event: E) {
+    return function(this: HTMLElement, event: E) {
         event.preventDefault();
         fn.call(this, event);
     };

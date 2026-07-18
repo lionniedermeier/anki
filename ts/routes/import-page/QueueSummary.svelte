@@ -7,6 +7,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     import Icon from "$lib/components/Icon.svelte";
     import IconConstrain from "$lib/components/IconConstrain.svelte";
+    import LabelButton from "$lib/components/LabelButton.svelte";
 
     import { showInBrowser } from "./lib";
     import type { SummarizedLogQueues } from "./types";
@@ -28,7 +29,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </IconConstrain>
         {summary.summaryTemplate({ count: notes.length })}
         {#if summary.canBrowse}
-            <button class="desktop-only" on:click={onShow}>{tr.importingShow()}</button>
+            <LabelButton class="desktop-only" tabbable on:click={onShow}>
+                {tr.importingShow()}
+            </LabelButton>
         {/if}
     </li>
 {/if}

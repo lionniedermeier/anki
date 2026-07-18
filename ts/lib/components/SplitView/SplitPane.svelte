@@ -6,7 +6,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import type { Snippet } from "svelte";
     import { getContext, onDestroy, untrack } from "svelte";
 
-    import { chevronDown, chevronLeft, chevronRight, chevronUp } from "../icons";
     import type { SplitViewContext } from "./SplitView";
     import { lastVisiblePaneId, splitViewKey } from "./SplitView";
 
@@ -63,14 +62,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     );
     const isLast = $derived(lastVisiblePaneId($panes) === id);
     const vertical = $derived(ctx.direction === "vertical");
-    const collapseIcon = $derived(collapseIconFor(vertical, collapsed));
-
-    function collapseIconFor(vertical: boolean, collapsed: boolean) {
-        if (vertical) {
-            return collapsed ? chevronDown : chevronUp;
-        }
-        return collapsed ? chevronRight : chevronLeft;
-    }
 
     const DRAG_KEY_STEP = 20;
     // Pointer position where the current drag started, or null when idle.

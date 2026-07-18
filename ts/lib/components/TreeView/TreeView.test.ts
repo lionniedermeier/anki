@@ -3,12 +3,7 @@
 
 import { describe, expect, test } from "vitest";
 
-import {
-    collectSubtreeIds,
-    flattenVisible,
-    parentIndex,
-    type TreeViewNode,
-} from "./TreeView";
+import { collectSubtreeIds, flattenVisible, parentIndex, type TreeViewNode } from "./TreeView";
 
 function node(
     id: string,

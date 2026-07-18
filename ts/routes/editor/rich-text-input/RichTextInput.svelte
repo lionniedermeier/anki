@@ -72,7 +72,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { placeCaretAfterContent } from "$lib/domlib/place-caret";
     import useDOMMirror from "$lib/sveltelib/dom-mirror";
     import useInputHandler from "$lib/sveltelib/input-handler";
-    import { pageTheme } from "$lib/sveltelib/theme";
 
     import ContentEditable from "$lib/editable/ContentEditable.svelte";
     import { context as editingAreaContext } from "../EditingArea.svelte";
@@ -232,7 +231,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <div class="rich-text-input" on:focusin={setFocus} on:focusout={removeFocus} {hidden}>
     <RichTextStyles
         {isLegacy}
-        color={$pageTheme.isDark ? "white" : "black"}
+        color="var(--fg)"
         fontFamily={$fontFamily}
         fontSize={$fontSize}
         direction={$direction}

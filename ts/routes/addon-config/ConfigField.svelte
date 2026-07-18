@@ -13,7 +13,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import TextRow from "./TextRow.svelte";
     import Error from "../+error.svelte";
     import type { FieldDescriptor } from "./types";
-    import Spacer from "$lib/components/Spacer.svelte";
 
     /** The JSON Schema property key. */
     export let key: string;

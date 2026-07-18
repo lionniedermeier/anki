@@ -92,8 +92,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     };
     const helpSections: HelpItem[] = Object.values(settings);
 
-    const maxIntervalWarningClass = $derived(
-        $config.maximumReviewInterval < 50 ? "alert-danger" : "alert-warning",
+    const maxIntervalWarningVariant = $derived(
+        $config.maximumReviewInterval < 50 ? "danger" : "warning",
     );
     const maxIntervalWarning = $derived(
         $config.maximumReviewInterval < 180
@@ -139,7 +139,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             updateIgnoreRevlogsBeforeCount($config.ignoreRevlogsBeforeDate);
         }, IGNORE_REVLOG_COUNT_DELAY_MS);
     });
-    let ignoreRevlogsBeforeWarningClass = $state("alert-warning");
+    let ignoreRevlogsBeforeWarningVariant: "warning" | "danger" | "info" =
+        $state("warning");
     $effect(() => {
         if (ignoreRevlogsBeforeCount) {
             // If there is less than a tenth of reviews included
@@ -148,13 +149,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     Number(ignoreRevlogsBeforeCount.total) <
                 0.1
             ) {
-                ignoreRevlogsBeforeWarningClass = "alert-danger";
+                ignoreRevlogsBeforeWarningVariant = "danger";
             } else if (
                 ignoreRevlogsBeforeCount.included != ignoreRevlogsBeforeCount.total
             ) {
-                ignoreRevlogsBeforeWarningClass = "alert-warning";
+                ignoreRevlogsBeforeWarningVariant = "warning";
             } else {
-                ignoreRevlogsBeforeWarningClass = "alert-info";
+                ignoreRevlogsBeforeWarningVariant = "info";
             }
         }
     });
@@ -207,7 +208,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </Item>
 
         <Item>
-            <Warning warning={maxIntervalWarning} className={maxIntervalWarningClass}
+            <Warning warning={maxIntervalWarning} variant={maxIntervalWarningVariant}
             ></Warning>
         </Item>
 
@@ -330,7 +331,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <Item>
                 <Warning
                     warning={ignoreRevlogsBeforeWarning}
-                    className={ignoreRevlogsBeforeWarningClass}
+                    variant={ignoreRevlogsBeforeWarningVariant}
                 ></Warning>
             </Item>
         {/if}

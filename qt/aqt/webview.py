@@ -601,16 +601,9 @@ button {{ font-family: {family}; }}
             font = f'font-family:"{family}";'
             button_style = """
 button {
-    --canvas: #fff;
     -webkit-appearance: none;
-    background: var(--canvas);
-    border-radius: var(--border-radius);
-    padding: 3px 12px;
-    border: 1px solid var(--border);
-    box-shadow: 0px 1px 3px var(--border-subtle);
-    font-family: Helvetica
+    font-family: Helvetica;
 }
-.night-mode button { --canvas: #606060; --fg: #eee; }
 """
         else:
             family = self.font().family()
@@ -631,13 +624,18 @@ div[contenteditable="true"]:focus {{
             )
 
         zoom = self.app_zoom_factor()
+        scheme = "dark" if theme_manager.night_mode else "light"
 
         return f"""
 body {{ zoom: {zoom}; background-color: var(--canvas); }}
 html {{ {font} }}
 {button_style}
-:root {{ --canvas: {colors.CANVAS["light"]} }}
-:root[class*=night-mode] {{ --canvas: {colors.CANVAS["dark"]} }}
+:root {{
+    --p-canvas-l: {colors.CANVAS["light"]};
+    --p-canvas-d: {colors.CANVAS["dark"]};
+    --canvas: light-dark(var(--p-canvas-l), var(--p-canvas-d));
+    color-scheme: {scheme};
+}}
 """
 
     def stdHtml(
@@ -878,10 +876,22 @@ html {{ {font} }}
     document.head.appendChild(style);
     document.body.classList.add({", ".join([f'"{c}"' for c in body_classes])});
     {night_mode}
+    {self._theme_colors_js()}
 }})();
 """,
             after_injection,
         )
+
+    def _theme_colors_js(self) -> str:
+        theme_colors = dict(theme_manager.resolved_theme())
+        theme_colors.update(theme_manager.primitive_overrides())
+        if not theme_colors:
+            return ""
+        return f"""
+if (typeof require !== "undefined" && require("anki/packages").hasPackages("anki/theme")) {{
+    require("anki/theme").ThemeManager.applyTheme({json.dumps(theme_colors)});
+}}
+"""
 
     def load_ts_page(self, name: str) -> None:
         from aqt import mw
@@ -942,6 +952,7 @@ html {{ {font} }}
 (function() {{
     const doc = document.documentElement;
     const body = document.body.classList;
+    doc.style.colorScheme = {json.dumps("dark" if theme_manager.night_mode else "light")};
     if ({1 if theme_manager.night_mode else 0}) {{
         doc.dataset.bsTheme = "dark";
         doc.classList.add("night-mode");
@@ -955,6 +966,7 @@ html {{ {font} }}
         body.remove("nightMode");
         body.remove("macos-dark-mode");
     }}
+    {self._theme_colors_js()}
 }})();
 """
         )

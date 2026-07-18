@@ -39,8 +39,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     setContext(floatingKey, placementPromise);
 
     export let offset = 5;
-    /* 30px box shadow from elevation(8) */
-    export let shift = 30;
+    /* room for Popover's box-shadow so it isn't clipped */
+    export let shift = 20;
     export let inline = false;
     export let hideIfEscaped = false;
     export let hideIfReferenceHidden = false;

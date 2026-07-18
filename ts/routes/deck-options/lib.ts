@@ -399,7 +399,7 @@ function bytesToObject(bytes: Uint8Array): Record<string, unknown> {
 
     try {
         obj = JSON.parse(new TextDecoder().decode(bytes));
-    } catch (err) {
+    } catch (_err) {
         console.log(`invalid json in deck config`);
         return {};
     }

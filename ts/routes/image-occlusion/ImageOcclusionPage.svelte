@@ -74,6 +74,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         white-space: normal;
         word-break: break-all;
         hyphens: auto;
+        appearance: none;
+        cursor: pointer;
+        border: 1px solid var(--border-subtle);
+        background: var(--button-bg);
+        color: var(--fg);
+
+        &:hover {
+            background: var(--canvas-inset);
+        }
     }
 
     :global(.image-occlusion) {

@@ -47,11 +47,13 @@ for line in re.split(r"[;\{\}]|\*\/", data):
             print("failed to match", line)
         continue
 
-    # convert variable names to Qt style
-    var = m.group(1).replace("-", "_").upper()
-    val = m.group(2)
+    name = m.group(1)
+    val = m.group(2).strip()
 
     if reached_props:
+        # convert variable names to Qt style
+        var = name.replace("-", "_").upper()
+
         # remove trailing ms from time props
         val = re.sub(r"^(\d+)ms$", r"\1", val)
 
@@ -60,14 +62,19 @@ for line in re.split(r"[;\{\}]|\*\/", data):
             props[var]["light"] = val
         else:
             props[var]["dark"] = val
+        comment = ""
     else:
+        m2 = re.match(r"^p-(.+)-(l|d)$", name)
+        if not m2:
+            continue
+
+        var = m2.group(1).replace("-", "_").upper()
+        side = "light" if m2.group(2) == "l" else "dark"
+
         if var not in colors:
             colors.setdefault(var, {})["comment"] = comment
-            colors[var]["light"] = val
-        else:
-            colors[var]["dark"] = val
-
-    comment = ""
+        colors[var][side] = val
+        comment = ""
 
 
 copyright_notice = """\

@@ -4,22 +4,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
     import { withoutUnicodeIsolation } from "@tslib/i18n";
-    import { slide } from "svelte/transition";
 
+    import Alert from "$lib/components/Alert.svelte";
     import Row from "$lib/components/Row.svelte";
 
     interface Props {
         warning: string;
-        className?: string;
+        variant?: "warning" | "danger" | "info";
+        class?: string;
     }
 
-    let { warning, className = "alert-warning" }: Props = $props();
+    let { warning, variant = "warning", class: className = "" }: Props = $props();
 </script>
 
 {#if warning}
     <Row>
-        <div class="col-12 alert {className} mb-0" in:slide out:slide>
+        <Alert {variant} class={className}>
             {withoutUnicodeIsolation(warning)}
-        </div>
+        </Alert>
     </Row>
 {/if}

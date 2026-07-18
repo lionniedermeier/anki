@@ -19,7 +19,7 @@ from aqt.operations.collection import set_preferences
 from aqt.profiles import VideoDriver
 from aqt.qt import *
 from aqt.sync import sync_login
-from aqt.theme import Theme
+from aqt.theme import Theme, theme_manager
 from aqt.url_schemes import show_url_schemes_dialog
 from aqt.utils import (
     HelpPage,
@@ -378,6 +378,8 @@ class Preferences(QDialog):
         self.form.styleComboBox.setVisible(not is_win)
         qconnect(self.form.resetWindowSizes.clicked, self.on_reset_window_sizes)
 
+        self.setup_color_theme()
+
         self.setup_language()
         self.setup_video_driver()
 
@@ -400,6 +402,48 @@ class Preferences(QDialog):
 
     def on_theme_changed(self, index: int) -> None:
         self.mw.set_theme(Theme(index))
+
+    def setup_color_theme(self) -> None:
+        self.light_theme_ids = self._setup_theme_combo(
+            self.form.lightThemeComboBox,
+            "light",
+            theme_manager.light_theme_id(),
+        )
+        qconnect(
+            self.form.lightThemeComboBox.currentIndexChanged,
+            self.on_light_theme_changed,
+        )
+        self.dark_theme_ids = self._setup_theme_combo(
+            self.form.darkThemeComboBox,
+            "dark",
+            theme_manager.dark_theme_id(),
+        )
+        qconnect(
+            self.form.darkThemeComboBox.currentIndexChanged,
+            self.on_dark_theme_changed,
+        )
+
+    def _setup_theme_combo(
+        self, combo: QComboBox, side: str, active_id: str
+    ) -> list[str]:
+        theme_ids = []
+        for color_theme in theme_manager.registered_themes():
+            if color_theme.type != side:
+                continue
+            theme_ids.append(color_theme.id)
+            combo.addItem(color_theme.name)
+        try:
+            index = theme_ids.index(active_id)
+        except ValueError:
+            index = 0
+        combo.setCurrentIndex(index)
+        return theme_ids
+
+    def on_light_theme_changed(self, index: int) -> None:
+        self.mw.pm.set_light_theme_id(self.light_theme_ids[index])
+
+    def on_dark_theme_changed(self, index: int) -> None:
+        self.mw.pm.set_dark_theme_id(self.dark_theme_ids[index])
 
     def on_reset_window_sizes(self) -> None:
         assert self.prof is not None

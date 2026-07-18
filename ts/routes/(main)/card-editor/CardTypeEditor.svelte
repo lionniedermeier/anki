@@ -22,14 +22,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     interface Props {
         notetypeNames: NotetypeNameId[];
+        initialNotetypeId?: bigint | null;
     }
 
-    let { notetypeNames }: Props = $props();
+    let { notetypeNames, initialNotetypeId = null }: Props = $props();
 
-    // Default the selection to the first notetype; read untracked because this
-    // only seeds the initial value.
+    // Default the selection to the requested notetype (eg. via ?ntid= from
+    // the manage-notetypes "Cards" link), falling back to the first notetype.
+    // Read untracked because this only seeds the initial value.
     let selectedNotetypeId = $state<bigint | null>(
-        untrack(() => notetypeNames[0]?.id ?? null),
+        untrack(() => initialNotetypeId ?? notetypeNames[0]?.id ?? null),
     );
     let notetype = $state<Notetype | null>(null);
     let selectedOrd = $state<number | null>(null);

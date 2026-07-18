@@ -36,9 +36,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     interface Props {
         state: DeckOptionsState;
+        onSaved?: () => void;
     }
 
-    let { state: deckState }: Props = $props();
+    let { state: deckState, onSaved }: Props = $props();
     const addons = untrack(() => deckState.addonComponents);
 
     export function auxData(): Writable<Record<string, unknown>> {
@@ -173,7 +174,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <svelte:window bind:innerWidth />
 
 <div class="deck-options-page">
-    <ConfigSelector state={deckState} onpresetchange={onPresetChange} />
+    <ConfigSelector state={deckState} onpresetchange={onPresetChange} {onSaved} />
 
     <div class="search-bar">
         <IconConstrain>

@@ -621,7 +621,12 @@ hooks = [
     ),
     Hook(
         name="theme_did_change",
-        doc="Called after night mode is toggled.",
+        doc="Called after night mode is toggled, or the active color theme changes.",
+    ),
+    Hook(
+        name="themes_did_change",
+        doc="Called after the set of registered color themes changes, e.g. "
+        "an add-on registers a new theme with theme_manager.register_theme().",
     ),
     Hook(
         name="body_classes_need_update",

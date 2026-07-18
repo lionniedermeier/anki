@@ -102,7 +102,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     ></textarea>
 </div>
 
-<Warning warning={unlockEditWarning} className="alert-danger"></Warning>
+<Warning warning={unlockEditWarning} variant="danger"></Warning>
 
 <style>
     textarea {

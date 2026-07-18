@@ -3,8 +3,6 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    import { pageTheme } from "$lib/sveltelib/theme";
-
     export let id: string | undefined = undefined;
     let className: string = "";
     export { className as class };
@@ -26,7 +24,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <div
     {id}
     class="button-toolbar btn-toolbar {className}"
-    class:nightMode={$pageTheme.isDark}
     style:--icon-align="baseline"
     {style}
     role="toolbar"

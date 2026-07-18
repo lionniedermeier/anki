@@ -129,7 +129,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 value = Object.entries(obj)
                     .map(([k, v]) => `${k}=${v}`)
                     .join(" ");
-            } catch (exc) {
+            } catch (_exc) {
                 value = stats.customData;
             }
             statsRows.push({

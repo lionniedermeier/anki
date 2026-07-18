@@ -30,7 +30,7 @@ export const drawPolygon = (canvas: fabric.Canvas): void => {
             } else {
                 addPoint(canvas, options);
             }
-        } catch (e) {
+        } catch (_e) {
             // Cannot read properties of undefined (reading 'id')
         }
     });

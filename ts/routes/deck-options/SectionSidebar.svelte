@@ -101,7 +101,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 <div class="section-sidebar">
     <div class="tree-scroll">
-        <TreeView nodes={rows} selectedId={cursorId} onToggle={toggle} onSelect={select}>
+        <TreeView
+            nodes={rows}
+            selectedId={cursorId}
+            onToggle={toggle}
+            onSelect={select}
+        >
             {#snippet row(node)}
                 <span class="section-row">{node.title}</span>
             {/snippet}

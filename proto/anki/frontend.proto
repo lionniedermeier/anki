@@ -115,6 +115,9 @@ message DeckOverviewContent {
   int32 buried_learn = 10;
   int32 buried_review = 11;
   bool have_buried = 12;
+  // set only when the deck can open its options in-window (v3 scheduler,
+  // non-filtered); 0 otherwise
+  int64 deck_id = 13;
 }
 
 message BrowseSidebarNode {

@@ -30,9 +30,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         onclone?: () => void;
         onrename?: () => void;
         onremove?: () => void;
+        onSaved?: () => void;
     }
 
-    let { state: deckState, onadd, onclone, onrename, onremove }: Props = $props();
+    let {
+        state: deckState,
+        onadd,
+        onclone,
+        onrename,
+        onremove,
+        onSaved,
+    }: Props = $props();
 
     async function removeConfig(): Promise<void> {
         // show pop-up after dropdown has gone away
@@ -61,7 +69,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     async function save(mode: UpdateDeckConfigsMode): Promise<void> {
         await commitEditing();
-        deckState.save(mode);
+        await deckState.save(mode);
+        onSaved?.();
     }
 
     const saveKeyCombination = "Control+Enter";

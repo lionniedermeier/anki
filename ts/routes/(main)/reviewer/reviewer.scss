@@ -1,0 +1,132 @@
+/* Copyright: Ankitects Pty Ltd and contributors
+ * License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html */
+
+@use "sass:string";
+@use "../../../lib/sass/vars";
+@use "../../image-occlusion/review";
+
+:global(body.nightMode) {
+    background-color: var(--canvas);
+    color: var(--fg);
+}
+
+:global(.reviewer-card) {
+    padding: 20px;
+    overflow-wrap: break-word;
+}
+
+:global(#qa hr) {
+    background-color: vars.palette(darkgray, 0);
+    margin: 1em 0;
+    border: none;
+    height: 1px;
+}
+
+:global(#qa img) {
+    max-width: 100%;
+    max-height: 95vh;
+}
+
+:global(#qa li) {
+    text-align: start;
+}
+
+:global(#qa pre) {
+    text-align: left;
+}
+
+:global(#qa button) {
+    margin: 1em 0.5em;
+}
+
+:global(#_flag) {
+    position: fixed;
+    top: 0;
+    font-size: 30px;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+}
+
+:global([dir="ltr"] #_flag) {
+    right: 10px;
+}
+
+:global([dir="rtl"] #_flag) {
+    left: 10px;
+}
+
+:global(#_mark) {
+    position: fixed;
+    top: 0;
+    font-size: 30px;
+    color: yellow;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+}
+
+:global([dir="ltr"] #_mark) {
+    left: 10px;
+}
+
+:global([dir="rtl"] #_mark) {
+    right: 10px;
+}
+
+:global(#typeans) {
+    width: 100%;
+    box-sizing: border-box;
+    line-height: 1.75;
+}
+
+:global(code#typeans) {
+    white-space: pre-wrap;
+    font-variant-ligatures: none;
+}
+
+:global(.typeGood) {
+    background: #afa;
+    color: black;
+}
+
+:global(.typeBad) {
+    color: black;
+    background: #faa;
+}
+
+:global(.typeMissed) {
+    color: black;
+    background: #ccc;
+}
+
+:global(.replay-button) {
+    text-decoration: none;
+    display: inline-flex;
+    vertical-align: middle;
+    margin: 3px;
+
+    svg {
+        width: 40px;
+        height: 40px;
+
+        circle {
+            fill: #fff;
+            stroke: #414141;
+        }
+
+        path {
+            fill: #414141;
+        }
+    }
+}
+
+:global(.nightMode .latex) {
+    filter: invert(100%);
+}
+
+:global(.drawing) {
+    zoom: 50%;
+}
+
+:global(.nightMode img.drawing) {
+    filter: string.unquote("invert(1) hue-rotate(180deg)");
+}

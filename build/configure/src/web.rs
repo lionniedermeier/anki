@@ -3,6 +3,7 @@
 
 use anyhow::Result;
 use ninja_gen::action::BuildAction;
+use ninja_gen::command::RunCommand;
 use ninja_gen::copy::CopyFiles;
 use ninja_gen::glob;
 use ninja_gen::hashmap;
@@ -45,7 +46,8 @@ fn build_sveltekit(build: &mut Build) -> Result<()> {
             deps: inputs![
                 "ts/tsconfig.json",
                 glob!["ts/**", "ts/.svelte-kit/**"],
-                ":ts:lib"
+                ":ts:lib",
+                ":qt:aqt:sass_vars"
             ],
         },
     )
@@ -361,7 +363,7 @@ fn check_web(build: &mut Build) -> Result<()> {
             ],
         },
     )?;
-    let eslint_rc = inputs![".eslintrc.cjs"];
+    let eslint_rc = inputs!["eslint.config.js"];
     for folder in ["ts", "qt/aqt/data/web/js"] {
         let inputs = inputs![glob![format!("{folder}/**"), "ts/.svelte-kit/**"]];
         build.add_action(
@@ -469,13 +471,39 @@ pub fn copy_mathjax() -> impl BuildAction {
 fn build_sass(build: &mut Build) -> Result<()> {
     build.add_dependency("sass", inputs![glob!("ts/lib/sass/**")]);
 
+    // tokens.json is the source of truth for the themeable design tokens; it
+    // is used to generate the SCSS partial _root-vars.scss consumes, the Qt
+    // color/prop constants, and the schema themes are validated against.
+    build.add_action(
+        "qt:aqt:sass_vars",
+        RunCommand {
+            command: ":pyenv:bin",
+            args: "$script $tokens_json $out",
+            inputs: hashmap! {
+                "script" => inputs!["qt/tools/gen_theme_tokens.py"],
+                "tokens_json" => inputs!["ts/lib/sass/tokens.json"],
+            },
+            outputs: hashmap! {
+                "out" => vec![
+                    "ts/lib/sass/_tokens.scss",
+                    "qt/_aqt/colors.py",
+                    "qt/_aqt/props.py",
+                    "qt/_aqt/theme_schema.json",
+                ]
+            },
+        },
+    )?;
+    // anything depending on the ":sass" group (reviewer, congrats/editable
+    // pages, aqt data/web css, ...) also needs the generated tokens partial.
+    build.add_dependency("sass", inputs![":qt:aqt:sass_vars"]);
+
     build.add_action(
         "css:_root-vars",
         CompileSass {
             input: inputs!["ts/lib/sass/_root-vars.scss"],
             output: "ts/lib/sass/_root-vars.css",
-            deps: inputs![glob!["ts/lib/sass/*"]],
-            load_paths: vec![],
+            deps: inputs![":qt:aqt:sass_vars", glob!["ts/lib/sass/*"]],
+            load_paths: vec!["$builddir/ts/lib/sass"],
         },
     )?;
 

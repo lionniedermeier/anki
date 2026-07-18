@@ -12,8 +12,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import TreeView from "$lib/components/TreeView/TreeView.svelte";
 
     import {
+        cardStateColorVarForRow,
         filterSidebarRows,
         findSidebarRow,
+        flagColorVarForRow,
         iconForNodeType,
         type SidebarRowNode,
     } from "./lib";
@@ -61,11 +63,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <TreeView nodes={displayRows} {selectedId} onToggle={toggle} onSelect={select}>
             {#snippet row(node)}
                 {@const icon = iconForNodeType(node.nodeType)}
+                {@const colorVar = flagColorVarForRow(node) ?? cardStateColorVarForRow(node)}
                 <div class="sidebar-row">
                     {#if icon}
-                        <IconConstrain>
-                            <Icon {icon} />
-                        </IconConstrain>
+                        <span style:color={colorVar ? `var(${colorVar})` : null}>
+                            <IconConstrain>
+                                <Icon {icon} />
+                            </IconConstrain>
+                        </span>
                     {/if}
                     <span class="sidebar-row-name">{node.name}</span>
                 </div>

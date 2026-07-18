@@ -34,7 +34,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     </div>
 {/if}
 
-<style>
+<style lang="scss">
     .toast-container {
         position: fixed;
         bottom: 3rem;
@@ -48,18 +48,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         display: flex;
         align-items: center;
         padding: 1rem;
-        background-color: #fff;
+        background-color: var(--canvas-elevated);
         border-radius: 0.5rem;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px var(--shadow-subtle);
         width: 60%;
         justify-content: space-between;
     }
     .success {
-        background: #66bb6a;
+        background: var(--accent-note);
         color: white;
     }
     .error {
-        background: #ef5350;
+        background: var(--accent-danger);
         color: white;
     }
     :global(.toast-icon) {

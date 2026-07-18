@@ -5,7 +5,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <script lang="ts">
     import * as tr from "@generated/ftl";
     import Modal from "$lib/components/Modal.svelte";
-    import { pageTheme } from "$lib/sveltelib/theme";
     import type { HistoryEntry } from "./types";
     import { searchInBrowser } from "@generated/backend";
 
@@ -36,7 +35,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </div>
     {/snippet}
     {#snippet body()}
-        <div class="modal-body" class:nightMode={$pageTheme.isDark}>
+        <div class="modal-body">
             <ul class="history-list">
                 {#each history as entry}
                     <li>
@@ -107,7 +106,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         left: 16px;
         right: 16px;
         height: 1px;
-        background-color: var(--link-color);
+        background-color: var(--fg-link);
         opacity: 0;
         transition: opacity 0.2s ease;
     }
@@ -116,8 +115,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         background-color: var(--canvas-elevated-hover);
         border-color: var(--border-strong);
         transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        color: var(--link-color);
+        color: var(--fg-link);
     }
 
     .history-entry:hover::after {
@@ -126,22 +124,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .history-entry:active {
         transform: translateY(0px);
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
     }
 
     .history-entry:focus {
-        outline: 2px solid var(--link-color);
+        outline: 2px solid var(--fg-link);
         outline-offset: 2px;
-    }
-
-    .nightMode .history-entry {
-        background-color: var(--canvas-elevated);
-        border-color: var(--border, rgba(255, 255, 255, 0.15));
-        color: var(--fg);
-    }
-
-    .nightMode .history-entry:hover {
-        border-color: var(--border-strong, rgba(255, 255, 255, 0.25));
-        color: var(--link-color);
     }
 </style>

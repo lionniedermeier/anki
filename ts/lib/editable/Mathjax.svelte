@@ -65,6 +65,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     $: empty = title === "MathJax";
     $: encoded = encodeURIComponent(converted);
 
+    // eslint-disable-next-line compat/compat
     const uuid = crypto.randomUUID();
     const imageHeight = writable(0);
     imageToHeightMap.set(uuid, imageHeight);

@@ -7,7 +7,7 @@ import type { PageLoad } from "./$types";
 function optionalBigInt(x: any): bigint | null {
     try {
         return BigInt(x);
-    } catch (e) {
+    } catch (_e) {
         return null;
     }
 }

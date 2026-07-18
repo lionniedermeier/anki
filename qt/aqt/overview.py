@@ -11,6 +11,7 @@ from anki.scheduler import UnburyDeck
 from aqt import gui_hooks
 from aqt.deckdescription import DeckDescriptionDialog
 from aqt.deckoptions import display_options_for_deck
+from aqt.operations.deck import set_current_deck
 from aqt.operations.scheduling import (
     empty_filtered_deck,
     rebuild_filtered_deck,
@@ -95,13 +96,19 @@ class Overview:
         elif url == "empty":
             self.empty_current_filtered_deck()
         elif url == "decks":
-            self.mw.moveToState("deckBrowser")
+            self.mw.moveToState("deckBrowser", skip_reload=True)
+        elif url.startswith("open:"):
+            name = url[len("open:") :]
+            if deck_id := self.mw.col.decks.id_for_name(name):
+                set_current_deck(parent=self.mw, deck_id=deck_id).success(
+                    lambda _: self.mw.onOverview()
+                ).run_in_background()
         elif url == "add":
             self.mw.onAddCard()
         elif url == "browse":
-            self.mw.browse.show()
+            self.mw.browse.show(skip_reload=True)
         elif url == "stats":
-            self.mw.onStats()
+            self.mw.onStats(skip_reload=True)
         elif url == "sync":
             self.mw.on_sync_button_clicked()
         elif url == "review":

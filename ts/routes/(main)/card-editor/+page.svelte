@@ -9,4 +9,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     let { data }: { data: PageData } = $props();
 </script>
 
-<CardTypeEditor notetypeNames={data.notetypeNames} />
+<CardTypeEditor
+    notetypeNames={data.notetypeNames}
+    initialNotetypeId={data.initialNotetypeId}
+/>

@@ -27,8 +27,8 @@ def build_browse_sidebar(mw: aqt.AnkiQt) -> BrowseSidebarNode:
 
     _saved_searches(col, root)
     _today(col, root)
-    _card_state(col, root)
     _flags(mw, root)
+    _card_state(col, root)
     _decks(col, root)
     _notetypes(col, root)
     _tags(col, root)

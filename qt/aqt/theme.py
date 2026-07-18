@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import enum
+import inspect
+import json
 import os
 import re
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 import anki.lang
 import aqt
@@ -45,6 +48,45 @@ class ColoredIcon:
         return ColoredIcon(path=self.path, color=color)
 
 
+_token_to_base_colors: dict[str, dict[str, str]] = {
+    name.lower().replace("_", "-"): value
+    for name, value in vars(colors).items()
+    if isinstance(value, dict) and "light" in value
+}
+_color_dict_to_token: dict[int, str] = {
+    id(value): token for token, value in _token_to_base_colors.items()
+}
+
+BUILTIN_LIGHT_THEME_ID = "anki-light"
+BUILTIN_DARK_THEME_ID = "anki-dark"
+
+
+@dataclass
+class ColorTheme:
+    """A theme distributed by an add-on or found in the user's themes folder.
+
+    `colors` maps a semantic token name (e.g. "canvas", "button-primary-bg" -
+    see qt/_aqt/theme_schema.json for the full list) to a single CSS color
+    value. A theme need not cover every token; tokens it omits keep their
+    built-in value. `type` is "light" or "dark", and determines which slot
+    the theme is offered for in the theme picker.
+    """
+
+    id: str
+    name: str
+    type: str
+    colors: dict[str, str]
+
+
+def _builtin_theme(theme_id: str, name: str, side: str) -> ColorTheme:
+    return ColorTheme(
+        id=theme_id,
+        name=name,
+        type=side,
+        colors={token: base[side] for token, base in _token_to_base_colors.items()},
+    )
+
+
 class WidgetStyle(enum.IntEnum):
     ANKI = 0
     NATIVE = 1
@@ -65,6 +107,12 @@ class ThemeManager:
     _default_style: str | None = None
     _current_widget_style: WidgetStyle | None = None
     _default_button_layout: int | None = None
+    _primitive_overrides: dict[str, dict[str, str]] = {}
+    _registered_themes: dict[str, ColorTheme] = {}
+    _active_light_theme_id: str = BUILTIN_LIGHT_THEME_ID
+    _active_dark_theme_id: str = BUILTIN_DARK_THEME_ID
+    _resolved_colors: dict[str, dict[str, str]] = {}
+    _schema_tokens: set[str] | None = None
 
     def rtl(self) -> bool:
         return is_rtl(anki.lang.current_lang)
@@ -190,9 +238,116 @@ class ThemeManager:
         "Returns body classes used when showing a card."
         return f"card card{card_ord + 1} {self.body_class(night_mode, reviewer=True)}"
 
+    def set_primitive_override(self, token: str, light: str, dark: str) -> None:
+        self._primitive_overrides[token] = {"light": light, "dark": dark}
+        gui_hooks.theme_did_change()
+
+    def set_primitive_overrides(self, overrides: dict[str, dict[str, str]]) -> None:
+        "Like set_primitive_override(), but applies several tokens with a single redraw."
+        self._primitive_overrides.update(overrides)
+        gui_hooks.theme_did_change()
+
+    def clear_primitive_override(self, token: str) -> None:
+        self._primitive_overrides.pop(token, None)
+        gui_hooks.theme_did_change()
+
+    def reset_primitive_overrides(self) -> None:
+        self._primitive_overrides.clear()
+        gui_hooks.theme_did_change()
+
+    def primitive_overrides(self) -> dict[str, dict[str, str]]:
+        return self._primitive_overrides
+
+    def register_theme(self, theme: ColorTheme) -> None:
+        "Make a theme distributed by an add-on or found in the user's themes folder available for selection."
+        theme.colors = self._validate_theme_colors(theme.id, theme.colors)
+        self._registered_themes[theme.id] = theme
+        gui_hooks.themes_did_change()
+
+    def registered_themes(self) -> list[ColorTheme]:
+        return list(self._registered_themes.values())
+
+    def light_theme_id(self) -> str:
+        return self._active_light_theme_id
+
+    def dark_theme_id(self) -> str:
+        return self._active_dark_theme_id
+
+    def _theme_schema_tokens(self) -> set[str]:
+        "Valid semantic color token names a theme may override, loaded from the generated schema."
+        if self._schema_tokens is None:
+            import _aqt.colors
+
+            schema_path = Path(inspect.getfile(_aqt.colors)).with_name(
+                "theme_schema.json"
+            )
+            try:
+                with open(schema_path, encoding="utf8") as f:
+                    self._schema_tokens = set(
+                        json.load(f)["properties"]["colors"]["properties"]
+                    )
+            except OSError:
+                self._schema_tokens = set()
+        return self._schema_tokens
+
+    def _validate_theme_colors(
+        self, theme_id: str, colors_in: dict[str, str]
+    ) -> dict[str, str]:
+        valid_tokens = self._theme_schema_tokens()
+        validated: dict[str, str] = {}
+        for token, value in colors_in.items():
+            if valid_tokens and token not in valid_tokens:
+                print(f"theme '{theme_id}': unknown token '{token}', ignoring")
+                continue
+            if not value:
+                print(f"theme '{theme_id}': token '{token}' missing value, ignoring")
+                continue
+            validated[token] = value
+        return validated
+
+    def _resolve_theme_id(self, theme_id: str | None, side: str) -> str:
+        default = (
+            BUILTIN_LIGHT_THEME_ID if side == "light" else BUILTIN_DARK_THEME_ID
+        )
+        if theme_id is None:
+            return default
+        theme = self._registered_themes.get(theme_id)
+        if theme is None or theme.type != side:
+            return default
+        return theme_id
+
+    def _recompute_resolved_colors(self) -> None:
+        light_theme = self._registered_themes[self._active_light_theme_id]
+        dark_theme = self._registered_themes[self._active_dark_theme_id]
+        resolved: dict[str, dict[str, str]] = {}
+        for token, base in _token_to_base_colors.items():
+            resolved[token] = {
+                "light": light_theme.colors.get(token, base["light"]),
+                "dark": dark_theme.colors.get(token, base["dark"]),
+            }
+        self._resolved_colors = resolved
+
+    def resolved_theme(self) -> dict[str, dict[str, str]]:
+        "Full token -> {light, dark} map produced by the active light/dark themes."
+        return self._resolved_colors
+
+    def apply_themes(self, light_theme_id: str | None, dark_theme_id: str | None) -> None:
+        "Select the preferred light/dark themes and recompute resolved colors."
+        self._active_light_theme_id = self._resolve_theme_id(light_theme_id, "light")
+        self._active_dark_theme_id = self._resolve_theme_id(dark_theme_id, "dark")
+        self._recompute_resolved_colors()
+        gui_hooks.theme_did_change()
+
     def var(self, vars: dict[str, str]) -> str:
         """Given day/night colors/props, return the correct one for the current theme."""
-        return vars["dark" if self.night_mode else "light"]
+        side = "dark" if self.night_mode else "light"
+        token = _color_dict_to_token.get(id(vars))
+        if token is not None:
+            if token in self._primitive_overrides:
+                return self._primitive_overrides[token][side]
+            if token in self._resolved_colors:
+                return self._resolved_colors[token][side]
+        return vars[side]
 
     def qcolor(self, colors: dict[str, str]) -> QColor:
         """Create QColor instance from CSS string for the current theme."""
@@ -434,3 +589,36 @@ def get_linux_dark_mode() -> bool:
 
 
 theme_manager = ThemeManager()
+theme_manager.register_theme(
+    _builtin_theme(BUILTIN_LIGHT_THEME_ID, "Anki Light", "light")
+)
+theme_manager.register_theme(_builtin_theme(BUILTIN_DARK_THEME_ID, "Anki Dark", "dark"))
+theme_manager._recompute_resolved_colors()
+
+
+def load_user_themes(themes_folder: str) -> None:
+    "Registers any *.json theme files found in the user's themes folder."
+    if not os.path.isdir(themes_folder):
+        return
+    for entry in sorted(os.listdir(themes_folder)):
+        if not entry.endswith(".json"):
+            continue
+        path = os.path.join(themes_folder, entry)
+        try:
+            with open(path, encoding="utf8") as f:
+                data = json.load(f)
+            theme_id = data.get("id") or os.path.splitext(entry)[0]
+            theme_type = data.get("type")
+            if theme_type not in ("light", "dark"):
+                print(f"failed to load theme '{path}': missing/invalid 'type'")
+                continue
+            theme = ColorTheme(
+                id=theme_id,
+                name=data.get("name", theme_id),
+                type=theme_type,
+                colors=data.get("colors", {}),
+            )
+        except (OSError, ValueError) as e:
+            print(f"failed to load theme '{path}': {e}")
+            continue
+        theme_manager.register_theme(theme)

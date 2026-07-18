@@ -1,0 +1,29 @@
+$carousel-transition: var(--transition);
+
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/button-group";
+@import "bootstrap/scss/transitions";
+@import "bootstrap/scss/modal";
+@import "bootstrap/scss/carousel";
+@import "bootstrap/scss/close";
+@import "bootstrap-tooltip";
+
+input[type="text"],
+input[type="date"],
+textarea {
+    padding-inline: 0.5rem;
+    background: var(--canvas-inset);
+}
+
+input {
+    color: var(--fg);
+}
+
+html {
+    height: initial;
+}
+
+[dir="rtl"] .modal-header .btn-close {
+    padding: 1rem 1rem !important;
+    margin: -1rem auto -1rem -1rem !important;
+}

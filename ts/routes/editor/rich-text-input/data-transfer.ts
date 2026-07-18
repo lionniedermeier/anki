@@ -118,7 +118,7 @@ async function getImageData(data: DataTransfer | ReadClipboardResponse): Promise
                     }
                 }
             }
-        } catch (e) {
+        } catch (_e) {
             continue;
         }
     }

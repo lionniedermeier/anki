@@ -72,7 +72,7 @@
         background: var(--canvas);
         border: 1px solid var(--border);
         border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 8px var(--shadow-subtle);
         padding: 4px 0;
         min-width: 120px;
         z-index: 1000;

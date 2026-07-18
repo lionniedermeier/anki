@@ -37,10 +37,11 @@ class Stats:
         self.mw = mw
         self.web = mw.web
 
-    def show(self) -> None:
+    def show(self, skip_reload: bool = False) -> None:
         av_player.stop_and_clear_queue()
         self.web.set_bridge_command(self._on_bridge_cmd, self)
-        self.web.load_sveltekit_page("graphs")
+        if not skip_reload:
+            self.web.load_sveltekit_page("graphs")
         self.mw.bottomWeb.hide()
 
     def _on_bridge_cmd(self, cmd: str) -> Any:
@@ -49,13 +50,13 @@ class Stats:
             browser = aqt.dialogs.open("Browser", self.mw)
             browser.search_for(query)
         elif cmd == "decks":
-            self.mw.moveToState("deckBrowser")
+            self.mw.moveToState("deckBrowser", skip_reload=True)
         elif cmd == "add":
             self.mw.onAddCard()
         elif cmd == "browse":
-            self.mw.browse.show()
+            self.mw.browse.show(skip_reload=True)
         elif cmd == "stats":
-            self.show()
+            self.show(skip_reload=True)
         elif cmd == "sync":
             self.mw.on_sync_button_clicked()
         return False

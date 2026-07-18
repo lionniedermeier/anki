@@ -55,7 +55,7 @@ from aqt.qt import *
 from aqt.qt import sip
 from aqt.sync import sync_collection, sync_login
 from aqt.taskman import TaskManager
-from aqt.theme import Theme, theme_manager
+from aqt.theme import Theme, load_user_themes, theme_manager
 from aqt.toolbar import BottomWebView, Toolbar, TopWebView
 from aqt.undo import UndoActionsInfo
 from aqt.utils import (
@@ -228,6 +228,7 @@ class AnkiQt(QMainWindow):
         self.setupMediaServer()
         self.setupSpellCheck()
         self.setupProgress()
+        load_user_themes(self.pm.themesFolder())
         self.setupStyle()
         self.setupMainWindow()
         self.setupSystemSpecific()
@@ -250,6 +251,7 @@ class AnkiQt(QMainWindow):
         self.toolbar.draw()
         # add-ons are only available here after setupAddons
         gui_hooks.reviewer_did_init(self.reviewer)
+        theme_manager.apply_themes(self.pm.light_theme_id(), self.pm.dark_theme_id())
 
     def setupProfileAfterWebviewsLoaded(self) -> None:
         for w in (self.web, self.bottomWeb):
@@ -757,7 +759,9 @@ class AnkiQt(QMainWindow):
     # Tracking main window state (deck browser, reviewer, etc)
     ##########################################################################
 
-    def moveToState(self, state: MainWindowState, *args: Any) -> None:
+    def moveToState(
+        self, state: MainWindowState, *args: Any, **kwargs: Any
+    ) -> None:
         # print("-> move from", self.state, "to", state)
         oldState = self.state
         cleanup = getattr(self, f"_{oldState}Cleanup", None)
@@ -766,13 +770,17 @@ class AnkiQt(QMainWindow):
         self.clearStateShortcuts()
         self.state = state
         gui_hooks.state_will_change(state, oldState)
-        getattr(self, f"_{state}State", lambda *_: None)(oldState, *args)
+        getattr(self, f"_{state}State", lambda *_, **__: None)(
+            oldState, *args, **kwargs
+        )
         if state != "resetRequired":
             self.bottomWeb.adjustHeightToFit()
         gui_hooks.state_did_change(state, oldState)
 
-    def _deckBrowserState(self, oldState: MainWindowState) -> None:
-        self.deckBrowser.show()
+    def _deckBrowserState(
+        self, oldState: MainWindowState, skip_reload: bool = False
+    ) -> None:
+        self.deckBrowser.show(skip_reload=skip_reload)
 
     def _deckBrowserCleanup(self, newState: MainWindowState) -> None:
         # deck browser hides the native bottom bar in favour of the buttons
@@ -793,6 +801,8 @@ class AnkiQt(QMainWindow):
 
     def _reviewState(self, oldState: MainWindowState) -> None:
         self.reviewer.show()
+
+        self.bottomWeb.hide()
 
         fullscreen_was_checked = False
 
@@ -957,19 +967,19 @@ title="{}" {}>{}</button>""".format(
         # toolbar
         tweb = self.toolbarWeb = TopWebView(self)
         self.toolbar = Toolbar(self, tweb)
+        tweb.setVisible(False)
         # main area
         self.web = MainWebView(self)
         # bottom area
         sweb = self.bottomWeb = BottomWebView(self)
         sweb.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         sweb.disable_zoom()
+        sweb.setVisible(False)
         # add in a layout
         self.mainLayout = QVBoxLayout()
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
-        self.mainLayout.addWidget(tweb)
         self.mainLayout.addWidget(self.web)
-        self.mainLayout.addWidget(sweb)
         self.form.centralwidget.setLayout(self.mainLayout)
 
         # force webengine processes to load before cwd is changed
@@ -1075,9 +1085,9 @@ title="{}" {}>{}</button>""".format(
         self.overview = Overview(self)
 
     def setupReviewer(self) -> None:
-        from aqt.reviewer import Reviewer
+        from aqt.reviewer_svelte import SvelteReviewer
 
-        self.reviewer = Reviewer(self)
+        self.reviewer = SvelteReviewer(self)
 
     def setupBrowse(self) -> None:
         from aqt.browse import Browse
@@ -1181,7 +1191,7 @@ title="{}" {}>{}</button>""".format(
     ##########################################################################
 
     def setupKeys(self) -> None:
-        globalShortcuts = [
+        globalShortcuts: list[tuple[str, Callable]] = [
             ("Ctrl+:", show_debug_console),
             ("d", lambda: self.moveToState("deckBrowser")),
             ("s", self.onStudyKey),
@@ -1331,7 +1341,7 @@ title="{}" {}>{}</button>""".format(
     def onOverview(self) -> None:
         self.moveToState("overview")
 
-    def onStats(self) -> None:
+    def onStats(self, skip_reload: bool = False) -> None:
         deck = self._selectedDeck()
         if not deck:
             return
@@ -1339,7 +1349,7 @@ title="{}" {}>{}</button>""".format(
         if want_old:
             aqt.dialogs.open("DeckStats", self)
         else:
-            self.stats.show()
+            self.stats.show(skip_reload=skip_reload)
 
     def onPrefs(self) -> None:
         aqt.dialogs.open("Preferences", self)

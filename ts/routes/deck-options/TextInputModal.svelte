@@ -4,7 +4,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
     import Modal from "$lib/components/Modal.svelte";
-    import { pageTheme } from "$lib/sveltelib/theme";
 
     interface Props {
         title: string;
@@ -59,15 +58,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 }}
             >
                 <div class="mb-3">
-                    <label for="prompt-input" class="col-form-label">
+                    <label for="prompt-input" class="field-label">
                         {prompt}:
                     </label>
                     <input
                         id="prompt-input"
                         bind:this={inputRef}
                         type="text"
-                        class:nightMode={$pageTheme.isDark}
-                        class="form-control"
+                        class="text-input"
                         bind:value
                     />
                 </div>
@@ -95,9 +93,21 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </Modal>
 
 <style lang="scss">
-    @use "../../lib/sass/night-mode" as nightmode;
+    .field-label {
+        display: block;
+        padding-block: calc(0.375rem + 1px);
+        margin-bottom: 0;
+    }
 
-    .nightMode {
-        @include nightmode.input;
+    .text-input {
+        width: 100%;
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: var(--canvas-inset);
+        border-color: var(--border);
+
+        &:focus {
+            background-color: var(--canvas-inset);
+        }
     }
 </style>

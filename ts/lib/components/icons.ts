@@ -83,6 +83,8 @@ import FlagVariantOffOutline_ from "@mdi/svg/svg/flag-variant-off-outline.svg?co
 import flagVariantOffOutline_ from "@mdi/svg/svg/flag-variant-off-outline.svg?url";
 import FlagVariantOutline_ from "@mdi/svg/svg/flag-variant-outline.svg?component";
 import flagVariantOutline_ from "@mdi/svg/svg/flag-variant-outline.svg?url";
+import FlagVariant_ from "@mdi/svg/svg/flag-variant.svg?component";
+import flagVariant_ from "@mdi/svg/svg/flag-variant.svg?url";
 import FormTextbox_ from "@mdi/svg/svg/form-textbox.svg?component";
 import formTextbox_ from "@mdi/svg/svg/form-textbox.svg?url";
 import FormatAlignCenter_ from "@mdi/svg/svg/format-align-center.svg?component";
@@ -255,6 +257,7 @@ export const flagVariantOutlineIcon = {
     url: flagVariantOutline_,
     component: FlagVariantOutline_,
 };
+export const flagVariantIcon = { url: flagVariant_, component: FlagVariant_ };
 export const flagVariantOffOutlineIcon = {
     url: flagVariantOffOutline_,
     component: FlagVariantOffOutline_,

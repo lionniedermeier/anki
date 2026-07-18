@@ -32,7 +32,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         await fetchNotetypes();
         try {
             await getNotetype({ ntid: selectedNotetype!.id }, { alertOnError: false });
-        } catch (error) {
+        } catch (_error) {
             select(notetypes[0].id);
         }
         return selectedNotetype!;

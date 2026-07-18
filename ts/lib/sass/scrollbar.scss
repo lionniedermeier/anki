@@ -1,11 +1,9 @@
 /* Copyright: Ankitects Pty Ltd and contributors
  * License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html */
 
-@use "vars";
-
 @mixin custom {
     &::-webkit-scrollbar {
-        background-color: vars.color(canvas);
+        background-color: var(--canvas);
 
         &:horizontal {
             height: 12px;
@@ -17,8 +15,8 @@
     }
 
     &::-webkit-scrollbar-thumb {
-        background: vars.color(scrollbar-bg);
-        border-radius: vars.prop(border-radius);
+        background: var(--scrollbar-bg);
+        border-radius: var(--border-radius);
 
         &:horizontal {
             min-width: 50px;
@@ -29,16 +27,16 @@
         }
 
         &:hover {
-            background: vars.color(scrollbar-bg-hover);
+            background: var(--scrollbar-bg-hover);
         }
 
         &:active {
-            background: vars.color(scrollbar-bg-active);
+            background: var(--scrollbar-bg-active);
         }
     }
 
     &::-webkit-scrollbar-corner {
-        background-color: vars.color(canvas);
+        background-color: var(--canvas);
     }
 
     &::-webkit-scrollbar-track {

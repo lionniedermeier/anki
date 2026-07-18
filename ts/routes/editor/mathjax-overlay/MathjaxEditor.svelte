@@ -22,8 +22,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { createEventDispatcher, onMount } from "svelte";
     import type { Writable } from "svelte/store";
 
-    import { pageTheme } from "$lib/sveltelib/theme";
-
     import { baseOptions, focusAndSetCaret, latex } from "../code-mirror";
     import type { CodeMirrorAPI } from "../CodeMirror.svelte";
     import CodeMirror from "../CodeMirror.svelte";
@@ -113,7 +111,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 </script>
 
-<div class="mathjax-editor" class:light-theme={!$pageTheme.isDark}>
+<div class="mathjax-editor">
     <CodeMirror
         {code}
         {configuration}
@@ -134,12 +132,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             max-width: 100ch;
             min-width: 14rem;
             margin-bottom: 0.25rem;
-        }
-
-        &.light-theme :global(.CodeMirror) {
             border-width: 1px 0;
             border-style: solid;
-            border-color: var(--border);
+            border-color: light-dark(var(--border), transparent);
         }
 
         :global(.CodeMirror-placeholder) {

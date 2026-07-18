@@ -36,8 +36,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </div>
 
 <style lang="scss">
-    @use "../sass/button-mixins" as button;
-
     .autocomplete-item {
         padding: 4px 8px;
 
@@ -51,14 +49,61 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
 
         &:hover {
-            @include button.base($with-disabled: false, $active-class: active);
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            border: 1px solid var(--border-subtle);
+            border-bottom-color: var(--shadow);
+            background: var(--button-bg);
+            &:hover {
+                background: linear-gradient(
+                    180deg,
+                    var(--button-gradient-start) 0%,
+                    var(--button-gradient-end) 100%
+                );
+                /* Makes distinguishing hover state in light theme easier */
+                border: 1px solid var(--shadow);
+            }
+            color: var(--fg);
+            &:active {
+                box-shadow: inset 0 calc(var(--buttons-size, 10px) / 15)
+                    calc(var(--buttons-size, 10px) / 5) rgba(0, 0, 0, 0.35);
+                border-color: var(--border-subtle);
+            }
+            &.active {
+                box-shadow: inset 0 calc(var(--buttons-size, 10px) / 15)
+                    calc(var(--buttons-size, 10px) / 5) rgba(0, 0, 0, 0.35);
+                background: var(--button-primary-bg);
+                color: white;
+                border-color: var(--border);
+            }
         }
         &.selected {
-            @include button.base(
-                $primary: true,
-                $with-disabled: false,
-                $active-class: active
-            );
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            border: none;
+            background: var(--button-primary-bg);
+            &:hover {
+                background: linear-gradient(
+                    180deg,
+                    var(--button-primary-gradient-start) 0%,
+                    var(--button-primary-gradient-end) 100%
+                );
+            }
+            color: white;
+            &:active {
+                box-shadow: inset 0 calc(var(--buttons-size, 10px) / 15)
+                    calc(var(--buttons-size, 10px) / 5) rgba(0, 0, 0, 0.35);
+                border-color: var(--border-subtle);
+            }
+            &.active {
+                box-shadow: inset 0 calc(var(--buttons-size, 10px) / 15)
+                    calc(var(--buttons-size, 10px) / 5) rgba(0, 0, 0, 0.35);
+                background: var(--button-primary-bg);
+                color: white;
+                border-color: var(--border);
+            }
         }
     }
 </style>

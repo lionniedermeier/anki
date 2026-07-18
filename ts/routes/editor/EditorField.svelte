@@ -133,8 +133,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </div>
 
 <style lang="scss">
-    @use "../../lib/sass/elevation" as *;
-
     /* Make sure labels are readable on custom Qt backgrounds */
     .field-container {
         background: var(--canvas);
@@ -153,8 +151,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
         border-radius: var(--border-radius);
         border: 1px solid var(--border);
-
-        @include elevation(1);
 
         outline-offset: -1px;
         &.dupe,
